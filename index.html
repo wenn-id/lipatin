@@ -152,6 +152,15 @@ p{margin:0}
 .hero .note{position:absolute;z-index:3;color:var(--on-mat);font-size:24px;pointer-events:none}
 .note-spin{right:0;top:-8px;flex-direction:column;align-items:flex-start;transform:rotate(-4deg)}
 .note-spin svg{margin-left:-8px}
+/* Scroll scrub: on wide, tall screens the mat stays pinned for one extra screen of scrolling while the box unfolds
+   into its flat pattern, which hands over to "jadi tiga lembar" right below. The same media query lives in the JS. */
+@media (min-width:901px) and (min-height:700px) and (prefers-reduced-motion:no-preference){
+  .hero{height:calc(100svh + 100vh)}
+  .hero .mat{position:sticky;top:12px;height:calc(100svh - 24px);min-height:0}
+  .hero-grid{height:100%;min-height:0}
+}
+.scrollcue{position:absolute;left:50%;top:14px;transform:translateX(-50%) rotate(-1.5deg);white-space:nowrap;z-index:3;display:none;color:var(--on-mat);font-family:var(--f-hand);font-size:22px;pointer-events:none;transition:opacity .3s}
+@media (min-width:901px) and (min-height:700px) and (prefers-reduced-motion:no-preference){.scrollcue{display:block}}
 .ticket-strip{flex-wrap:nowrap}
 .ticket-strip .mono{min-width:0;font-size:12px;line-height:1.4}
 .ticket-strip .btn{flex:none}
@@ -599,6 +608,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
       <div class="ruler x" aria-hidden="true"></div>
       <div class="ruler y" aria-hidden="true"></div>
       <span class="mat-mark" aria-hidden="true">Lipatin · skala 1:1</span>
+      <span class="scrollcue" id="scrollCue" aria-hidden="true">scroll pelan, boxnya dibongkar</span>
       <div class="hero-grid">
         <div class="proofsheet">
           <h1>Ukuran produk masuk, pola box siap <span class="script">potong</span>.</h1>
@@ -1756,7 +1766,7 @@ function createViewer(opt={}){
   const col=h=>new THREE.Color(h).convertSRGBToLinear();
   const ease=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
   const prog=(p,[a,b])=>ease((p-a)/(b-a));
-  const view={az:AZ,el:EL,zoom:1,r:150,rt:150,ty:0,tyt:0};
+  const view={az:AZ,el:EL,zoom:1,r:150,rt:150,ty:0,tyt:0,spin:0};
   let pieces=[], nodes=[], Tv=0.4, trash=[], fold=1, anim=null, running=false, host=null, foldCb=null, model=null, mats=null;
 
   function outerTex(m,s){
@@ -1906,7 +1916,8 @@ function createViewer(opt={}){
     const d=view.r/Math.sin(Math.min(half,hh))*1.08*view.zoom;
     /* look down more while the sheet is flat, settle to a 3/4 view as it folds */
     const elv=clamp(view.el+(1-ease(fold/0.5))*0.55,0.04,1.5);
-    camera.position.set(d*Math.cos(elv)*Math.sin(view.az), view.ty+d*Math.sin(elv), d*Math.cos(elv)*Math.cos(view.az));
+    const az=view.az+view.spin;
+    camera.position.set(d*Math.cos(elv)*Math.sin(az), view.ty+d*Math.sin(elv), d*Math.cos(elv)*Math.cos(az));
     camera.lookAt(0,view.ty,0);
     camera.near=Math.max(0.5,d/60); camera.far=d*30; camera.updateProjectionMatrix();
     const Rr=view.r;
@@ -1933,6 +1944,8 @@ function createViewer(opt={}){
     stop(){ running=false; },
     setFold(f){ anim=null; fold=clamp(f,0,1); apply(false); },
     getFold:()=>fold,
+    /* extra turn around the box, on top of whatever the user dragged */
+    setSpin(a){ view.spin=a; },
     animateTo(to,dur){ const span=Math.abs(to-fold); if(span<0.001) return; anim={from:fold,to,t0:performance.now(),dur:dur*span}; },
     onFold(cb){ foldCb=cb; }
   };
@@ -3250,6 +3263,40 @@ function heroRun(){
     if(!heroIntro){ heroIntro=true; if(!reduced()){ HERO.setFold(0); setTimeout(()=>HERO.animateTo(1,4400),250); } }
   } else HERO.stop();
 }
+
+/* Scroll scrub. Wide screens: the mat is pinned (CSS) and the scroll through it unfolds the box and turns it a quarter,
+   ending on the flat pattern that the next section splits into three sheets. Narrow screens: no pin, the box unfolds
+   while it travels up the viewport. Scrolling back up folds it again. Reduced motion: nothing moves on scroll,
+   the "Buka jadi pola" button still opens it. */
+(function(){
+  if(!HERO) return;
+  const hero=$('.hero'), cue=$('#scrollCue');
+  const pinMq=matchMedia('(min-width:901px) and (min-height:700px)');
+  const calmMq=matchMedia('(prefers-reduced-motion: reduce)');
+  let raf=0, last=-1;
+  function progress(){
+    const vh=innerHeight;
+    if(pinMq.matches){ const r=hero.getBoundingClientRect(), run=r.height-vh; return run>0?clamp(-r.top/run,0,1):0; }
+    const r=heroStage.getBoundingClientRect();
+    return clamp((vh*0.65-r.top)/(vh*0.65),0,1);
+  }
+  function update(){
+    raf=0;
+    if(calmMq.matches) return;
+    const p=progress();
+    if(Math.abs(p-last)<0.002) return;
+    last=p;
+    /* hold the closed box for the first stretch and the flat sheet for the last, so both ends read clearly */
+    const t=clamp((p-0.1)/0.75,0,1), q=t*t*(3-2*t);
+    HERO.setFold(1-q);
+    HERO.setSpin(q*Math.PI*0.5);
+    cue.style.opacity=p>0.04?0:1;
+  }
+  const req=()=>{ if(!raf) raf=requestAnimationFrame(update); };
+  addEventListener('scroll',req,{passive:true});
+  addEventListener('resize',()=>{ last=-1; req(); });
+  if(scrollY>0) req();
+})();
 
 /* Three sheets of the same box */
 $('#heroSheets').innerHTML=heroModel.parts.map((p,i)=>{
