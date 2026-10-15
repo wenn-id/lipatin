@@ -137,27 +137,47 @@ p{margin:0}
 /* Hero: a proof sheet with the headline lies on the mat, next to the real box built by the studio engine */
 .hero{padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
 .hero .mat{max-width:1400px;margin:0 auto;min-height:min(820px,calc(100svh - 84px))}
-.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:center;padding:clamp(28px,5vw,64px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px);min-height:inherit}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.15fr);gap:24px;align-items:center;padding:clamp(28px,5vw,64px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px);min-height:inherit}
 .proofsheet{position:relative;background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:0 2px 3px rgba(0,0,0,.12),0 30px 60px -24px rgba(0,0,0,.55);padding:clamp(28px,4vw,52px);transform:rotate(-1.2deg)}
 @media (prefers-reduced-motion:no-preference){.proofsheet{animation:sheetIn .9s cubic-bezier(.2,.8,.2,1) both}}
 @keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg);opacity:0}to{transform:rotate(-1.2deg);opacity:1}}
-.hero h1{font-size:clamp(42px,5.6vw,80px);letter-spacing:-.045em}
+.hero h1{font-size:clamp(40px,5vw,74px);letter-spacing:-.045em}
 .hero .lead{margin-top:22px;font-size:clamp(16px,1.4vw,18px);color:var(--muted);max-width:46ch}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
 .proof{position:relative;margin:0;min-width:0;display:flex;flex-direction:column;align-items:stretch}
-.hero-stage{position:relative;height:clamp(320px,40vw,520px);max-width:100%;cursor:grab;touch-action:pan-y}
+.hero-stage{position:relative;height:min(clamp(384px,48vw,624px),calc(100svh - 190px));max-width:100%;cursor:grab;touch-action:pan-y}
+/* Chapter caption over the stage: what the box is showing right now */
+.stage-cap{position:absolute;left:0;top:0;z-index:3;max-width:min(340px,62%);color:var(--on-mat);pointer-events:none;transition:opacity .25s;
+  background:color-mix(in srgb,var(--mat-deep) 90%,transparent);border-radius:12px;padding:10px 14px 12px}
+.stage-cap[hidden]{display:block!important;opacity:0}
+.cap-k{display:block;font-family:var(--f-hand);font-size:26px;line-height:1}
+.cap-t{display:block;margin-top:4px;font-family:var(--f-display);font-size:clamp(17px,1.5vw,21px);line-height:1.25;letter-spacing:-.01em;text-wrap:balance}
+.stage-cap:not([hidden]) ~ .note-spin{opacity:0;transition:opacity .25s}
+@media (max-width:900px){.stage-cap{max-width:78%;padding:8px 12px 10px}.cap-k{font-size:22px}.cap-t{font-size:15px}}
+.cap-steps{display:flex;gap:6px;margin-top:10px}
+.cap-steps i{width:22px;height:3px;border-radius:2px;background:var(--mat-major)}
+.cap-steps i.on{background:var(--on-mat)}
 .hero-stage:active{cursor:grabbing}
 .hero-stage canvas{display:block;width:100%;height:100%;touch-action:pan-y}
 .ticket-strip{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;align-self:center;max-width:100%;background:var(--paper);color:var(--ink);border-radius:var(--r-s);padding:8px 8px 8px 14px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.15),0 10px 24px -12px rgba(0,0,0,.5);transform:rotate(.8deg)}
 .hero .note{position:absolute;z-index:3;color:var(--on-mat);font-size:24px;pointer-events:none}
 .note-spin{right:0;top:-8px;flex-direction:column;align-items:flex-start;transform:rotate(-4deg)}
 .note-spin svg{margin-left:-8px}
-/* Scroll scrub: on wide, tall screens the mat stays pinned for one extra screen of scrolling while the box unfolds
-   into its flat pattern, which hands over to "jadi tiga lembar" right below. The same media query lives in the JS. */
+/* Scroll choreography. Wide, tall screens: the whole mat is pinned for about five screens of scrolling while the box
+   runs through its chapters (mechanism, shape, material) and ends on the flat pattern that "jadi tiga lembar" picks up.
+   Narrow screens: the headline sheet scrolls away first, then the stage sticks while the same chapters play.
+   overflow:clip instead of hidden so the mat does not become the sticky container. The same queries live in the JS. */
 @media (min-width:901px) and (min-height:700px) and (prefers-reduced-motion:no-preference){
-  .hero{height:calc(100svh + 100vh)}
+  .hero{height:calc(100svh + 480vh)}
   .hero .mat{position:sticky;top:12px;height:calc(100svh - 24px);min-height:0}
   .hero-grid{height:100%;min-height:0}
+}
+@media not ((min-width:901px) and (min-height:700px)){
+  @media (prefers-reduced-motion:no-preference){
+    .hero .mat{overflow:clip}
+    .hero-grid::after{content:"";height:420vh}
+    .proof{position:sticky;top:max(12px,calc(50svh - 250px));align-self:start}
+  }
 }
 .scrollcue{position:absolute;left:50%;top:14px;transform:translateX(-50%) rotate(-1.5deg);white-space:nowrap;z-index:3;display:none;color:var(--on-mat);font-family:var(--f-hand);font-size:22px;pointer-events:none;transition:opacity .3s}
 @media (min-width:901px) and (min-height:700px) and (prefers-reduced-motion:no-preference){.scrollcue{display:block}}
@@ -166,7 +186,7 @@ p{margin:0}
 .ticket-strip .btn{flex:none}
 @media (max-width:900px){
   .hero-grid{grid-template-columns:minmax(0,1fr);gap:20px;padding:24px 16px 72px 30px}
-  .hero-stage{height:clamp(280px,80vw,420px)}
+  .hero-stage{height:min(clamp(360px,110vw,520px),calc(100svh - 170px))}
   .proofsheet{transform:rotate(-.6deg)}
   .note-spin{top:-4px}
 }
@@ -619,6 +639,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
           </div>
         </div>
         <figure class="proof" aria-labelledby="heroTicket">
+          <div class="stage-cap" id="stageCap" aria-hidden="true" hidden><span class="cap-k" id="capK"></span><span class="cap-t" id="capT"></span><span class="cap-steps" id="capSteps"><i></i><i></i><i></i><i></i></span></div>
           <span class="note note-spin" aria-hidden="true">geser untuk memutar<svg width="40" height="40" viewBox="0 0 40 40"><path style="--len:60" d="M30 3C18 6 9 16 7 34"/><path style="--len:20" d="M2 27l5 8 7-6"/></svg></span>
           <div class="hero-stage" id="heroStage" role="img" aria-label="Model 3D box magnet buku yang bisa diputar"></div>
           <figcaption class="ticket-strip">
@@ -1825,7 +1846,8 @@ function createViewer(opt={}){
     if(!node.invisible){ const msh=mesh(node); msh.position.set(-hp[0],0,-hp[1]); pivot.add(msh); }
     (node.children||[]).forEach(ch=>add(ch,pivot,hp,node));
   }
-  function build(s,m){
+  /* keepView: swap the model without snapping the camera, so it eases to the new size */
+  function build(s,m,keepView){
     trash.forEach(d=>d.dispose()); trash=[];
     while(holder.children.length) holder.remove(holder.children[0]);
     model=m; Tv=Math.max(s.T,0.15);
@@ -1846,7 +1868,7 @@ function createViewer(opt={}){
       (function w(n){ n.poly.forEach(([x,y])=>{a0=Math.min(a0,x);b0=Math.min(b0,y);a1=Math.max(a1,x);b1=Math.max(b1,y);}); (n.children||[]).forEach(w); })(pc.root);
       return {pg,cg,rp,stand:pc.stand,size:new THREE.Vector3(),c0:[(a0+a1)/2,(b0+b1)/2]};
     });
-    apply(true);
+    apply(!keepView);
   }
   /* Tuck angle relative to its lid. Cross-section: lid hinge at origin, x toward the front panel, y out of the box.
      The tip may never pass the front panel's inner face and the tuck must pass inside its top edge,
@@ -3264,40 +3286,6 @@ function heroRun(){
   } else HERO.stop();
 }
 
-/* Scroll scrub. Wide screens: the mat is pinned (CSS) and the scroll through it unfolds the box and turns it a quarter,
-   ending on the flat pattern that the next section splits into three sheets. Narrow screens: no pin, the box unfolds
-   while it travels up the viewport. Scrolling back up folds it again. Reduced motion: nothing moves on scroll,
-   the "Buka jadi pola" button still opens it. */
-(function(){
-  if(!HERO) return;
-  const hero=$('.hero'), cue=$('#scrollCue');
-  const pinMq=matchMedia('(min-width:901px) and (min-height:700px)');
-  const calmMq=matchMedia('(prefers-reduced-motion: reduce)');
-  let raf=0, last=-1;
-  function progress(){
-    const vh=innerHeight;
-    if(pinMq.matches){ const r=hero.getBoundingClientRect(), run=r.height-vh; return run>0?clamp(-r.top/run,0,1):0; }
-    const r=heroStage.getBoundingClientRect();
-    return clamp((vh*0.65-r.top)/(vh*0.65),0,1);
-  }
-  function update(){
-    raf=0;
-    if(calmMq.matches) return;
-    const p=progress();
-    if(Math.abs(p-last)<0.002) return;
-    last=p;
-    /* hold the closed box for the first stretch and the flat sheet for the last, so both ends read clearly */
-    const t=clamp((p-0.1)/0.75,0,1), q=t*t*(3-2*t);
-    HERO.setFold(1-q);
-    HERO.setSpin(q*Math.PI*0.5);
-    cue.style.opacity=p>0.04?0:1;
-  }
-  const req=()=>{ if(!raf) raf=requestAnimationFrame(update); };
-  addEventListener('scroll',req,{passive:true});
-  addEventListener('resize',()=>{ last=-1; req(); });
-  if(scrollY>0) req();
-})();
-
 /* Three sheets of the same box */
 $('#heroSheets').innerHTML=heroModel.parts.map((p,i)=>{
   const pieces=p.items.reduce((a,it)=>a+it.count,0);
@@ -3325,6 +3313,85 @@ const DESC={rte:'Tutup atas dan bawah berlawanan arah. Untuk kosmetik dan obat.'
 const row=k=>`<li><button type="button" data-studio="${k}">${demoSVG(k)}<span><strong>${MODELS[k].name}</strong><small>${DESC[k]}</small></span><em>Buka di studio</em></button></li>`;
 $('#listA').innerHTML=ORDER_A.map(row).join('');
 $('#listB').innerHTML=ORDER_B.map(row).join('');
+
+/* ---------- Hero choreography: scrolling plays the box through four chapters ----------
+   Mechanism (the magnet book box opens and closes, then comes apart), shape (three folding cartons assemble from
+   their flat sheets), material (an open tray changes board so its inside and edges show), and back to the book box,
+   which ends flat for the "tiga lembar" section below. Every model is built by the studio engine from real sizes.
+   Models only swap while the sheet is flat, so a swap reads as one sheet replacing another.
+   Reduced motion: nothing moves on scroll; the "Buka jadi pola" button still works. */
+(function(){
+  if(!HERO) return;
+  const hero=$('.hero'), grid=$('.hero-grid'), sheet=$('.proofsheet'), proof=$('.proof'), cue=$('#scrollCue');
+  const cap=$('#stageCap'), capK=$('#capK'), capT=$('#capT'), steps=[...document.querySelectorAll('#capSteps i')];
+  const pinMq=matchMedia('(min-width:901px) and (min-height:700px)'), calmMq=matchMedia('(prefers-reduced-motion: reduce)');
+  const base={X:30,Xs:{},bleed:false,inner:'#F4F1EC',label:'LIPATIN',TI:15,HBM:'v',view:'3d',imp:null,impScale:'auto',impRealW:0,part:'board'};
+  const mk=(model,mat,o)=>{ const M=MAT[mat], s={...base,model,mat,T:M.t,glue:M.group.glue,...o}; if(MODELS[model].defX) s.X=MODELS[model].defX(s); return {s,m:buildModel(s)}; };
+  const B={
+    book:{s:heroState,m:heroModel},
+    rte:mk('rte','iv310',{L:60,W:40,D:110,color:'#1D2329'}),
+    hex:mk('hex','kr300',{L:55,W:55,D:70,color:'#B98D5F'}),
+    mailer:mk('mailer','fluteE',{L:200,W:140,D:60,color:'#C89F72'}),
+    trE:mk('tray','fluteE',{L:180,W:120,D:50,color:'#C89F72'}),
+    trK:mk('tray','kr300',{L:180,W:120,D:50,color:'#B98D5F'}),
+    trI:mk('tray','iv310',{L:180,W:120,D:50,color:'#F4F1EC'}),
+    trD:mk('tray','dx350',{L:180,W:120,D:50,color:'#F4F1EC'})
+  };
+  const sm=t=>t*t*(3-2*t), span=(t,a,b)=>sm(clamp((t-a)/(b-a),0,1));
+  const hold=()=>1, rise=t=>sm(t), fall=t=>1-sm(t);
+  /* assemble from flat, hold, take apart again */
+  const cycle=t=>t<.45?span(t,0,.45):t<.68?1:1-span(t,.68,1);
+  const shape=k=>({w:1.5,k,ch:1,fold:cycle,cap:['Bentuk',`${MODELS[k].name}. ${DESC[k]}`]});
+  const mat=(k,id,line,fold=hold,w=.6)=>({w,k,ch:2,fold,cap:['Bahan',`${MAT[id].name}. ${line}`]});
+  const TL=[
+    {w:.5,k:'book',ch:-1,fold:hold,cap:null},
+    {w:1.4,k:'book',ch:0,fold:t=>1-.42*Math.sin(Math.PI*sm(t)),cap:['Mekanisme','Sampul membuka dari depan, lalu menutup lagi dan ditahan magnet.']},
+    {w:.8,k:'book',ch:0,fold:fall,cap:['Mekanisme','Dinding board berdiri dari alas yang diberi alur V.']},
+    shape('rte'),shape('hex'),shape('mailer'),
+    mat('trE','fluteE','Gelombang di tepinya membuat kuat untuk kiriman.',rise,.8),
+    mat('trE','fluteE','Gelombang di tepinya membuat kuat untuk kiriman.'),
+    mat('trK','kr300','Cokelat alami di kedua sisi.'),
+    mat('trI','iv310','Putih di kedua sisi, paling umum untuk kemasan makanan.'),
+    mat('trD','dx350','Putih di luar, abu-abu di dalam, lebih hemat.'),
+    mat('trD','dx350','Putih di luar, abu-abu di dalam, lebih hemat.',fall,.7),
+    {w:1.1,k:'book',ch:3,fold:rise,cap:['Hardbox','Greyboard 2 mm dibungkus kertas, dirakit jadi box magnet buku.']},
+    {w:.5,k:'book',ch:3,fold:hold,cap:['Hardbox','Greyboard 2 mm dibungkus kertas, dirakit jadi box magnet buku.']},
+    {w:1.1,k:'book',ch:3,fold:fall,cap:['Dibongkar','Ini polanya. Di bawah, dipisah jadi tiga lembar.']}
+  ];
+  const TOTAL=TL.reduce((a,x)=>a+x.w,0);
+  const ticket=k=>{ if(k==='book') return `${MODELS.hb_book.name} · ${heroState.L} × ${heroState.W} × ${heroState.D} mm · ${MAT.gb20.name}`;
+    const s=B[k].s; return `${MODELS[s.model].name} · ${s.L} × ${s.W} × ${s.D} mm · ${MAT[s.mat].name}`; };
+  let cur='book', curCap='', raf=0, last=-1;
+  function progress(){
+    const vh=innerHeight, r=hero.getBoundingClientRect(), y=-r.top;
+    if(pinMq.matches){ const run=r.height-vh; return run>0?clamp(y/run,0,1):0; }
+    /* narrow: from the moment the stage sticks until it reaches the bottom of the grid */
+    const stick=parseFloat(getComputedStyle(proof).top)||0;
+    const start=sheet.getBoundingClientRect().bottom-r.top+20-stick;
+    const end=grid.getBoundingClientRect().bottom-r.top-parseFloat(getComputedStyle(grid).paddingBottom)-proof.offsetHeight-stick;
+    return end>start?clamp((y-start)/(end-start),0,1):0;
+  }
+  function update(){
+    raf=0;
+    if(calmMq.matches) return;
+    const p=progress();
+    if(Math.abs(p-last)<0.0005) return;
+    last=p;
+    let x=p*TOTAL, i=0; while(i<TL.length-1&&x>TL[i].w){ x-=TL[i].w; i++; }
+    const S=TL[i], t=clamp(x/S.w,0,1);
+    if(S.k!==cur){ cur=S.k; HERO.build(B[cur].s,B[cur].m,true); $('#heroTicket').textContent=ticket(cur); }
+    HERO.setFold(S.fold(t));
+    /* sway rather than turn all the way round, so the printed front stays readable */
+    HERO.setSpin(.55*Math.sin(p*Math.PI*3));
+    const c=S.cap?S.cap.join('|'):'';
+    if(c!==curCap){ curCap=c; cap.hidden=!S.cap; if(S.cap){ capK.textContent=S.cap[0]; capT.textContent=S.cap[1]; } steps.forEach((el,j)=>el.classList.toggle('on',j===S.ch)); }
+    cue.style.opacity=p>0.01?0:1;
+  }
+  const req=()=>{ if(!raf) raf=requestAnimationFrame(update); };
+  addEventListener('scroll',req,{passive:true});
+  addEventListener('resize',()=>{ last=-1; req(); });
+  if(scrollY>0) req();
+})();
 
 /* ---------- Estimasi harga: a shared price list and a calculator that reads specs from chat ---------- */
 const EST_CATS=[
