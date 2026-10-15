@@ -127,68 +127,69 @@ p{margin:0}
 .menu a small{font:12px var(--f-mono);color:var(--muted)}
 .menu a:hover,.menu a:focus-visible{background:var(--paper)}
 
-/* Landing top line: the name only. Navigation lives in the dock. */
-.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px 14px}
+/* Landing top line, printed on the mat: the name only. Navigation lives in the dock. */
+.mat-top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,4vw,56px) 0 clamp(28px,4.5vw,64px);color:var(--on-mat)}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:500;font-size:24px;letter-spacing:-.02em}
 .brand svg{flex:none}
-.top-note{font-size:14px;color:var(--muted)}
+.top-note{font-size:14px;color:var(--on-mat)}
 @media (max-width:640px){.top-note{display:none}}
 
 /* Hero: a proof sheet with the headline lies on the mat, next to the real box built by the studio engine */
-.hero{padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
-.hero .mat{max-width:1400px;margin:0 auto;min-height:min(820px,calc(100svh - 84px))}
-.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.15fr);gap:24px;align-items:center;padding:clamp(28px,5vw,64px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px);min-height:inherit}
+.hero{padding:12px max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px))}
+.hero .mat{max-width:1400px;margin:0 auto;min-height:min(820px,calc(100svh - 96px));display:flex;flex-direction:column}
+.hero-grid{flex:1}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.15fr);gap:24px;align-items:center;padding:clamp(20px,3vw,40px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px)}
 .proofsheet{position:relative;background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:0 2px 3px rgba(0,0,0,.12),0 30px 60px -24px rgba(0,0,0,.55);padding:clamp(28px,4vw,52px);transform:rotate(-1.2deg)}
 @media (prefers-reduced-motion:no-preference){.proofsheet{animation:sheetIn .9s cubic-bezier(.2,.8,.2,1) both}}
 @keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg);opacity:0}to{transform:rotate(-1.2deg);opacity:1}}
 .hero h1{font-size:clamp(40px,5vw,74px);letter-spacing:-.045em}
 .hero .lead{margin-top:22px;font-size:clamp(16px,1.4vw,18px);color:var(--muted);max-width:46ch}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
-.proof{position:relative;margin:0;min-width:0;display:flex;flex-direction:column;align-items:stretch}
-.hero-stage{position:relative;height:min(clamp(384px,48vw,624px),calc(100svh - 190px));max-width:100%;cursor:grab;touch-action:pan-y}
-/* Chapter caption over the stage: what the box is showing right now */
-.stage-cap{position:absolute;left:0;top:0;z-index:3;max-width:min(340px,62%);color:var(--on-mat);pointer-events:none;transition:opacity .25s;
-  background:color-mix(in srgb,var(--mat-deep) 90%,transparent);border-radius:12px;padding:10px 14px 12px}
-.stage-cap[hidden]{display:block!important;opacity:0}
+/* The box column stacks three rows that never overlap: chapter caption, 3D stage, size ticket */
+.proof{position:relative;margin:0;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.hero-stage{position:relative;height:min(clamp(384px,48vw,624px),calc(100svh - 300px));max-width:100%;cursor:grab;touch-action:pan-y}
+.hero-stage:active{cursor:grabbing}
+.hero-stage canvas{display:block;width:100%;height:100%;touch-action:pan-y}
+/* Chapter caption: what the box is showing right now, in its own row above the stage */
+.stage-cap{align-self:flex-start;max-width:min(420px,100%);min-height:96px;color:var(--on-mat);pointer-events:none}
 .cap-k{display:block;font-family:var(--f-hand);font-size:26px;line-height:1}
 .cap-t{display:block;margin-top:4px;font-family:var(--f-display);font-size:clamp(17px,1.5vw,21px);line-height:1.25;letter-spacing:-.01em;text-wrap:balance}
-.stage-cap:not([hidden]) ~ .note-spin{opacity:0;transition:opacity .25s}
-@media (max-width:900px){.stage-cap{max-width:78%;padding:8px 12px 10px}.cap-k{font-size:22px}.cap-t{font-size:15px}}
 .cap-steps{display:flex;gap:6px;margin-top:10px}
 .cap-steps i{width:22px;height:3px;border-radius:2px;background:var(--mat-major)}
 .cap-steps i.on{background:var(--on-mat)}
-.hero-stage:active{cursor:grabbing}
-.hero-stage canvas{display:block;width:100%;height:100%;touch-action:pan-y}
-.ticket-strip{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;align-self:center;max-width:100%;background:var(--paper);color:var(--ink);border-radius:var(--r-s);padding:8px 8px 8px 14px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.15),0 10px 24px -12px rgba(0,0,0,.5);transform:rotate(.8deg)}
-.hero .note{position:absolute;z-index:3;color:var(--on-mat);font-size:24px;pointer-events:none}
-.note-spin{right:0;top:-8px;flex-direction:column;align-items:flex-start;transform:rotate(-4deg)}
-.note-spin svg{margin-left:-8px}
-/* Scroll choreography. Wide, tall screens: the whole mat is pinned for about five screens of scrolling while the box
-   runs through its chapters (mechanism, shape, material) and ends on the flat pattern that "jadi tiga lembar" picks up.
-   Narrow screens: the headline sheet scrolls away first, then the stage sticks while the same chapters play.
-   overflow:clip instead of hidden so the mat does not become the sticky container. The same queries live in the JS. */
+@media (prefers-reduced-motion:reduce){.cap-steps{display:none}}
+.ticket-strip{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:nowrap;align-self:center;max-width:100%;background:var(--paper);color:var(--ink);border-radius:var(--r-s);padding:8px 8px 8px 14px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.15),0 10px 24px -12px rgba(0,0,0,.5);transform:rotate(.8deg)}
+.ticket-strip .mono{min-width:0;font-size:12px;line-height:1.4}
+.ticket-strip .btn{flex:none}
+/* Scroll choreography. Wide, tall screens: the whole mat is pinned for three screens of scrolling while the hexagonal
+   box runs through its chapters. Narrow screens: the headline sheet scrolls away first, then the box column sticks
+   in the middle of the screen while the same chapters play. overflow:clip instead of hidden so the mat does not become
+   the sticky container. The same media queries live in the JS. */
 @media (min-width:901px) and (min-height:700px) and (prefers-reduced-motion:no-preference){
-  .hero{height:calc(100svh + 480vh)}
-  .hero .mat{position:sticky;top:12px;height:calc(100svh - 24px);min-height:0}
-  .hero-grid{height:100%;min-height:0}
+  .hero{height:calc(100svh + 300vh)}
+  /* the mat stops 84px above the bottom edge, leaving that strip to the dock, so the dock never covers the hero */
+  .hero .mat{position:sticky;top:12px;height:calc(100svh - 96px);min-height:0}
+  /* everything sizes to the pinned mat: the stage takes whatever height is left, the headline scales with screen height */
+  .hero-grid{min-height:0;padding-top:14px;padding-bottom:24px;align-items:stretch}
+  .proof{height:100%;min-height:0}
+  .hero-stage{flex:1;height:auto;min-height:0;max-height:624px}
+  .proofsheet{align-self:center;padding:clamp(22px,3.4svh,48px)}
+  .hero h1{font-size:clamp(34px,min(5vw,7.4svh),74px)}
+  .hero .lead{font-size:clamp(14px,min(1.4vw,2.3svh),18px);margin-top:min(22px,2.4svh)}
+  .hero .ctas{margin-top:min(28px,3svh)}
 }
 @media not ((min-width:901px) and (min-height:700px)){
   @media (prefers-reduced-motion:no-preference){
     .hero .mat{overflow:clip}
-    .hero-grid::after{content:"";height:420vh}
-    .proof{position:sticky;top:max(12px,calc(50svh - 250px));align-self:start}
+    .hero-grid::after{content:"";height:260vh}
+    .proof{position:sticky;top:max(12px,calc(50svh - 320px));align-self:start}
   }
 }
-.scrollcue{position:absolute;left:50%;top:14px;transform:translateX(-50%) rotate(-1.5deg);white-space:nowrap;z-index:3;display:none;color:var(--on-mat);font-family:var(--f-hand);font-size:22px;pointer-events:none;transition:opacity .3s}
-@media (min-width:901px) and (min-height:700px) and (prefers-reduced-motion:no-preference){.scrollcue{display:block}}
-.ticket-strip{flex-wrap:nowrap}
-.ticket-strip .mono{min-width:0;font-size:12px;line-height:1.4}
-.ticket-strip .btn{flex:none}
 @media (max-width:900px){
   .hero-grid{grid-template-columns:minmax(0,1fr);gap:20px;padding:24px 16px 72px 30px}
-  .hero-stage{height:min(clamp(360px,110vw,520px),calc(100svh - 170px))}
+  .hero-stage{height:min(clamp(320px,100vw,480px),calc(100svh - 270px))}
   .proofsheet{transform:rotate(-.6deg)}
-  .note-spin{top:-4px}
+  .stage-cap{min-height:84px}.cap-k{font-size:22px}.cap-t{font-size:16px}
 }
 
 /* CSS box: fallback when WebGL is missing */
@@ -612,23 +613,19 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 <body>
 
 <div id="landing">
-<header class="top">
-  <div class="wrap">
-    <a class="brand" href="#atas" aria-label="Lipatin, ke atas">
-      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M10 2h8v6h8v8h-8v10h-8V16H2V8h8z" fill="none" stroke="var(--cut)" stroke-width="2" stroke-linejoin="round"/><path d="M10 8h8M10 16h8M10 8v8M18 8v8" stroke="var(--crease)" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
-      Lipatin
-    </a>
-    <span class="top-note">Alat pola kemasan untuk percetakan</span>
-  </div>
-</header>
-
 <main id="atas">
   <section class="hero">
     <div class="mat">
       <div class="ruler x" aria-hidden="true"></div>
       <div class="ruler y" aria-hidden="true"></div>
       <span class="mat-mark" aria-hidden="true">Lipatin · skala 1:1</span>
-      <span class="scrollcue" id="scrollCue" aria-hidden="true">scroll pelan, boxnya dibongkar</span>
+      <header class="mat-top">
+        <a class="brand" href="#atas" aria-label="Lipatin, ke atas">
+          <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M10 2h8v6h8v8h-8v10h-8V16H2V8h8z" fill="none" stroke="#FF4D8E" stroke-width="2" stroke-linejoin="round"/><path d="M10 8h8M10 16h8M10 8v8M18 8v8" stroke="#41B9EE" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
+          Lipatin
+        </a>
+        <span class="top-note">Alat pola kemasan untuk percetakan</span>
+      </header>
       <div class="hero-grid">
         <div class="proofsheet">
           <h1>Ukuran produk masuk, pola box siap <span class="script">potong</span>.</h1>
@@ -639,9 +636,8 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
           </div>
         </div>
         <figure class="proof" aria-labelledby="heroTicket">
-          <div class="stage-cap" id="stageCap" aria-hidden="true" hidden><span class="cap-k" id="capK"></span><span class="cap-t" id="capT"></span><span class="cap-steps" id="capSteps"><i></i><i></i><i></i><i></i></span></div>
-          <span class="note note-spin" aria-hidden="true">geser untuk memutar<svg width="40" height="40" viewBox="0 0 40 40"><path style="--len:60" d="M30 3C18 6 9 16 7 34"/><path style="--len:20" d="M2 27l5 8 7-6"/></svg></span>
-          <div class="hero-stage" id="heroStage" role="img" aria-label="Model 3D box magnet buku yang bisa diputar"></div>
+          <div class="stage-cap" id="stageCap" aria-hidden="true"><span class="cap-k" id="capK"></span><span class="cap-t" id="capT"></span><span class="cap-steps" id="capSteps"><i></i><i></i><i></i></span></div>
+          <div class="hero-stage" id="heroStage" role="img" aria-label="Model 3D box hexagonal putih yang bisa diputar"></div>
           <figcaption class="ticket-strip">
             <span class="mono" id="heroTicket">Box magnet buku</span>
             <button type="button" class="btn btn-line btn-sm" id="heroFold">Buka jadi pola</button>
@@ -654,7 +650,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
   <section class="sec" id="tiga-lembar">
     <div class="wrap">
       <div class="center-head head-notes">
-        <h2 class="h2">Box di atas, kalau dibongkar, jadi tiga <span class="script">lembar</span> ini.</h2>
+        <h2 class="h2">Box magnet buku, kalau dibongkar, jadi tiga <span class="script">lembar</span> ini.</h2>
         <p>Board dipotong lalu diberi alur V supaya bisa ditekuk. Kertas pembungkus menutup sisi luar dan masuk 15 mm ke dalam. Kertas dalam menutup board yang masih terlihat. Ketiganya keluar dari ukuran yang sama, jadi pasti saling pas.</p>
         <span class="note n-right" aria-hidden="true">satu ukuran, tiga lembar<svg width="34" height="30" viewBox="0 0 34 30"><path style="--len:50" d="M4 2c2 12 10 20 24 22"/><path style="--len:18" d="M22 18l7 6-8 4"/></svg></span>
       </div>
@@ -1775,6 +1771,8 @@ function createViewer(opt={}){
   renderer.outputEncoding=THREE.sRGBEncoding;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000,0);
+  /* filmic tone mapping keeps white board from clipping to flat white when it faces the light */
+  if(opt.exposure){ renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=opt.exposure; }
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(30,1,1,20000);
   scene.add(new THREE.HemisphereLight(0xffffff,0x9a958c,0.6));
@@ -1973,7 +1971,7 @@ function createViewer(opt={}){
   };
 }
 const V3=createViewer();
-const HERO=createViewer({wheel:false,az:0.78,el:0.5});
+const HERO=createViewer({wheel:false,az:0.78,el:0.5,exposure:1.1});
 
 /* CSS box: hero decoration and fallback when WebGL is unavailable */
 function buildBox(stage,o){
@@ -3258,14 +3256,17 @@ $('#modeSw').addEventListener('click',e=>{ const b=e.target.closest('button[data
 function selectTool(k){ LY.tool=k; const r=$(`#lyTools input[value="${k}"]`); if(r) r.checked=true; LY.sheetIdx=0; saveLY(); setStudioMode('layout'); }
 
 
-/* ---------- Landing: one real box, built by the same engine as the studio ---------- */
+/* ---------- Landing: real boxes, built by the same engine as the studio ----------
+   The hero shows a white hexagonal carton. The sections below explain the magnet book box (heroState). */
 const heroState={model:'hb_book',L:160,W:120,D:60,X:50,Xs:{},T:2,mat:'gb20',glue:20,TI:15,HBM:'v',bleed:true,color:'#EFE9DD',inner:'#C29467',label:'LIPATIN'};
 const heroModel=buildModel(heroState);
-$('#heroTicket').textContent=`${MODELS.hb_book.name} · ${heroState.L} × ${heroState.W} × ${heroState.D} mm · ${MAT.gb20.name}`;
+const heroHex={model:'hex',L:55,W:55,D:70,X:30,Xs:{},mat:'iv310',T:MAT.iv310.t,glue:MAT.iv310.group.glue,TI:15,HBM:'v',bleed:false,color:'#E7E3DA',inner:'#F4F1EC',label:'LIPATIN'};
+const heroHexModel=buildModel(heroHex);
+$('#heroTicket').textContent=`${MODELS.hex.name} · ${heroHex.L} × ${heroHex.W} × ${heroHex.D} mm · ${MAT.iv310.name}`;
 const heroStage=$('#heroStage');
 let heroIntro=false, heroVisible=false;
 if(HERO){
-  HERO.build(heroState,heroModel);
+  HERO.build(heroHex,heroHexModel);
   HERO.onFold(f=>{ $('#heroFold').textContent= f>0.5?'Buka jadi pola':'Rakit lagi'; });
   HERO.setFold(1);
   const io=window.IntersectionObserver ? new IntersectionObserver(es=>es.forEach(e=>{ heroVisible=e.isIntersecting; heroRun(); }),{threshold:.15}) : null;
@@ -3273,7 +3274,7 @@ if(HERO){
   heroRun();
   $('#heroFold').addEventListener('click',()=>HERO.animateTo(HERO.getFold()>0.5?0:1,3600));
 } else {
-  buildBox(heroStage,{L:160,W:120,D:60,color:'#22303A',label:'LIPATIN',open:0,tray:false,rx:-24,ry:-35,size:Math.min(260,Math.max(150,heroStage.clientWidth*0.45))});
+  buildBox(heroStage,{L:55,W:55,D:70,color:'#F7F5F0',label:'LIPATIN',open:0,tray:false,rx:-24,ry:-35,size:Math.min(260,Math.max(150,heroStage.clientWidth*0.45))});
   $('#heroFold').hidden=true;
 }
 /* The hero renders only while it is on screen and the studio is closed. The assembly plays once, the first time it is seen. */
@@ -3282,7 +3283,8 @@ function heroRun(){
   const on=heroVisible&&$('#studio').hidden;
   if(on){
     HERO.start(heroStage);
-    if(!heroIntro){ heroIntro=true; if(!reduced()){ HERO.setFold(0); setTimeout(()=>HERO.animateTo(1,4400),250); } }
+    /* the intro assembly only plays from the top of the page; further down, scroll position decides the fold */
+    if(!heroIntro){ heroIntro=true; if(!reduced()&&scrollY<40){ HERO.setFold(0); setTimeout(()=>{ if(scrollY<40) HERO.animateTo(1,4400); else dispatchEvent(new Event('scroll')); },250); } }
   } else HERO.stop();
 }
 
@@ -3301,7 +3303,7 @@ $('#heroSheets').innerHTML=heroModel.parts.map((p,i)=>{
   const w=list.find(x=>x.p.key==='wrap');
   $('#heroPlano').innerHTML=sheetDrawing(itemSVGfn(w.it.g),w.it.w,w.it.h,w.res,SP[0],SP[1],margin);
   $('#heroFacts').innerHTML=`<div><dt>${esc(w.it.name)} per plano</dt><dd>${w.res.n}</dd></div><div><dt>Lembar board</dt><dd>${nf(r.sB,0)}</dd></div><div><dt>Lembar pembungkus</dt><dd>${nf(r.sW,0)}</dd></div>`;
-  $('#heroFactsNote').textContent=`Dihitung langsung dari box di atas: 1.000 box, board 79 × 109 cm, kertas 65 × 100 cm, jarak antar pola 6 mm, insheet 5%.`;
+  $('#heroFactsNote').textContent=`Dihitung langsung dari box magnet buku di atas:1.000 box, board 79 × 109 cm, kertas 65 × 100 cm, jarak antar pola 6 mm, insheet 5%.`;
 })();
 
 /* Model index: every row opens the studio on that model */
@@ -3314,54 +3316,32 @@ const row=k=>`<li><button type="button" data-studio="${k}">${demoSVG(k)}<span><s
 $('#listA').innerHTML=ORDER_A.map(row).join('');
 $('#listB').innerHTML=ORDER_B.map(row).join('');
 
-/* ---------- Hero choreography: scrolling plays the box through four chapters ----------
-   Mechanism (the magnet book box opens and closes, then comes apart), shape (three folding cartons assemble from
-   their flat sheets), material (an open tray changes board so its inside and edges show), and back to the book box,
-   which ends flat for the "tiga lembar" section below. Every model is built by the studio engine from real sizes.
-   Models only swap while the sheet is flat, so a swap reads as one sheet replacing another.
-   Reduced motion: nothing moves on scroll; the "Buka jadi pola" button still works. */
+/* ---------- Hero choreography: scrolling walks the white hexagonal box through three chapters ----------
+   Mechanism (the tuck lid and dust flaps open, then the tuck slides back in), taken apart (down to its one flat sheet),
+   and assembled again (glued body, glued base, tuck lid closing). The caption sits in its own row above the stage,
+   never over the box. Reduced motion: nothing moves on scroll; the "Buka jadi pola" button still works. */
 (function(){
   if(!HERO) return;
-  const hero=$('.hero'), grid=$('.hero-grid'), sheet=$('.proofsheet'), proof=$('.proof'), cue=$('#scrollCue');
-  const cap=$('#stageCap'), capK=$('#capK'), capT=$('#capT'), steps=[...document.querySelectorAll('#capSteps i')];
+  const hero=$('.hero'), grid=$('.hero-grid'), sheet=$('.proofsheet'), proof=$('.proof');
+  const capK=$('#capK'), capT=$('#capT'), steps=[...document.querySelectorAll('#capSteps i')];
   const pinMq=matchMedia('(min-width:901px) and (min-height:700px)'), calmMq=matchMedia('(prefers-reduced-motion: reduce)');
-  const base={X:30,Xs:{},bleed:false,inner:'#F4F1EC',label:'LIPATIN',TI:15,HBM:'v',view:'3d',imp:null,impScale:'auto',impRealW:0,part:'board'};
-  const mk=(model,mat,o)=>{ const M=MAT[mat], s={...base,model,mat,T:M.t,glue:M.group.glue,...o}; if(MODELS[model].defX) s.X=MODELS[model].defX(s); return {s,m:buildModel(s)}; };
-  const B={
-    book:{s:heroState,m:heroModel},
-    rte:mk('rte','iv310',{L:60,W:40,D:110,color:'#1D2329'}),
-    hex:mk('hex','kr300',{L:55,W:55,D:70,color:'#B98D5F'}),
-    mailer:mk('mailer','fluteE',{L:200,W:140,D:60,color:'#C89F72'}),
-    trE:mk('tray','fluteE',{L:180,W:120,D:50,color:'#C89F72'}),
-    trK:mk('tray','kr300',{L:180,W:120,D:50,color:'#B98D5F'}),
-    trI:mk('tray','iv310',{L:180,W:120,D:50,color:'#F4F1EC'}),
-    trD:mk('tray','dx350',{L:180,W:120,D:50,color:'#F4F1EC'})
-  };
-  const sm=t=>t*t*(3-2*t), span=(t,a,b)=>sm(clamp((t-a)/(b-a),0,1));
-  const hold=()=>1, rise=t=>sm(t), fall=t=>1-sm(t);
-  /* assemble from flat, hold, take apart again */
-  const cycle=t=>t<.45?span(t,0,.45):t<.68?1:1-span(t,.68,1);
-  const shape=k=>({w:1.5,k,ch:1,fold:cycle,cap:['Bentuk',`${MODELS[k].name}. ${DESC[k]}`]});
-  const mat=(k,id,line,fold=hold,w=.6)=>({w,k,ch:2,fold,cap:['Bahan',`${MAT[id].name}. ${line}`]});
+  const sm=t=>t*t*(3-2*t);
+  const hold=v=>()=>v, rise=t=>sm(t), fall=t=>1-sm(t);
+  const START=['Box hexagonal', calmMq.matches?'Geser untuk memutar, atau tekan Buka jadi pola.':'Geser untuk memutar. Scroll untuk melihat cara kerjanya.'];
+  const MECH=['Mekanisme','Tutup berlidah membuka, lalu lidahnya masuk lagi di antara dinding dan sayap.'];
+  const APART=['Dibongkar','Satu lembar Ivory 310 gsm, dipon lalu dilipat. Tidak ada potongan kedua.'];
+  const BUILD=['Dirakit','Dinding dilem jadi enam sisi, alas dilem, lalu tutup berlidah menutup.'];
   const TL=[
-    {w:.5,k:'book',ch:-1,fold:hold,cap:null},
-    {w:1.4,k:'book',ch:0,fold:t=>1-.42*Math.sin(Math.PI*sm(t)),cap:['Mekanisme','Sampul membuka dari depan, lalu menutup lagi dan ditahan magnet.']},
-    {w:.8,k:'book',ch:0,fold:fall,cap:['Mekanisme','Dinding board berdiri dari alas yang diberi alur V.']},
-    shape('rte'),shape('hex'),shape('mailer'),
-    mat('trE','fluteE','Gelombang di tepinya membuat kuat untuk kiriman.',rise,.8),
-    mat('trE','fluteE','Gelombang di tepinya membuat kuat untuk kiriman.'),
-    mat('trK','kr300','Cokelat alami di kedua sisi.'),
-    mat('trI','iv310','Putih di kedua sisi, paling umum untuk kemasan makanan.'),
-    mat('trD','dx350','Putih di luar, abu-abu di dalam, lebih hemat.'),
-    mat('trD','dx350','Putih di luar, abu-abu di dalam, lebih hemat.',fall,.7),
-    {w:1.1,k:'book',ch:3,fold:rise,cap:['Hardbox','Greyboard 2 mm dibungkus kertas, dirakit jadi box magnet buku.']},
-    {w:.5,k:'book',ch:3,fold:hold,cap:['Hardbox','Greyboard 2 mm dibungkus kertas, dirakit jadi box magnet buku.']},
-    {w:1.1,k:'book',ch:3,fold:fall,cap:['Dibongkar','Ini polanya. Di bawah, dipisah jadi tiga lembar.']}
+    {w:.5,ch:-1,fold:hold(1),cap:START},
+    {w:1.6,ch:0,fold:t=>1-.36*Math.sin(Math.PI*sm(t)),cap:MECH},
+    {w:1.4,ch:1,fold:fall,cap:APART},
+    {w:.5,ch:1,fold:hold(0),cap:APART},
+    {w:1.6,ch:2,fold:rise,cap:BUILD},
+    {w:.4,ch:2,fold:hold(1),cap:BUILD}
   ];
   const TOTAL=TL.reduce((a,x)=>a+x.w,0);
-  const ticket=k=>{ if(k==='book') return `${MODELS.hb_book.name} · ${heroState.L} × ${heroState.W} × ${heroState.D} mm · ${MAT.gb20.name}`;
-    const s=B[k].s; return `${MODELS[s.model].name} · ${s.L} × ${s.W} × ${s.D} mm · ${MAT[s.mat].name}`; };
-  let cur='book', curCap='', raf=0, last=-1;
+  capK.textContent=START[0]; capT.textContent=START[1];
+  let curCap='', raf=0, last=-1;
   function progress(){
     const vh=innerHeight, r=hero.getBoundingClientRect(), y=-r.top;
     if(pinMq.matches){ const run=r.height-vh; return run>0?clamp(y/run,0,1):0; }
@@ -3379,13 +3359,11 @@ $('#listB').innerHTML=ORDER_B.map(row).join('');
     last=p;
     let x=p*TOTAL, i=0; while(i<TL.length-1&&x>TL[i].w){ x-=TL[i].w; i++; }
     const S=TL[i], t=clamp(x/S.w,0,1);
-    if(S.k!==cur){ cur=S.k; HERO.build(B[cur].s,B[cur].m,true); $('#heroTicket').textContent=ticket(cur); }
     HERO.setFold(S.fold(t));
     /* sway rather than turn all the way round, so the printed front stays readable */
-    HERO.setSpin(.55*Math.sin(p*Math.PI*3));
-    const c=S.cap?S.cap.join('|'):'';
-    if(c!==curCap){ curCap=c; cap.hidden=!S.cap; if(S.cap){ capK.textContent=S.cap[0]; capT.textContent=S.cap[1]; } steps.forEach((el,j)=>el.classList.toggle('on',j===S.ch)); }
-    cue.style.opacity=p>0.01?0:1;
+    HERO.setSpin(.55*Math.sin(p*Math.PI*2));
+    const c=S.cap.join('|');
+    if(c!==curCap){ curCap=c; capK.textContent=S.cap[0]; capT.textContent=S.cap[1]; steps.forEach((el,j)=>el.classList.toggle('on',j===S.ch)); }
   }
   const req=()=>{ if(!raf) raf=requestAnimationFrame(update); };
   addEventListener('scroll',req,{passive:true});
