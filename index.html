@@ -11,34 +11,50 @@
 <script>try{const t=JSON.parse(localStorage.getItem('lipatin-theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&family=Pinyon+Script&display=swap">
 <style>
-/* Printer's proof sheet. Neutrals: proof paper + ink. Core: kraft (the board). One accent: die-line magenta, kept for cut lines
-   and the closing call. Cyan and green only ever mean "crease" and "bleed". */
+/* A proof on the cutting mat. Neutrals: ivory paper + green-black ink. Core: cutting-mat green, the surface every box
+   is cut on. One accent: leaf green, only for the hand-lettered word in a heading and the margin notes.
+   Magenta, cyan and the bleed green stay reserved for die-line drawings: cut, crease, bleed.
+   Type: Newsreader (book serif) for headings, because the page should read like printed matter, not an app.
+   Pinyon Script for one hand-lettered word per heading, the way a packaging proof gets a lettered mark.
+   Caveat for margin notes, the way a press operator scribbles on a proof. Instrument Sans for UI text,
+   IBM Plex Mono for every measurement, because millimetres must line up in columns. */
 :root{
-  --paper:#F1F3F2; --surface:#FFFFFF; --sheet:#F6EDE1; --ink:#14191E; --muted:#525E66;
-  --line:#D2D8DB; --grid:#E1E6E8;
+  --paper:#F6F3EC; --surface:#FFFFFF; --sheet:#F3EBDD; --ink:#17251D; --muted:#56625A;
+  --line:#E2DDD1; --grid:#EAE5DA;
+  --mat:#1E7A55; --mat-deep:#17644A; --mat-line:rgba(244,241,232,.15); --mat-major:rgba(244,241,232,.3); --on-mat:#F4F1E8;
+  --leaf:#24773F;
   --cut:#C9105A; --on-cut:#FFFFFF; --crease:#0A7FB3; --bleed:#1B8A58; --kraft:#C29467; --kraft-deep:#8C6440;
-  --on-ink:#F6F7F6;
-  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --on-ink:#F6F3EC;
+  --lift:0 1px 2px rgba(23,37,29,.08),0 14px 34px -14px rgba(23,37,29,.28);
+  --f-display:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-script:"Pinyon Script","Snell Roundhand",cursive;
+  --f-hand:"Caveat","Segoe Print","Bradley Hand",cursive;
   --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
-  --r-s:3px; --r-b:6px; --r:10px;
+  --r-s:8px; --r-b:999px; --r:16px; --r-l:24px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#101418; --surface:#171D23; --sheet:#2A231B; --ink:#E7ECEF; --muted:#9AA6AE;
-    --line:#2A343C; --grid:#1C252C;
+    --paper:#0F1411; --surface:#161D19; --sheet:#2A241B; --ink:#E8EDE6; --muted:#9BA89F;
+    --line:#28322C; --grid:#1B231E;
+    --mat:#145B3F; --mat-deep:#0F4430; --mat-line:rgba(232,237,230,.1); --mat-major:rgba(232,237,230,.22); --on-mat:#E8EDE6;
+    --leaf:#6BCB8B;
     --cut:#FF4D8E; --on-cut:#22040F; --crease:#41B9EE; --bleed:#45CC8B; --kraft:#C29A6E; --kraft-deep:#E1BE93;
-    --on-ink:#101418;
+    --on-ink:#0F1411;
+    --lift:0 1px 2px rgba(0,0,0,.4),0 18px 40px -16px rgba(0,0,0,.7);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#101418; --surface:#171D23; --sheet:#2A231B; --ink:#E7ECEF; --muted:#9AA6AE;
-  --line:#2A343C; --grid:#1C252C;
+  --paper:#0F1411; --surface:#161D19; --sheet:#2A241B; --ink:#E8EDE6; --muted:#9BA89F;
+  --line:#28322C; --grid:#1B231E;
+  --mat:#145B3F; --mat-deep:#0F4430; --mat-line:rgba(232,237,230,.1); --mat-major:rgba(232,237,230,.22); --on-mat:#E8EDE6;
+  --leaf:#6BCB8B;
   --cut:#FF4D8E; --on-cut:#22040F; --crease:#41B9EE; --bleed:#45CC8B; --kraft:#C29A6E; --kraft-deep:#E1BE93;
-  --on-ink:#101418;
+  --on-ink:#0F1411;
+  --lift:0 1px 2px rgba(0,0,0,.4),0 18px 40px -16px rgba(0,0,0,.7);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -46,23 +62,33 @@
 body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 body.in-studio{overflow:hidden}
 a{color:inherit}
-h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.05}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;line-height:1.04;letter-spacing:-.03em}
 p{margin:0}
 .wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 :focus-visible{outline:2px solid var(--crease);outline-offset:2px}
+/* The hand-lettered word: one per heading, never in body text */
+.script{font-family:var(--f-script);font-weight:400;color:var(--leaf);letter-spacing:0;font-size:1.22em;line-height:.8;padding:0 .06em}
+/* Margin notes, written like a press operator's remarks on a proof */
+.note{font-family:var(--f-hand);font-weight:500;font-size:22px;line-height:1.1;color:var(--muted);display:inline-flex;align-items:flex-end;gap:6px}
+.note svg{flex:none;overflow:visible}
+.note path{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:no-preference){
+  .note path{stroke-dasharray:var(--len,120);stroke-dashoffset:var(--len,120);transition:stroke-dashoffset .9s cubic-bezier(.6,0,.2,1) .15s}
+  .note.seen path{stroke-dashoffset:0}
+}
 
-/* Buttons: ink for actions, outline for secondary, magenta once (closing call) */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px/1 var(--f-body);min-height:44px;padding:12px 18px;border-radius:var(--r-b);border:1.5px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap}
-.btn-ink{background:var(--ink);color:var(--on-ink)}
-.btn-ink:hover{background:color-mix(in srgb,var(--ink) 86%,var(--cut))}
-.btn-cut{background:var(--cut);color:var(--on-cut)}
-.btn-cut:hover{filter:brightness(1.07)}
-.btn-line{background:transparent;color:var(--ink);border-color:var(--ink)}
-.btn-line:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+/* Buttons: ink pills for actions, outline for secondary. Pills are reserved for buttons and the dock;
+   cards, inputs and panels keep corners so they still read as sheets and fields. */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px/1 var(--f-body);min-height:44px;padding:12px 20px;border-radius:var(--r-b);border:1.5px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn-ink,.btn-cut{background:var(--ink);color:var(--on-ink)}
+.btn-ink:hover,.btn-cut:hover{background:color-mix(in srgb,var(--ink) 84%,var(--leaf))}
+.btn-cut{min-height:52px;padding:15px 28px;font-size:16px}
+.btn-line{background:transparent;color:var(--ink);border-color:color-mix(in srgb,var(--ink) 40%,transparent)}
+.btn-line:hover{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .btn-quiet{background:transparent;color:var(--muted);border-color:transparent}
 .btn-quiet:hover{color:var(--ink)}
-.btn-sm{min-height:38px;padding:9px 14px;font-size:14px}
+.btn-sm{min-height:38px;padding:9px 16px;font-size:14px}
 .btn[disabled]{opacity:.55;cursor:not-allowed}
 .theme-btn{width:38px;padding:0;flex:none}
 .theme-btn .i-sun{display:none}
@@ -72,35 +98,69 @@ p{margin:0}
 }
 :root[data-theme="dark"] .theme-btn .i-sun{display:block}
 :root[data-theme="dark"] .theme-btn .i-moon{display:none}
-.top .theme-btn+.btn{margin-left:-20px}
 
-/* Landing header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;gap:28px;padding-block:12px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:800;font-stretch:118%;font-size:20px;letter-spacing:-.01em}
+/* Cutting mat: the one surface motif, because every box in this tool ends up cut on one. The grid copies a real mat's
+   divisions (five minor squares per major one) and the ruler numbers the major lines. */
+.mat,.curtain{position:relative;background-color:var(--mat);color:var(--on-mat);border-radius:var(--r-l);overflow:hidden;
+  background-image:
+    linear-gradient(var(--mat-major) 1px,transparent 1px),linear-gradient(90deg,var(--mat-major) 1px,transparent 1px),
+    linear-gradient(var(--mat-line) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line) 1px,transparent 1px);
+  background-size:120px 120px,120px 120px,24px 24px,24px 24px;background-position:-1px -1px}
+.mat::after,.curtain::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 30% 20%,transparent 40%,rgba(0,0,0,.18))}
+.ruler{position:absolute;display:flex;font:500 10px/1 var(--f-mono);color:var(--on-mat);opacity:.7;pointer-events:none;z-index:1}
+.ruler.x{left:0;right:0;bottom:8px;padding-left:0}
+.ruler.x span{flex:none;width:24px;text-align:left;padding-left:2px}
+.ruler.y{top:0;bottom:0;left:6px;flex-direction:column}
+.ruler.y span{flex:none;height:24px;padding-top:2px}
+.mat-mark{position:absolute;right:0;bottom:4px;padding:4px 16px 4px 10px;background:var(--mat);font:500 10px/1 var(--f-mono);letter-spacing:.06em;color:var(--on-mat);z-index:1}
+
+/* Dock: the landing's only navigation, pinned to the bottom like a tool tray */
+.dock{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:color-mix(in srgb,var(--surface) 82%,transparent);border:1px solid var(--line);box-shadow:var(--lift);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.dock .btn{min-height:44px}
+.dock .round{width:44px;padding:0;border-radius:50%;background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.dock .round:hover{border-color:var(--ink)}
+.dock .btn-ink{min-width:180px}
+@media (prefers-reduced-motion:no-preference){.dock{animation:dockIn .6s cubic-bezier(.2,.8,.2,1) .3s both}}
+@keyframes dockIn{from{transform:translate(-50%,140%)}to{transform:translate(-50%,0)}}
+.menu{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 66px);transform:translateX(-50%);z-index:31;width:min(320px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--lift);padding:8px}
+.menu a{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px;border-radius:10px;text-decoration:none;font-family:var(--f-display);font-size:20px;letter-spacing:-.01em}
+.menu a small{font:12px var(--f-mono);color:var(--muted)}
+.menu a:hover,.menu a:focus-visible{background:var(--paper)}
+
+/* Landing top line: the name only. Navigation lives in the dock. */
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px 14px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:500;font-size:24px;letter-spacing:-.02em}
 .brand svg{flex:none}
-.nav{display:flex;gap:24px;margin-left:auto;font-size:15px}
-.nav a{text-decoration:none;color:var(--muted);padding:6px 0;border-bottom:1.5px solid transparent}
-.nav a:hover{color:var(--ink);border-bottom-color:var(--ink)}
-@media (max-width:760px){.nav{display:none}.top .btn{margin-left:auto}}
+.top-note{font-size:14px;color:var(--muted)}
+@media (max-width:640px){.top-note{display:none}}
 
-/* Hero: headline left, the box on a proof sheet right */
-.hero .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center;padding-block:56px 72px}
-.hero h1{font-size:clamp(38px,4.9vw,68px);font-weight:860;font-stretch:114%;letter-spacing:-.028em}
-.hero .lead{margin-top:24px;font-size:clamp(17px,1.5vw,19px);color:var(--muted);max-width:50ch}
-.hero .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
-.proof{position:relative;margin:0;padding:22px;min-width:0}
-.crop{position:absolute;width:24px;height:24px;border-color:var(--ink);opacity:.5}
-.crop.tl{top:0;left:0;border-top:1px solid;border-left:1px solid}
-.crop.tr{top:0;right:0;border-top:1px solid;border-right:1px solid}
-.crop.bl{bottom:0;left:0;border-bottom:1px solid;border-left:1px solid}
-.crop.br{bottom:0;right:0;border-bottom:1px solid;border-right:1px solid}
-.reg{position:absolute;top:-9px;left:50%;transform:translateX(-50%);color:var(--ink);opacity:.5}
-.hero-stage{position:relative;height:clamp(320px,42vw,540px);max-width:100%;cursor:grab;touch-action:pan-y}
+/* Hero: a proof sheet with the headline lies on the mat, next to the real box built by the studio engine */
+.hero{padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
+.hero .mat{max-width:1400px;margin:0 auto;min-height:min(820px,calc(100svh - 84px))}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:center;padding:clamp(28px,5vw,64px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px);min-height:inherit}
+.proofsheet{position:relative;background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:0 2px 3px rgba(0,0,0,.12),0 30px 60px -24px rgba(0,0,0,.55);padding:clamp(28px,4vw,52px);transform:rotate(-1.2deg)}
+@media (prefers-reduced-motion:no-preference){.proofsheet{animation:sheetIn .9s cubic-bezier(.2,.8,.2,1) both}}
+@keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg);opacity:0}to{transform:rotate(-1.2deg);opacity:1}}
+.hero h1{font-size:clamp(42px,5.6vw,80px);letter-spacing:-.045em}
+.hero .lead{margin-top:22px;font-size:clamp(16px,1.4vw,18px);color:var(--muted);max-width:46ch}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.proof{position:relative;margin:0;min-width:0;display:flex;flex-direction:column;align-items:stretch}
+.hero-stage{position:relative;height:clamp(320px,40vw,520px);max-width:100%;cursor:grab;touch-action:pan-y}
 .hero-stage:active{cursor:grabbing}
 .hero-stage canvas{display:block;width:100%;height:100%;touch-action:pan-y}
-.ticket-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px dashed var(--muted);padding-top:12px;margin-top:6px;font-size:13px;color:var(--muted)}
-@media (max-width:900px){.hero .hero-grid{grid-template-columns:minmax(0,1fr);gap:28px;padding-block:36px 48px}.hero-stage{height:clamp(300px,80vw,420px)}}
+.ticket-strip{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;align-self:center;max-width:100%;background:var(--paper);color:var(--ink);border-radius:var(--r-s);padding:8px 8px 8px 14px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.15),0 10px 24px -12px rgba(0,0,0,.5);transform:rotate(.8deg)}
+.hero .note{position:absolute;z-index:3;color:var(--on-mat);font-size:24px;pointer-events:none}
+.note-spin{right:0;top:-8px;flex-direction:column;align-items:flex-start;transform:rotate(-4deg)}
+.note-spin svg{margin-left:-8px}
+.ticket-strip{flex-wrap:nowrap}
+.ticket-strip .mono{min-width:0;font-size:12px;line-height:1.4}
+.ticket-strip .btn{flex:none}
+@media (max-width:900px){
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:20px;padding:24px 16px 72px 30px}
+  .hero-stage{height:clamp(280px,80vw,420px)}
+  .proofsheet{transform:rotate(-.6deg)}
+  .note-spin{top:-4px}
+}
 
 /* CSS box: fallback when WebGL is missing */
 .stage{perspective:1100px;width:100%;height:100%;display:grid;place-items:center;touch-action:none}
@@ -111,95 +171,109 @@ p{margin:0}
 .hinge{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d}
 .lid{transform-origin:50% 0}
 
-/* Landing sections. Rhythm varies by content: a full band of drawings, a two-family index, a figure-left split, a text block, a Q&A list. */
-section{scroll-margin-top:72px}
-.sec{padding-block:88px}
-.sec-alt{background:var(--surface);border-block:1px solid var(--line)}
-.h2{font-size:clamp(30px,4vw,50px);font-weight:820;font-stretch:110%;letter-spacing:-.022em}
-.band{background:var(--surface);border-block:1px solid var(--line);padding-block:72px 64px}
-.split-head{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:48px;align-items:end;margin-bottom:36px}
-.split-head h2{font-size:clamp(28px,3.6vw,44px);font-weight:820;font-stretch:110%;letter-spacing:-.02em}
-.split-head p{color:var(--muted);max-width:52ch}
-@media (max-width:860px){.split-head{grid-template-columns:minmax(0,1fr);gap:16px}}
-.sheets{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px}
-.sheets figure{margin:0;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);overflow:hidden;min-width:0}
+/* Landing sections. Rhythm varies by content: centered drawings on paper, a full-width model index, the plano on a mat,
+   a two-column import key, a row of layout tools, a chat note, a narrow Q&A column, one large closing line. */
+section{scroll-margin-top:24px}
+.sec{padding-block:clamp(72px,10vw,128px)}
+.h2{font-size:clamp(36px,5vw,64px);letter-spacing:-.04em}
+.center-head{text-align:center;max-width:900px;margin:0 auto}
+.center-head > p{color:var(--muted);max-width:58ch;margin:20px auto 0}
+.head-notes{position:relative}
+.head-notes .note{margin-top:18px;transform:rotate(-2deg)}
+@media (min-width:1240px){
+  .head-notes .note{position:absolute;margin:0}
+  .n-right{left:calc(100% + 8px);top:4px;width:150px;transform:rotate(6deg)}
+}
+.sheets{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;margin-top:48px}
+.sheets figure{margin:0;border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);overflow:hidden;min-width:0;display:flex;flex-direction:column}
 .sheets figure.big{grid-row:span 2}
-.sheets .fig{height:100%;min-height:220px;display:block}
+.sheets .fig{flex:1 1 0;height:clamp(190px,18vw,230px);display:block;padding:8px;min-height:0}
 .sheets .fig svg{width:100%;height:100%;display:block}
-.sheets figure.big .fig{min-height:420px}
-.sheets figcaption{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);font-size:14px}
-.sheets figcaption span{color:var(--muted)}
-@media (max-width:860px){.sheets{grid-template-columns:minmax(0,1fr)}.sheets figure.big{grid-row:auto}.sheets figure.big .fig{min-height:300px}}
+.sheets figure.big .fig{height:auto;min-height:clamp(320px,36vw,480px)}
+.sheets figcaption{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap;padding:14px 20px 16px;border-top:1px dashed var(--line);font-size:14px}
+.sheets figcaption strong{font-family:var(--f-display);font-weight:500;font-size:20px;letter-spacing:-.02em}
+.sheets figcaption span{color:var(--muted);font-size:12.5px}
+@media (max-width:860px){.sheets{grid-template-columns:minmax(0,1fr)}.sheets figure.big{grid-row:auto}.sheets figure.big .fig{height:clamp(260px,70vw,380px);min-height:0}}
 
-.families{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;margin-top:40px}
-@media (max-width:860px){.families{grid-template-columns:minmax(0,1fr)}}
-.family h3{font-size:24px;font-weight:800;font-stretch:108%}
-.fam-note{color:var(--muted);margin:6px 0 16px;max-width:46ch}
-.mlist{list-style:none;margin:0;padding:0;border-top:1.5px solid var(--ink)}
+/* Model index: a long ruled list, name in serif on the left, what it is for on the right */
+.families{display:flex;flex-direction:column;gap:56px;margin-top:56px}
+.family-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--ink)}
+.family h3{font-size:30px;letter-spacing:-.025em}
+.fam-note{color:var(--muted);font-size:14.5px;max-width:52ch}
+.mlist{list-style:none;margin:0;padding:0}
 .mlist li{border-bottom:1px solid var(--line)}
-.mlist button{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;align-items:center;width:100%;text-align:left;padding:12px 4px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;min-height:56px}
-.mlist button:hover{background:color-mix(in srgb,var(--kraft) 12%,transparent)}
-.mlist svg{width:64px;height:40px;color:var(--muted)}
-.mlist strong{display:block;font-weight:600}
-.mlist small{display:block;color:var(--muted);font-size:13.5px;line-height:1.4}
-.mlist em{font-style:normal;font-size:13px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
-@media (max-width:520px){.mlist button{grid-template-columns:48px minmax(0,1fr)}.mlist svg{width:48px}.mlist em{display:none}}
-.soon-line{margin-top:28px;color:var(--muted);font-size:14px;max-width:70ch}
+.mlist button{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(0,1.1fr) auto;gap:20px;align-items:center;width:100%;text-align:left;padding:14px 8px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;min-height:64px;border-radius:12px}
+.mlist button:hover{background:var(--surface)}
+.mlist svg{width:72px;height:42px;color:var(--muted)}
+.mlist button > span{display:contents}
+.mlist strong{font-family:var(--f-display);font-weight:400;font-size:clamp(20px,2.2vw,26px);letter-spacing:-.02em;line-height:1.15}
+.mlist small{color:var(--muted);font-size:14px;line-height:1.45}
+.mlist em{font-style:normal;font-size:13px;color:var(--ink);white-space:nowrap;opacity:0;transition:opacity .15s}
+.mlist button:hover em,.mlist button:focus-visible em{opacity:1}
+@media (max-width:760px){.mlist button{grid-template-columns:52px minmax(0,1fr);gap:4px 14px}.mlist svg{width:52px;grid-row:span 2}.mlist em{display:none}}
+.soon-line{margin-top:32px;color:var(--muted);font-size:14px;max-width:70ch}
 
-.calc-grid{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:56px;align-items:center}
+/* Plano: the imposition sits on a strip of mat, the numbers sit on paper */
+.calc-grid{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(28px,5vw,72px);align-items:center}
 @media (max-width:860px){.calc-grid{grid-template-columns:minmax(0,1fr);gap:28px}.calc-copy{order:-1}}
-.sheetfig{border:1px solid var(--line);border-radius:var(--r);background:var(--paper);padding:16px;height:clamp(300px,40vw,480px)}
+.calc-figure.mat{padding:clamp(18px,3vw,36px)}
+.sheetfig{position:relative;z-index:2;border-radius:6px;background:var(--surface);padding:14px;height:clamp(300px,40vw,480px);box-shadow:0 2px 3px rgba(0,0,0,.12),0 24px 48px -24px rgba(0,0,0,.55);transform:rotate(.7deg)}
 .sheetfig svg{width:100%;height:100%;display:block}
-.calc-copy p{color:var(--muted);margin-top:16px;max-width:50ch}
-.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:28px 0 0;border-top:1.5px solid var(--ink)}
-.facts div{padding:14px 12px 0 0;min-width:0}
+.calc-copy p{color:var(--muted);margin-top:18px;max-width:50ch}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:32px 0 0;border-top:1px solid var(--ink)}
+.facts div{padding:16px 12px 0 0;min-width:0}
 .facts dt{font-size:13px;color:var(--muted)}
-.facts dd{margin:4px 0 0;font:500 26px var(--f-mono);font-variant-numeric:tabular-nums}
-.fineprint{font-size:13px;color:var(--muted);margin-top:14px}
+.facts dd{margin:6px 0 0;font-family:var(--f-display);font-size:clamp(34px,4vw,48px);letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums lining-nums}
+.fineprint{font-size:13px;color:var(--muted);margin-top:16px}
 @media (max-width:520px){.facts{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 
-.import-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:start}
+.import-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(24px,5vw,72px);align-items:start}
 @media (max-width:860px){.import-grid{grid-template-columns:minmax(0,1fr);gap:20px}}
-.import-copy p{color:var(--muted);max-width:56ch}
-.linekey{list-style:none;margin:24px 0 28px;padding:0;display:flex;flex-direction:column;gap:12px}
-.linekey li{display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:center;font-size:15px}
+.import-grid .note{margin-top:22px;transform:rotate(-3deg)}
+.import-copy p{color:var(--muted);max-width:56ch;font-size:17px}
+.linekey{list-style:none;margin:28px 0 30px;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.linekey li{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:center;font-size:15px;padding:14px 0;border-bottom:1px solid var(--line)}
 .linekey span{color:var(--muted)}
-.linekey strong{color:var(--ink);font-weight:600;margin-right:6px}
+.linekey strong{display:block;color:var(--ink);font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:-.015em}
 
-.faq-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:56px;align-items:start}
-@media (max-width:860px){.faq-grid{grid-template-columns:minmax(0,1fr);gap:20px}}
+/* FAQ: one narrow reading column, questions set in the serif */
+.faq-wrap{max-width:820px}
+.faq{margin-top:44px}
 .faq details{border-bottom:1px solid var(--line)}
-.faq details:first-child{border-top:1.5px solid var(--ink)}
-.faq summary{cursor:pointer;list-style:none;padding:18px 36px 18px 0;font-size:17px;font-weight:600;position:relative}
+.faq details:first-child{border-top:1px solid var(--ink)}
+.faq summary{cursor:pointer;list-style:none;padding:22px 44px 22px 0;font-family:var(--f-display);font-size:clamp(19px,2vw,23px);letter-spacing:-.015em;line-height:1.25;position:relative}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"";position:absolute;right:6px;top:50%;width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.faq summary::after{content:"";position:absolute;right:8px;top:50%;width:10px;height:10px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
 .faq details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
-.faq details p{padding:0 0 20px;color:var(--muted);max-width:68ch}
+.faq details p{padding:0 0 24px;color:var(--muted);max-width:66ch}
 
-.closing{padding-block:72px}
-.closing .wrap{display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;border-top:2px solid var(--cut);padding-top:40px}
-.closing h2{font-size:clamp(28px,3.8vw,46px);font-weight:840;font-stretch:112%;letter-spacing:-.02em;max-width:20ch}
+/* Closing: one line, as large as the hero, then the way in */
+.closing{padding-block:clamp(80px,12vw,160px) clamp(120px,14vw,180px);text-align:center}
+.closing h2{font-size:clamp(42px,7vw,104px);letter-spacing:-.05em;max-width:14ch;margin:0 auto}
+.closing .head-notes{display:flex;flex-direction:column;align-items:center}
+.closing .note{position:static;margin-top:14px;font-size:26px;transform:rotate(-2deg)}
+.closing .btn{margin-top:36px}
 footer{border-top:1px solid var(--line)}
-footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between;align-items:center;padding-block:24px;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between;align-items:center;padding-block:24px 104px;font-size:14px;color:var(--muted)}
 
-/* Curtain: one sheet sliding over the page when entering or leaving the studio */
-.curtain{position:fixed;inset:0;z-index:60;background:var(--kraft);border-top:3px solid var(--cut);transform:translateY(101%);pointer-events:none;visibility:hidden}
+/* Curtain: a sheet of cutting mat sliding over the page when entering or leaving the studio */
+.curtain{position:fixed;inset:0;z-index:60;border-radius:0;transform:translateY(101%);pointer-events:none;visibility:hidden}
 .curtain.in,.curtain.out{visibility:visible}
 .curtain.in{transition:transform .42s cubic-bezier(.7,0,.3,1);transform:translateY(0)}
 .curtain.out{transition:transform .42s cubic-bezier(.7,0,.3,1);transform:translateY(-101%)}
 
 /* Studio: a full-screen workspace with a job ticket on top */
 .studio{position:fixed;inset:0;z-index:50;background:var(--paper);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.s-top{display:flex;align-items:center;gap:16px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));border-bottom:1.5px solid var(--ink);background:var(--surface)}
-.brand-sm{font-size:16px;gap:8px}
-.ticket{flex:1;min-width:0;overflow:hidden;display:flex;gap:6px 18px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--muted);border-left:1px dashed var(--muted);padding-left:16px}
-.ticket b{font-family:var(--f-display);font-stretch:108%;font-weight:760;font-size:15px;color:var(--ink)}
+.s-top{display:flex;align-items:center;gap:16px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--paper)}
+.brand-sm{font-size:20px;gap:8px}
+.ticket{flex:1;min-width:0;overflow:hidden;display:flex;gap:2px 16px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--muted);border-left:1px dashed var(--line);padding-left:16px}
+.ticket b{font-family:var(--f-display);font-weight:500;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
 .ticket span{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .s-actions{display:flex;gap:8px;align-items:center}
 @media (max-width:760px){.ticket{display:none}.s-actions{margin-left:auto}#btnTpl{display:none}}
 .s-body{display:grid;grid-template-columns:340px minmax(0,1fr);min-height:0}
-.s-rail{overflow:auto;border-right:1px solid var(--line);background:var(--surface);padding:20px max(16px,env(safe-area-inset-left,0px)) 28px 18px}
-.s-main{display:flex;flex-direction:column;min-height:0;min-width:0;padding:14px 16px 14px;padding-right:max(16px,env(safe-area-inset-right,0px))}
+.s-rail{overflow:auto;border-right:1px solid var(--line);background:var(--paper);padding:22px max(16px,env(safe-area-inset-left,0px)) 28px 20px}
+.s-main{display:flex;flex-direction:column;min-height:0;min-width:0;padding:16px;padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--paper)}
 .s-main .viewer{flex:1;display:flex;flex-direction:column;min-height:0}
 .s-main .canvas{flex:1;height:auto;min-height:280px}
 .s-main .planoview{flex:1;overflow:auto;min-height:0}
@@ -212,11 +286,11 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 }
 
 /* Dialogs */
-.dlg{border:1.5px solid var(--ink);border-radius:var(--r);background:var(--surface);color:var(--ink);padding:20px;width:min(880px,calc(100vw - 32px));max-height:calc(100dvh - 48px)}
+.dlg{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);color:var(--ink);padding:24px;width:min(880px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-shadow:var(--lift)}
 .dlg-wide{width:min(1040px,calc(100vw - 32px))}
-.dlg::backdrop{background:rgba(10,14,18,.55)}
+.dlg::backdrop{background:rgba(12,22,16,.55)}
 .dlg-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:6px}
-.dlg-head h2{font-size:24px;font-weight:800;font-stretch:108%}
+.dlg-head h2{font-size:30px;letter-spacing:-.03em}
 .dlg-note{color:var(--muted);font-size:14.5px;margin-bottom:16px;max-width:60ch}
 
 /* Templates (inside the dialog) */
@@ -228,7 +302,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 .tthumb{aspect-ratio:16/10;max-width:100%;background:var(--sheet);display:grid;place-items:center;padding:12px;border-bottom:1px solid var(--line)}
 .tthumb svg{width:100%;height:100%}
 .tmeta{padding:10px 12px;display:flex;flex-direction:column;gap:2px}
-.tmeta strong{font-size:15px}
+.tmeta strong{font-family:var(--f-display);font-weight:500;font-size:18px;letter-spacing:-.015em}
 .tmeta span{font-size:12.5px;color:var(--muted)}
 .tmeta .mono{color:var(--ink)}
 
@@ -245,37 +319,37 @@ legend,.flabel{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .seg label{position:relative;cursor:pointer}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.seg span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1px solid var(--line);border-radius:var(--r);font-size:12.5px;font-weight:600;text-align:center;line-height:1.2;color:var(--muted)}
+.seg span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1px solid var(--line);border-radius:12px;font-size:12.5px;font-weight:600;text-align:center;line-height:1.2;color:var(--muted);background:var(--surface)}
 .seg svg{width:44px;height:34px}
-.seg input:checked + span{border-color:var(--cut);color:var(--ink);box-shadow:inset 0 0 0 1px var(--cut)}
+.seg input:checked + span{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .seg input:focus-visible + span{outline:2px solid var(--crease);outline-offset:2px}
 .dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field label{font-size:12px;color:var(--muted)}
 .field label b{font-family:var(--f-mono);color:var(--ink);font-weight:500}
-.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);overflow:hidden}
-.inp:focus-within{border-color:var(--crease)}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);overflow:hidden}
+.inp:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--leaf) 22%,transparent)}
 .inp input{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);font:500 16px var(--f-mono);font-variant-numeric:tabular-nums;padding:10px 4px 10px 10px;outline:none}
 .inp small{font:12px var(--f-mono);color:var(--muted);padding-right:10px}
 .matbar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:2px}
 .matbar i{display:block;height:100%;background:var(--kraft);border-radius:3px;transition:width .2s}
 .mathint{font-size:13px;color:var(--muted);line-height:1.45}
 .mathint:empty{display:none}
-select{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);color:var(--ink);font:15px var(--f-body);padding:10px}
+select{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:15px var(--f-body);padding:10px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
-.check input{width:18px;height:18px;accent-color:var(--cut)}
+.check input{width:18px;height:18px;accent-color:var(--leaf)}
 .err{font-size:13px;color:var(--cut);min-height:0}
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
 .sw{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);cursor:pointer;padding:0}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
-.txt{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);color:var(--ink);font:15px var(--f-body);padding:10px}
-input[type=range]{width:100%;accent-color:var(--cut)}
+.txt{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:15px var(--f-body);padding:10px}
+input[type=range]{width:100%;accent-color:var(--leaf)}
 
-.viewer{border:1px solid var(--line);border-radius:var(--r);background:var(--paper);overflow:hidden;min-width:0}
+.viewer{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);overflow:hidden;min-width:0}
 .vbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-b);padding:3px}
-.tabs button{border:0;background:transparent;color:var(--muted);font:600 14px var(--f-body);padding:7px 14px;border-radius:var(--r-b);cursor:pointer}
+.tabs{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-b);padding:3px}
+.tabs button{border:0;background:transparent;color:var(--muted);font:600 14px var(--f-body);padding:7px 15px;border-radius:var(--r-b);cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--on-ink)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:18px;height:0;vertical-align:middle;margin-right:6px}
@@ -315,9 +389,10 @@ input[type=range]{width:100%;accent-color:var(--cut)}
 .models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .models label{position:relative;cursor:pointer;min-width:0}
 .models input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.models span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--line);border-radius:var(--r);font-size:11.5px;font-weight:600;text-align:center;line-height:1.15;color:var(--muted);height:100%}
+.models span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--line);border-radius:12px;font-size:11.5px;font-weight:600;text-align:center;line-height:1.15;color:var(--muted);height:100%;background:var(--surface)}
+.models label:hover span{border-color:color-mix(in srgb,var(--ink) 45%,transparent)}
 .models svg{width:100%;max-width:58px;height:36px}
-.models input:checked + span{border-color:var(--cut);color:var(--ink);box-shadow:inset 0 0 0 1px var(--cut)}
+.models input:checked + span{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:color-mix(in srgb,var(--leaf) 9%,var(--surface))}
 .models input:focus-visible + span{outline:2px solid var(--crease);outline-offset:2px}
 .mgroup{font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 6px;letter-spacing:.02em}
 .mgroup:first-of-type{margin-top:0}
@@ -328,7 +403,7 @@ input[type=range]{width:100%;accent-color:var(--cut)}
 .soon{font-size:12.5px;color:var(--muted);margin-top:8px}
 
 /* Import */
-.drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;padding:22px 12px;border:1.5px dashed var(--line);border-radius:var(--r);cursor:pointer;background:var(--paper)}
+.drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;padding:22px 12px;border:1.5px dashed color-mix(in srgb,var(--ink) 30%,transparent);border-radius:var(--r);cursor:pointer;background:var(--surface)}
 .drop:hover,.drop.over{border-color:var(--crease)}
 .drop strong{font-size:14px}
 .drop span{font-size:12.5px;color:var(--muted)}
@@ -389,20 +464,20 @@ input[type=range]{width:100%;accent-color:var(--cut)}
 .s-main .actions{padding:10px 14px}
 
 /* Studio mode switch and layout tools */
-.modesw{display:inline-flex;border:1.5px solid var(--ink);border-radius:var(--r-b);overflow:hidden;flex:none}
-.modesw button{border:0;background:transparent;color:var(--ink);font:600 13.5px var(--f-body);padding:7px 12px;cursor:pointer;min-height:36px;white-space:nowrap}
-.modesw button+button{border-left:1.5px solid var(--ink)}
+.modesw{display:inline-flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-b);padding:3px;flex:none}
+.modesw button{border:0;border-radius:var(--r-b);background:transparent;color:var(--muted);font:600 13.5px var(--f-body);padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap}
+.modesw button:hover{color:var(--ink)}
 .modesw button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
 .modesw button:focus-visible{outline:2px solid var(--crease);outline-offset:-4px}
 .s-rail > .panel + .panel{margin-top:22px}
-.tools{display:flex;flex-direction:column;border-top:1.5px solid var(--ink)}
+.tools{display:flex;flex-direction:column;border-top:1px solid var(--ink)}
 .tool{position:relative;display:block;cursor:pointer;border-bottom:1px solid var(--line)}
 .tool input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .tool span{display:block;padding:10px 10px 10px 14px;border-left:3px solid transparent}
 .tool strong{display:block;font-size:14px;font-weight:600}
 .tool small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35;margin-top:2px}
 .tool:hover span{background:color-mix(in srgb,var(--kraft) 10%,transparent)}
-.tool input:checked + span{border-left-color:var(--ink);background:var(--paper)}
+.tool input:checked + span{border-left-color:var(--ink);background:var(--surface)}
 .tool input:focus-visible + span{outline:2px solid var(--crease);outline-offset:-2px}
 .fcard{border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);padding:10px;margin-top:10px;display:flex;flex-direction:column;gap:8px}
 .fcard strong{display:block;font-size:13.5px;overflow-wrap:anywhere}
@@ -426,17 +501,17 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 .lynav .mono{color:var(--muted);min-width:0}
 .lyview{background:var(--surface);padding:12px}
 .lyview > svg{width:100%;height:100%}
-.lylist{list-style:none;margin:0;padding:0;border-top:1.5px solid var(--ink);display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
-.lylist li{border-right:1px solid var(--line);min-width:0}
-.lylist li:last-child{border-right:0}
-.lylist button{display:flex;flex-direction:column;gap:10px;width:100%;height:100%;text-align:left;padding:18px 16px 20px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer}
-.lylist button:hover{background:color-mix(in srgb,var(--kraft) 12%,transparent)}
-.lylist svg{width:100%;height:auto;aspect-ratio:4/3;color:var(--muted)}
-.lylist strong{display:block;font-weight:650;font-size:16px}
+/* Layout tools on the landing: five peers of equal weight, so five equal sheets; they differ by their drawing, not their size */
+.lylist{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.lylist li{min-width:0}
+.lylist button{display:flex;flex-direction:column;gap:10px;width:100%;height:100%;text-align:left;padding:14px 14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);color:inherit;font:inherit;cursor:pointer}
+.lylist button:hover{border-color:var(--ink)}
+.lylist svg{width:100%;height:auto;aspect-ratio:4/3;color:var(--muted);background:var(--paper);border-radius:10px}
+.lylist strong{display:block;font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:-.02em;line-height:1.15;margin-top:4px}
 .lylist small{display:block;color:var(--muted);font-size:13.5px;line-height:1.45}
-.lylist em{margin-top:auto;font-style:normal;font-size:13px;text-decoration:underline;text-underline-offset:3px}
-@media (max-width:1000px){.lylist{grid-template-columns:repeat(2,minmax(0,1fr))}.lylist li{border-bottom:1px solid var(--line)}.lylist li:nth-child(2n){border-right:0}}
-@media (max-width:520px){.lylist{grid-template-columns:minmax(0,1fr)}.lylist li{border-right:0}.lylist button{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:14px 4px}.lylist svg{grid-row:span 3}.lylist em{display:none}
+.lylist em{margin-top:auto;padding-top:6px;font-style:normal;font-size:13px;font-weight:600}
+@media (max-width:1000px){.lylist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.lylist{grid-template-columns:minmax(0,1fr)}.lylist button{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:12px}.lylist svg{grid-row:span 3}.lylist em{display:none}
   .modesw button{padding:6px 9px;font-size:13px}.brand-sm span{display:none}}
 @media (max-width:420px){#btnSend{display:none}}
 
@@ -452,8 +527,8 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 .report li.miss{color:var(--ink)}
 .report li.miss span{color:var(--ink);font-weight:600}
 .report li.miss span::before{content:"! ";font-family:var(--f-mono)}
-.refbar{display:flex;flex-wrap:wrap;gap:6px;border-top:1.5px solid var(--ink);padding-top:14px}
-.refbar button{border:1px solid var(--line);background:var(--paper);color:var(--ink);font:600 13.5px var(--f-body);padding:7px 12px;border-radius:var(--r-s);cursor:pointer;min-height:36px}
+.refbar{display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--ink);padding-top:14px}
+.refbar button{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 13.5px var(--f-body);padding:7px 14px;border-radius:var(--r-b);cursor:pointer;min-height:36px}
 .refbar button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
 .refbar .ref-add{border-style:dashed;color:var(--muted)}
 .irow-est{grid-template-columns:minmax(0,1fr) 96px auto}
@@ -491,7 +566,11 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 .warnbox li+li{margin-top:4px}
 .facts-list{margin:14px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
 .facts-list b{color:var(--ink)}
-.specdemo{margin:0;font:14px/1.7 var(--f-mono);background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:var(--r-s);padding:18px 20px;white-space:pre-wrap;overflow-wrap:anywhere}
+/* The spec arrives as a chat message, so it is drawn as one: a bubble with its tail on the sender's side */
+.chat{position:relative;max-width:460px;margin:0 auto}
+.chat-from{font-size:13px;color:var(--muted);margin:0 0 8px 6px}
+.specdemo{margin:0;font:14px/1.7 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:20px 20px 20px 6px;padding:18px 22px;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:var(--lift)}
+.chat .note{margin:18px 0 0 24px;transform:rotate(-2deg)}
 @media (max-width:520px){.modesw .l{display:none}.modesw .s{display:inline}.row3{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .empty-cta{margin:16px 0 0}
 #estimasi .calc-copy .btn{margin-top:10px}
@@ -510,47 +589,43 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
       <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M10 2h8v6h8v8h-8v10h-8V16H2V8h8z" fill="none" stroke="var(--cut)" stroke-width="2" stroke-linejoin="round"/><path d="M10 8h8M10 16h8M10 8v8M18 8v8" stroke="var(--crease)" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
       Lipatin
     </a>
-    <nav class="nav" aria-label="Halaman">
-      <a href="#tiga-lembar">Pola</a>
-      <a href="#model">Model</a>
-      <a href="#hitung">Hitung plano</a>
-      <a href="#layout">Layout cetak</a>
-      <a href="#estimasi">Estimasi harga</a>
-      <a href="#faq">FAQ</a>
-    </nav>
-    <button type="button" class="btn btn-quiet btn-sm theme-btn" data-theme-toggle aria-label="Ganti ke mode gelap" title="Ganti ke mode gelap"><svg class="i-moon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><svg class="i-sun" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-    <button type="button" class="btn btn-ink btn-sm" data-studio>Masuk studio</button>
+    <span class="top-note">Alat pola kemasan untuk percetakan</span>
   </div>
 </header>
 
 <main id="atas">
   <section class="hero">
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <h1>Ukuran produk masuk, pola box siap potong keluar.</h1>
-        <p class="lead">Lipatin menggambar pola board, kertas pembungkus, dan kertas dalam untuk hardbox, juga dieline kotak lipat dari karton sampai kardus. Semuanya skala 1:1, bisa dicek cara rakitnya dalam 3D, dan langsung dihitung isinya per plano.</p>
-        <div class="ctas">
-          <button type="button" class="btn btn-ink" data-studio>Masuk studio</button>
-          <a class="btn btn-line" href="#tiga-lembar">Lihat contoh pola</a>
+    <div class="mat">
+      <div class="ruler x" aria-hidden="true"></div>
+      <div class="ruler y" aria-hidden="true"></div>
+      <span class="mat-mark" aria-hidden="true">Lipatin · skala 1:1</span>
+      <div class="hero-grid">
+        <div class="proofsheet">
+          <h1>Ukuran produk masuk, pola box siap <span class="script">potong</span>.</h1>
+          <p class="lead">Lipatin menggambar pola board, kertas pembungkus, dan kertas dalam untuk hardbox, juga dieline kotak lipat dari karton sampai kardus. Semuanya skala 1:1, bisa dicek cara rakitnya dalam 3D, dan langsung dihitung isinya per plano.</p>
+          <div class="ctas">
+            <button type="button" class="btn btn-ink" data-studio>Masuk studio</button>
+            <a class="btn btn-line" href="#tiga-lembar">Lihat contoh pola</a>
+          </div>
         </div>
+        <figure class="proof" aria-labelledby="heroTicket">
+          <span class="note note-spin" aria-hidden="true">geser untuk memutar<svg width="40" height="40" viewBox="0 0 40 40"><path style="--len:60" d="M30 3C18 6 9 16 7 34"/><path style="--len:20" d="M2 27l5 8 7-6"/></svg></span>
+          <div class="hero-stage" id="heroStage" role="img" aria-label="Model 3D box magnet buku yang bisa diputar"></div>
+          <figcaption class="ticket-strip">
+            <span class="mono" id="heroTicket">Box magnet buku</span>
+            <button type="button" class="btn btn-line btn-sm" id="heroFold">Buka jadi pola</button>
+          </figcaption>
+        </figure>
       </div>
-      <figure class="proof" aria-labelledby="heroTicket">
-        <i class="crop tl"></i><i class="crop tr"></i><i class="crop bl"></i><i class="crop br"></i>
-        <svg class="reg" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="currentColor"/><path d="M9 0v18M0 9h18" stroke="currentColor"/></svg>
-        <div class="hero-stage" id="heroStage" role="img" aria-label="Model 3D box magnet buku yang bisa diputar"></div>
-        <figcaption class="ticket-strip">
-          <span class="mono" id="heroTicket">Box magnet buku</span>
-          <button type="button" class="btn btn-line btn-sm" id="heroFold">Buka jadi pola</button>
-        </figcaption>
-      </figure>
     </div>
   </section>
 
-  <section class="band" id="tiga-lembar">
+  <section class="sec" id="tiga-lembar">
     <div class="wrap">
-      <div class="split-head">
-        <h2>Box di atas, kalau dibongkar, jadi tiga lembar ini.</h2>
+      <div class="center-head head-notes">
+        <h2 class="h2">Box di atas, kalau dibongkar, jadi tiga <span class="script">lembar</span> ini.</h2>
         <p>Board dipotong lalu diberi alur V supaya bisa ditekuk. Kertas pembungkus menutup sisi luar dan masuk 15 mm ke dalam. Kertas dalam menutup board yang masih terlihat. Ketiganya keluar dari ukuran yang sama, jadi pasti saling pas.</p>
+        <span class="note n-right" aria-hidden="true">satu ukuran, tiga lembar<svg width="34" height="30" viewBox="0 0 34 30"><path style="--len:50" d="M4 2c2 12 10 20 24 22"/><path style="--len:18" d="M22 18l7 6-8 4"/></svg></span>
       </div>
       <div class="sheets" id="heroSheets"></div>
     </div>
@@ -558,16 +633,22 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 
   <section class="sec" id="model">
     <div class="wrap">
-      <h2 class="h2">Sebelas model, dua keluarga bahan.</h2>
+      <div class="center-head">
+        <h2 class="h2">Sebelas model, dua keluarga <span class="script">bahan</span>.</h2>
+      </div>
       <div class="families">
         <div class="family">
-          <h3>Kotak lipat</h3>
-          <p class="fam-note">Satu lembar karton atau kardus, dipon lalu dilipat. Lem atau kuncian lidah.</p>
+          <div class="family-head">
+            <h3>Kotak lipat</h3>
+            <p class="fam-note">Satu lembar karton atau kardus, dipon lalu dilipat. Lem atau kuncian lidah.</p>
+          </div>
           <ul class="mlist" id="listA"></ul>
         </div>
         <div class="family">
-          <h3>Hardbox</h3>
-          <p class="fam-note">Greyboard dirakit, lalu dibungkus kertas cetak. Untuk hampers, souvenir, dan produk premium.</p>
+          <div class="family-head">
+            <h3>Hardbox</h3>
+            <p class="fam-note">Greyboard dirakit, lalu dibungkus kertas cetak. Untuk hampers, souvenir, dan produk premium.</p>
+          </div>
           <ul class="mlist" id="listB"></ul>
         </div>
       </div>
@@ -575,13 +656,13 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
     </div>
   </section>
 
-  <section class="sec sec-alt" id="hitung">
+  <section class="sec" id="hitung">
     <div class="wrap calc-grid">
-      <div class="calc-figure">
+      <div class="calc-figure mat">
         <div class="sheetfig" id="heroPlano"></div>
       </div>
       <div class="calc-copy">
-        <h2 class="h2">Hitung kertasnya sebelum pisau dibuat.</h2>
+        <h2 class="h2">Hitung kertasnya sebelum <span class="script">pisau</span> dibuat.</h2>
         <p>Studio menyusun tiap potongan di plano, lurus atau diputar, lalu menghitung lembar board, kertas pembungkus, dan kertas dalam yang dibutuhkan untuk jumlah order. Tarif bisa diisi sesuai tarif percetakan sendiri.</p>
         <dl class="facts" id="heroFacts"></dl>
         <p class="fineprint" id="heroFactsNote"></p>
@@ -591,7 +672,10 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 
   <section class="sec" id="import">
     <div class="wrap import-grid">
-      <h2 class="h2">Pola aneh dari customer? Buka saja filenya.</h2>
+      <div>
+        <h2 class="h2">Pola aneh dari customer? Buka saja <span class="script">filenya</span>.</h2>
+        <span class="note" aria-hidden="true"><svg width="30" height="26" viewBox="0 0 30 26"><path style="--len:44" d="M27 3C15 3 6 9 4 22"/><path style="--len:16" d="M0 15l4 8 6-6"/></svg>file .ai atau .cdr? simpan ulang jadi SVG dulu</span>
+      </div>
       <div class="import-copy">
         <p>Studio membaca SVG dari Illustrator, CorelDRAW, atau Inkscape, dan DXF dari aplikasi CAD. Garis dikenali dari warnanya, layer-nya, dan pola putus-putusnya. Kalau tebakannya salah, tinggal ganti perannya.</p>
         <ul class="linekey">
@@ -604,10 +688,10 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
     </div>
   </section>
 
-  <section class="sec sec-alt" id="layout">
+  <section class="sec" id="layout">
     <div class="wrap">
-      <div class="split-head">
-        <h2>Bukan cuma box. Kerjaan cetak lain juga perlu disusun.</h2>
+      <div class="center-head">
+        <h2 class="h2">Bukan cuma box. Kerjaan cetak lain juga perlu <span class="script">disusun</span>.</h2>
         <p>Kartu nama, order campuran, buku, banner, dan akrilik punya masalah yang sama: berapa yang muat di satu lembar, dan bagaimana urutannya supaya mesin tidak buang bahan. Studio punya mode Layout cetak untuk lima pekerjaan ini. Hasilnya PDF siap cetak dengan crop mark, atau SVG dan DXF untuk laser.</p>
       </div>
       <ol class="lylist" id="lyLanding"></ol>
@@ -616,7 +700,8 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 
   <section class="sec" id="estimasi">
     <div class="wrap calc-grid">
-      <div class="calc-figure">
+      <div class="chat">
+        <p class="chat-from">Contoh spek yang ditempel dari chat</p>
         <pre class="specdemo" aria-label="Contoh spek dari chat">spek: softbox slide
 ukuran: 4 x 15 x 2,5 cm
 bahan: ivory 300 gsm
@@ -625,9 +710,10 @@ finishing: lam doff + foil gold
 aksesoris: pita gold 1 cm
 qty: 10.000 pcs
 notes: 2 referensi, inner busa eva dan ivory</pre>
+        <span class="note" aria-hidden="true"><svg width="30" height="26" viewBox="0 0 30 26"><path style="--len:40" d="M26 24C14 22 7 15 5 3"/><path style="--len:16" d="M0 9l5-7 6 6"/></svg>ditempel apa adanya, tanpa dirapikan</span>
       </div>
       <div class="calc-copy">
-        <h2 class="h2">Spek dari chat, harga keluar di studio.</h2>
+        <h2 class="h2">Spek dari chat, harga keluar di <span class="script">studio</span>.</h2>
         <p>Tempel spek pesanan apa adanya. Studio membaca model, ukuran, bahan, finishing, dan jumlahnya, lalu menghitung lembar kertas dari pola yang sebenarnya. Hasilnya modal, markup, dan harga jual per pcs, bisa dua atau tiga referensi berdampingan.</p>
         <p>Harganya diambil dari daftar harga yang diisi sendiri oleh tim percetakan, dan dipakai bersama oleh semua yang membuka Lipatin.</p>
         <button type="button" class="btn btn-line" data-studio="est">Buka estimasi harga</button>
@@ -635,9 +721,11 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
     </div>
   </section>
 
-  <section class="sec sec-alt" id="faq">
-    <div class="wrap faq-grid">
-      <h2 class="h2">Yang biasa ditanyakan tim produksi.</h2>
+  <section class="sec" id="faq">
+    <div class="wrap faq-wrap">
+      <div class="center-head">
+        <h2 class="h2">Yang biasa ditanyakan tim <span class="script">produksi</span>.</h2>
+      </div>
       <div class="faq">
         <details><summary>Ukuran yang diisi itu ukuran dalam atau luar?</summary><p>Ukuran dalam, yaitu ruang yang tersedia untuk produk. Lipatin menambahkan tebal bahan ke setiap panel, jadi ukuran luar kotak akan sedikit lebih besar dari angka yang kamu isi. Pada hardbox, tutup dibuat sedikit lebih besar dari alas supaya bisa menutup rapat. Pada laci, sleeve dibuat sedikit lebih longgar dari lacinya.</p></details>
         <details><summary>Bagaimana pola hardbox dihitung?</summary><p>Ukuran yang diisi adalah ukuran dalam. Dinding board berdiri mengelilingi alas, jadi ukuran luar bertambah dua kali tebal board. Tutup dan sleeve dibuat 1 mm lebih longgar ditambah tebal kertas pembungkus. Kertas pembungkus menutup dinding luar, melewati tepi atas, lalu masuk ke dalam sejauh lipatan masuk yang kamu atur. Sisi panjangnya punya telinga yang membungkus sudut. Kalau lipatan masuk lebih pendek dari tinggi dinding, kertas dalam dibuat dengan dinding supaya tidak ada board yang terlihat. Pada box magnet, papan sampul diberi celah engsel 1,5 kali tebal board, dan posisi magnet ditandai di flap dan dinding depan.</p></details>
@@ -653,8 +741,11 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
 
   <section class="closing">
     <div class="wrap">
-      <h2>Box berikutnya mulai dari tiga angka.</h2>
-      <button type="button" class="btn btn-cut" data-studio>Masuk studio</button>
+      <div class="head-notes">
+        <h2>Box berikutnya mulai dari tiga <span class="script">angka</span>.</h2>
+        <span class="note n-dims" aria-hidden="true">panjang × lebar × tinggi</span>
+      </div>
+      <div><button type="button" class="btn btn-cut" data-studio>Masuk studio</button></div>
     </div>
   </section>
 </main>
@@ -665,6 +756,21 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
     <span class="mono">© 2026 Lipatin</span>
   </div>
 </footer>
+
+<nav class="dock" aria-label="Navigasi halaman">
+  <button type="button" class="btn round theme-btn" data-theme-toggle aria-label="Ganti ke mode gelap" title="Ganti ke mode gelap"><svg class="i-moon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><svg class="i-sun" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+  <button type="button" class="btn btn-ink" data-studio>Masuk studio</button>
+  <button type="button" class="btn round" id="menuBtn" aria-expanded="false" aria-controls="menu" aria-label="Daftar bagian halaman"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h14M5 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+</nav>
+<div class="menu" id="menu" hidden>
+  <a href="#tiga-lembar">Pola tiga lembar</a>
+  <a href="#model">Model box</a>
+  <a href="#hitung">Hitung plano</a>
+  <a href="#import">Buka file sendiri</a>
+  <a href="#layout">Layout cetak</a>
+  <a href="#estimasi">Estimasi harga</a>
+  <a href="#faq">Pertanyaan</a>
+</div>
 </div>
 
 <div class="curtain" id="curtain" aria-hidden="true"></div>
@@ -1664,7 +1770,7 @@ function createViewer(opt={}){
       const fs=Math.max(3,Math.min(bw*0.8/(Math.max(3,txt.length)*0.74),bh*0.28));
       x.save(); x.translate(L.x+L.w/2,L.y+L.h/2); x.rotate(L.rot*Math.PI/180); x.scale(-1,1);
       x.fillStyle= lum(s.color)>0.55 ? 'rgba(20,24,28,.86)' : 'rgba(255,255,255,.93)';
-      x.font=`800 ${fs}px Archivo, "Arial Narrow", sans-serif`; x.textAlign='center'; x.textBaseline='middle';
+      x.font=`500 ${fs}px Newsreader, Georgia, serif`; x.textAlign='center'; x.textBaseline='middle';
       x.fillText(txt,0,0);
       x.fillRect(-bw*0.16,fs*0.72,bw*0.32,Math.max(0.35,fs*0.05));
       x.restore();
@@ -3118,7 +3224,7 @@ function selectTool(k){ LY.tool=k; const r=$(`#lyTools input[value="${k}"]`); if
 
 
 /* ---------- Landing: one real box, built by the same engine as the studio ---------- */
-const heroState={model:'hb_book',L:160,W:120,D:60,X:50,Xs:{},T:2,mat:'gb20',glue:20,TI:15,HBM:'v',bleed:true,color:'#22303A',inner:'#C29467',label:'LIPATIN'};
+const heroState={model:'hb_book',L:160,W:120,D:60,X:50,Xs:{},T:2,mat:'gb20',glue:20,TI:15,HBM:'v',bleed:true,color:'#EFE9DD',inner:'#C29467',label:'LIPATIN'};
 const heroModel=buildModel(heroState);
 $('#heroTicket').textContent=`${MODELS.hb_book.name} · ${heroState.L} × ${heroState.W} × ${heroState.D} mm · ${MAT.gb20.name}`;
 const heroStage=$('#heroStage');
@@ -3592,6 +3698,28 @@ const LYUSE={nup:'Kartu nama, stiker, label, voucher. Disusun di kertas 32 × 47
   book:'Buku, majalah, katalog, dan kalender meja. Urutan halaman per lembar untuk steples tengah atau jilid lem.',
   roll:'Banner, spanduk, dan stiker vinyl disusun di lebar bahan, lengkap dengan panjang dan luas bahan.',
   laser:'Gantungan kunci, plakat, dan signage disusun di lembar akrilik. Keluar SVG dan DXF untuk mesin laser.'};
+/* Cutting-mat rulers: one number per major square, like the edge of a real mat */
+document.querySelectorAll('.ruler.x').forEach(r=>{ r.innerHTML=Array.from({length:60},(_,i)=>`<span>${i%5===0?i/5:''}</span>`).join(''); });
+document.querySelectorAll('.ruler.y').forEach(r=>{ r.innerHTML=Array.from({length:40},(_,i)=>`<span>${i%5===0&&i?i/5:''}</span>`).join(''); });
+
+/* Margin notes draw their arrow the first time they scroll into view */
+(function(){
+  const notes=document.querySelectorAll('.note');
+  if(!window.IntersectionObserver){ notes.forEach(n=>n.classList.add('seen')); return; }
+  const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('seen'); io.unobserve(e.target); } }),{threshold:.6});
+  notes.forEach(n=>io.observe(n));
+})();
+
+/* Dock menu: section list above the dock. Closes on Escape, outside click, or picking a section. */
+(function(){
+  const btn=$('#menuBtn'), menu=$('#menu');
+  const setOpen=open=>{ menu.hidden=!open; btn.setAttribute('aria-expanded',String(open)); btn.setAttribute('aria-label',open?'Tutup daftar bagian':'Daftar bagian halaman'); };
+  btn.addEventListener('click',()=>{ const open=menu.hidden; setOpen(open); if(open) menu.querySelector('a').focus(); });
+  menu.addEventListener('click',e=>{ if(e.target.closest('a')) setOpen(false); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!menu.hidden){ setOpen(false); btn.focus(); } });
+  document.addEventListener('click',e=>{ if(!menu.hidden&&!menu.contains(e.target)&&!btn.contains(e.target)) setOpen(false); });
+})();
+
 $('#lyLanding').innerHTML=TOOLS.map(t=>`<li><button type="button" data-studio="ly:${t.k}">${lyDemo(t.k)}<strong>${t.name}</strong><small>${LYUSE[t.k]}</small><em>Buka di studio</em></button></li>`).join('');
 
 /* ---------- Entering and leaving the studio ---------- */
