@@ -139,9 +139,9 @@ p{margin:0}
 .hero .mat{max-width:1400px;margin:0 auto;min-height:min(820px,calc(100svh - 96px));display:flex;flex-direction:column}
 .hero-grid{flex:1}
 .hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.15fr);gap:24px;align-items:center;padding:clamp(20px,3vw,40px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px)}
-.proofsheet{position:relative;background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:0 2px 3px rgba(0,0,0,.12),0 30px 60px -24px rgba(0,0,0,.55);padding:clamp(28px,4vw,52px);transform:rotate(-1.2deg)}
+.proofsheet{position:relative;background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:0 2px 3px rgba(0,0,0,.12),0 30px 60px -24px rgba(0,0,0,.55);padding:clamp(28px,4vw,52px);transform:rotate(-1.2deg) scale(var(--fit,1))}
 @media (prefers-reduced-motion:no-preference){.proofsheet{animation:sheetIn .9s cubic-bezier(.2,.8,.2,1) both}}
-@keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg);opacity:0}to{transform:rotate(-1.2deg);opacity:1}}
+@keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg) scale(var(--fit,1));opacity:0}to{transform:rotate(-1.2deg) scale(var(--fit,1));opacity:1}}
 .hero h1{font-size:clamp(40px,5vw,74px);letter-spacing:-.045em}
 .hero .lead{margin-top:22px;font-size:clamp(16px,1.4vw,18px);color:var(--muted);max-width:46ch}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
@@ -175,14 +175,9 @@ p{margin:0}
   /* the canvas is taken out of flow so its pixel size cannot push the row taller than the mat */
   .hero-stage{flex:1 1 0;height:auto;min-height:0;max-height:624px}
   .hero-stage canvas{position:absolute;inset:0}
-  .proofsheet{align-self:center}
-}
-/* Only on short screens does the headline card shrink with screen height, so it still fits inside the pinned mat */
-@media (min-width:901px) and (min-height:700px) and (max-height:940px) and (prefers-reduced-motion:no-preference){
-  .proofsheet{padding:clamp(22px,3.4svh,48px)}
-  .hero h1{font-size:clamp(34px,min(5vw,7.4svh),74px)}
-  .hero .lead{font-size:clamp(14px,min(1.4vw,2.3svh),18px);margin-top:min(22px,2.4svh)}
-  .hero .ctas{margin-top:min(28px,3svh)}
+  /* the card keeps one layout on every screen; when the pinned mat is too short, JS sets --fit and the whole card
+     scales down as one piece instead of reflowing its text */
+  .proofsheet{align-self:center;transform-origin:50% 50%}
 }
 @media not ((min-width:901px) and (min-height:700px)){
   @media (prefers-reduced-motion:no-preference){
@@ -194,7 +189,7 @@ p{margin:0}
 @media (max-width:900px){
   .hero-grid{grid-template-columns:minmax(0,1fr);gap:20px;padding:24px 16px 72px 30px}
   .hero-stage{height:min(clamp(320px,100vw,480px),calc(100svh - 270px))}
-  .proofsheet{transform:rotate(-.6deg)}
+  .proofsheet{transform:rotate(-.6deg) scale(var(--fit,1))}
   .stage-cap{min-height:84px}.cap-k{font-size:22px}.cap-t{font-size:16px}
 }
 
@@ -3293,6 +3288,25 @@ function heroRun(){
     if(!heroIntro){ heroIntro=true; if(!reduced()&&scrollY<40){ HERO.setFold(0); setTimeout(()=>{ if(scrollY<40) HERO.animateTo(1,4400); else dispatchEvent(new Event('scroll')); },250); } }
   } else HERO.stop();
 }
+
+/* Fit the headline card inside the pinned mat by scaling it as one piece (.proofsheet uses --fit),
+   so its text never reflows between screen heights. offsetHeight ignores transforms, so this reads the true size. */
+(function(){
+  const sheet=$('.proofsheet'), grid=$('.hero-grid');
+  const pinMq=matchMedia('(min-width:901px) and (min-height:700px) and (prefers-reduced-motion: no-preference)');
+  function fit(){
+    let f=1;
+    if(pinMq.matches){
+      const cs=getComputedStyle(grid);
+      const avail=grid.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-16;
+      f=Math.min(1,avail/sheet.offsetHeight);
+    }
+    sheet.style.setProperty('--fit',f.toFixed(3));
+  }
+  fit();
+  addEventListener('resize',fit);
+  if(document.fonts) document.fonts.ready.then(fit);
+})();
 
 /* Three sheets of the same box */
 $('#heroSheets').innerHTML=heroModel.parts.map((p,i)=>{
