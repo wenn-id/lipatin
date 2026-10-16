@@ -6,12 +6,12 @@
 <meta name="description" content="Pola box dan hardbox, layout cetak, dan estimasi harga untuk percetakan.">
 <meta property="og:title" content="Lipatin">
 <meta property="og:description" content="Pola box dan hardbox, layout cetak, dan estimasi harga untuk percetakan.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cpath d='M10 2h8v6h8v8h-8v10h-8V16H2V8h8z' fill='none' stroke='%23e0457b' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cpath d='M10 2h8v6h8v8h-8v10h-8V16H2V8h8z' fill='none' stroke='%23C9105A' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Lipatin</title>
 <script>try{const t=JSON.parse(localStorage.getItem('lipatin-theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&family=Pinyon+Script&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Sans:wght@400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&family=Pinyon+Script&display=swap">
 <style>
 /* A proof on the cutting mat. Neutrals: ivory paper + green-black ink. Core: cutting-mat green, the surface every box
    is cut on. One accent: leaf green, only for the hand-lettered word in a heading and the margin notes.
@@ -27,6 +27,8 @@
   --leaf:#24773F;
   --cut:#C9105A; --on-cut:#FFFFFF; --crease:#0A7FB3; --bleed:#1B8A58; --kraft:#C29467; --kraft-deep:#8C6440;
   --on-ink:#F6F3EC;
+  /* roles the die-line colors must not stand in for: focus ring, control outline, engraving, dialog scrim */
+  --focus:#17251D; --border-control:#8A877D; --engrave:#17251D; --scrim:rgba(12,22,16,.55);
   --lift:0 1px 2px rgba(23,37,29,.08),0 14px 34px -14px rgba(23,37,29,.28);
   --f-display:"Newsreader",Georgia,"Times New Roman",serif;
   --f-script:"Pinyon Script","Snell Roundhand",cursive;
@@ -43,6 +45,7 @@
     --leaf:#6BCB8B;
     --cut:#FF4D8E; --on-cut:#22040F; --crease:#41B9EE; --bleed:#45CC8B; --kraft:#C29A6E; --kraft-deep:#E1BE93;
     --on-ink:#0F1411;
+    --focus:#E8EDE6; --border-control:#66706A; --engrave:#E8EDE6;
     --lift:0 1px 2px rgba(0,0,0,.4),0 18px 40px -16px rgba(0,0,0,.7);
     color-scheme:dark;
   }
@@ -54,19 +57,23 @@
   --leaf:#6BCB8B;
   --cut:#FF4D8E; --on-cut:#22040F; --crease:#41B9EE; --bleed:#45CC8B; --kraft:#C29A6E; --kraft-deep:#E1BE93;
   --on-ink:#0F1411;
+  --focus:#E8EDE6; --border-control:#66706A; --engrave:#E8EDE6;
   --lift:0 1px 2px rgba(0,0,0,.4),0 18px 40px -16px rgba(0,0,0,.7);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+/* keeps focused and scrolled-to content clear of the fixed dock */
+html{scroll-padding-block-end:calc(max(14px,env(safe-area-inset-bottom,0px)) + 72px)}
 [hidden]{display:none!important}
-body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:1rem;line-height:1.55;-webkit-font-smoothing:antialiased}
 body.in-studio{overflow:hidden}
 a{color:inherit}
 h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;line-height:1.04;letter-spacing:-.03em}
-p{margin:0}
+p{margin:0;text-wrap:pretty}
 .wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-:focus-visible{outline:2px solid var(--crease);outline-offset:2px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.mat :focus-visible{outline-color:var(--on-mat)}
 /* The hand-lettered word: one per heading, never in body text */
 .script{font-family:var(--f-script);font-weight:400;color:var(--leaf);letter-spacing:0;font-size:1.22em;line-height:.8;padding:0 .06em}
 /* Margin notes, written like a press operator's remarks on a proof */
@@ -80,14 +87,15 @@ p{margin:0}
 
 /* Buttons: ink pills for actions, outline for secondary. Pills are reserved for buttons and the dock;
    cards, inputs and panels keep corners so they still read as sheets and fields. */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px/1 var(--f-body);min-height:44px;padding:12px 20px;border-radius:var(--r-b);border:1.5px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px/1 var(--f-body);min-height:44px;padding:12px 20px;border-radius:var(--r-b);border:1.5px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+@media (prefers-reduced-motion:no-preference){
+  .btn{transition-property:scale;transition-duration:150ms;transition-timing-function:ease-out}
+  .btn:not([disabled]):active{scale:.96}
+}
 .btn-ink,.btn-cut{background:var(--ink);color:var(--on-ink)}
-.btn-ink:hover,.btn-cut:hover{background:color-mix(in srgb,var(--ink) 84%,var(--leaf))}
 .btn-cut{min-height:52px;padding:15px 28px;font-size:16px}
 .btn-line{background:transparent;color:var(--ink);border-color:color-mix(in srgb,var(--ink) 40%,transparent)}
-.btn-line:hover{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .btn-quiet{background:transparent;color:var(--muted);border-color:transparent}
-.btn-quiet:hover{color:var(--ink)}
 .btn-sm{min-height:38px;padding:9px 16px;font-size:14px}
 .btn[disabled]{opacity:.55;cursor:not-allowed}
 .theme-btn{width:38px;padding:0;flex:none}
@@ -118,14 +126,13 @@ p{margin:0}
 .dock{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:color-mix(in srgb,var(--surface) 82%,transparent);border:1px solid var(--line);box-shadow:var(--lift);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .dock .btn{min-height:44px}
 .dock .round{width:44px;padding:0;border-radius:50%;background:var(--paper);color:var(--ink);border:1px solid var(--line)}
-.dock .round:hover{border-color:var(--ink)}
 .dock .btn-ink{min-width:180px}
 @media (prefers-reduced-motion:no-preference){.dock{animation:dockIn .6s cubic-bezier(.2,.8,.2,1) .3s both}}
-@keyframes dockIn{from{transform:translate(-50%,140%)}to{transform:translate(-50%,0)}}
-.menu{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 66px);transform:translateX(-50%);z-index:31;width:min(320px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--lift);padding:8px}
-.menu a{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px;border-radius:10px;text-decoration:none;font-family:var(--f-display);font-size:20px;letter-spacing:-.01em}
+@keyframes dockIn{from{transform:translate(-50%,140%)}}
+.menu{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 66px);transform:translateX(-50%);z-index:31;width:min(320px,calc(100% - 32px));max-height:calc(100dvh - max(14px,env(safe-area-inset-bottom,0px)) - 82px);overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--lift);padding:8px}
+.menu a{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px;border-radius:var(--r-s);text-decoration:none;font-family:var(--f-display);font-size:20px;letter-spacing:-.01em}
 .menu a small{font:12px var(--f-mono);color:var(--muted)}
-.menu a:hover,.menu a:focus-visible{background:var(--paper)}
+.menu a:focus-visible{background:var(--paper)}
 
 /* Landing top line, printed on the mat: the name only. Navigation lives in the dock. */
 .mat-top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,4vw,56px) 0 clamp(28px,4.5vw,64px);color:var(--on-mat)}
@@ -141,7 +148,7 @@ p{margin:0}
 .hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.15fr);gap:24px;align-items:center;padding:clamp(20px,3vw,40px) clamp(20px,4vw,56px) 56px clamp(28px,4.5vw,64px)}
 .proofsheet{position:relative;background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:0 2px 3px rgba(0,0,0,.12),0 30px 60px -24px rgba(0,0,0,.55);padding:clamp(28px,4vw,52px);transform:rotate(-1.2deg) scale(var(--fit,1))}
 @media (prefers-reduced-motion:no-preference){.proofsheet{animation:sheetIn .9s cubic-bezier(.2,.8,.2,1) both}}
-@keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg) scale(var(--fit,1));opacity:0}to{transform:rotate(-1.2deg) scale(var(--fit,1));opacity:1}}
+@keyframes sheetIn{from{transform:translate(-14px,26px) rotate(-4deg) scale(var(--fit,1));opacity:0}}
 .hero h1{font-size:clamp(40px,5vw,74px);letter-spacing:-.045em}
 .hero .lead{margin-top:22px;font-size:clamp(16px,1.4vw,18px);color:var(--muted);max-width:46ch}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
@@ -198,7 +205,7 @@ p{margin:0}
 .box{position:relative;width:0;height:0;transform-style:preserve-3d}
 .face{position:absolute;left:0;top:0;transform-style:preserve-3d;border:1px solid rgba(0,0,0,.22);display:grid;place-items:center;overflow:hidden}
 .face::after{content:"";position:absolute;inset:0;background:var(--shade,transparent);pointer-events:none}
-.face .lbl{font-family:var(--f-display);font-weight:800;font-stretch:115%;letter-spacing:.02em;text-align:center;line-height:1;padding:6px;overflow-wrap:anywhere}
+.face .lbl{font-family:var(--f-display);font-weight:600;letter-spacing:.02em;text-align:center;line-height:1;padding:6px;overflow-wrap:anywhere}
 .hinge{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d}
 .lid{transform-origin:50% 0}
 
@@ -229,18 +236,17 @@ section{scroll-margin-top:24px}
 /* Model index: a long ruled list, name in serif on the left, what it is for on the right */
 .families{display:flex;flex-direction:column;gap:56px;margin-top:56px}
 .family-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--ink)}
-.family h3{font-size:30px;letter-spacing:-.025em}
+.family h3{font-size:30px;letter-spacing:-.025em;line-height:1.2}
 .fam-note{color:var(--muted);font-size:14.5px;max-width:52ch}
 .mlist{list-style:none;margin:0;padding:0}
 .mlist li{border-bottom:1px solid var(--line)}
 .mlist button{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(0,1.1fr) auto;gap:20px;align-items:center;width:100%;text-align:left;padding:14px 8px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;min-height:64px;border-radius:12px}
-.mlist button:hover{background:var(--surface)}
 .mlist svg{width:72px;height:42px;color:var(--muted)}
 .mlist button > span{display:contents}
 .mlist strong{font-family:var(--f-display);font-weight:400;font-size:clamp(20px,2.2vw,26px);letter-spacing:-.02em;line-height:1.15}
 .mlist small{color:var(--muted);font-size:14px;line-height:1.45}
-.mlist em{font-style:normal;font-size:13px;color:var(--ink);white-space:nowrap;opacity:0;transition:opacity .15s}
-.mlist button:hover em,.mlist button:focus-visible em{opacity:1}
+.mlist em{font-style:normal;font-size:13px;color:var(--ink);white-space:nowrap;opacity:0;transition:opacity .15s ease-out}
+.mlist button:focus-visible em{opacity:1}
 @media (max-width:760px){.mlist button{grid-template-columns:52px minmax(0,1fr);gap:4px 14px}.mlist svg{width:52px;grid-row:span 2}.mlist em{display:none}}
 .soon-line{margin-top:32px;color:var(--muted);font-size:14px;max-width:70ch}
 
@@ -274,7 +280,7 @@ section{scroll-margin-top:24px}
 .faq details:first-child{border-top:1px solid var(--ink)}
 .faq summary{cursor:pointer;list-style:none;padding:22px 44px 22px 0;font-family:var(--f-display);font-size:clamp(19px,2vw,23px);letter-spacing:-.015em;line-height:1.25;position:relative}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"";position:absolute;right:8px;top:50%;width:10px;height:10px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.faq summary::after{content:"";position:absolute;right:8px;top:50%;width:10px;height:10px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:translateY(-70%) rotate(45deg);transition:transform .2s ease-out}
 .faq details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
 .faq details p{padding:0 0 24px;color:var(--muted);max-width:66ch}
 
@@ -295,19 +301,20 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 
 /* Studio: a full-screen workspace with a job ticket on top */
 .studio{position:fixed;inset:0;z-index:50;background:var(--paper);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.s-top{display:flex;align-items:center;gap:16px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--paper)}
+.s-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--paper)}
 .brand-sm{font-size:20px;gap:8px}
-.ticket{flex:1;min-width:0;overflow:hidden;display:flex;gap:2px 16px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--muted);border-left:1px dashed var(--line);padding-left:16px}
-.ticket b{font-family:var(--f-display);font-weight:500;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
-.ticket span{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.s-actions{display:flex;gap:8px;align-items:center}
-@media (max-width:760px){.ticket{display:none}.s-actions{margin-left:auto}#btnTpl{display:none}}
+.ticket{flex:1 1 12rem;min-width:0;overflow:hidden;display:flex;gap:2px 16px;flex-wrap:nowrap;align-items:baseline;font-size:13px;color:var(--muted);border-left:1px dashed var(--line);padding-left:16px}
+.ticket b{flex:none;max-width:40%;font-family:var(--f-display);font-weight:500;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
+.ticket b,.ticket span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket span{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.s-actions{display:flex;gap:8px;align-items:center;margin-inline-start:auto}
+@media (max-width:760px){.ticket{display:none}#btnTpl{display:none}}
 .s-body{display:grid;grid-template-columns:340px minmax(0,1fr);min-height:0}
-.s-rail{overflow:auto;border-right:1px solid var(--line);background:var(--paper);padding:22px max(16px,env(safe-area-inset-left,0px)) 28px 20px}
+.s-rail{overflow:auto;overscroll-behavior:contain;border-right:1px solid var(--line);background:var(--paper);padding:22px 20px 28px max(20px,env(safe-area-inset-left,0px))}
 .s-main{display:flex;flex-direction:column;min-height:0;min-width:0;padding:16px;padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--paper)}
-.s-main .viewer{flex:1;display:flex;flex-direction:column;min-height:0}
+.s-main .viewer{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
 .s-main .canvas{flex:1;height:auto;min-height:280px}
-.s-main .planoview{flex:1;overflow:auto;min-height:0}
+.s-main .planoview{flex:1;overflow:auto;overscroll-behavior:contain;min-height:280px}
 @media (max-width:900px){
   .s-body{grid-template-columns:minmax(0,1fr);overflow:auto;display:flex;flex-direction:column}
   .s-main{order:-1;flex:none;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
@@ -317,11 +324,12 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 }
 
 /* Dialogs */
-.dlg{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);color:var(--ink);padding:24px;width:min(880px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-shadow:var(--lift)}
-.dlg-wide{width:min(1040px,calc(100vw - 32px))}
-.dlg::backdrop{background:rgba(12,22,16,.55)}
-.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:6px}
-.dlg-head h2{font-size:30px;letter-spacing:-.03em}
+.dlg{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);color:var(--ink);padding:24px;width:min(880px,calc(100% - 32px));max-height:calc(100dvh - 48px);box-shadow:var(--lift);overscroll-behavior:contain}
+.dlg-wide{width:min(1040px,calc(100% - 32px))}
+.dlg::backdrop{background:var(--scrim,rgba(12,22,16,.55))}
+/* the head sticks so Tutup stays reachable while a long dialog scrolls */
+.dlg-head{position:sticky;top:-24px;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;margin:-24px 0 6px;padding-block:24px 8px;background:var(--surface)}
+.dlg-head h2{font-size:30px;letter-spacing:-.03em;line-height:1.2}
 .dlg-note{color:var(--muted);font-size:14.5px;margin-bottom:16px;max-width:60ch}
 
 /* Templates (inside the dialog) */
@@ -329,7 +337,6 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 @media (max-width:760px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:460px){.tgrid{grid-template-columns:minmax(0,1fr)}}
 .tcard{display:flex;flex-direction:column;text-align:left;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);padding:0;cursor:pointer;color:inherit;font:inherit;overflow:hidden}
-.tcard:hover{border-color:var(--ink)}
 .tthumb{aspect-ratio:16/10;max-width:100%;background:var(--sheet);display:grid;place-items:center;padding:12px;border-bottom:1px solid var(--line)}
 .tthumb svg{width:100%;height:100%}
 .tmeta{padding:10px 12px;display:flex;flex-direction:column;gap:2px}
@@ -337,7 +344,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 .tmeta span{font-size:12.5px;color:var(--muted)}
 .tmeta .mono{color:var(--ink)}
 
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 
 /* Generator components */
 /* Generator */
@@ -350,38 +357,44 @@ legend,.flabel{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .seg label{position:relative;cursor:pointer}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.seg span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1px solid var(--line);border-radius:12px;font-size:12.5px;font-weight:600;text-align:center;line-height:1.2;color:var(--muted);background:var(--surface)}
+.seg span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1px solid var(--border-control);border-radius:12px;font-size:12.5px;font-weight:600;text-align:center;line-height:1.2;color:var(--muted);background:var(--surface)}
 .seg svg{width:44px;height:34px}
 .seg input:checked + span{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.seg input:focus-visible + span{outline:2px solid var(--crease);outline-offset:2px}
+.seg input:focus-visible + span{outline:2px solid var(--focus);outline-offset:2px}
 .dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field label{font-size:12px;color:var(--muted)}
 .field label b{font-family:var(--f-mono);color:var(--ink);font-weight:500}
-.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);overflow:hidden}
+.inp{display:flex;align-items:center;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--surface);overflow:hidden}
 .inp:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--leaf) 22%,transparent)}
+.inp:has(input[aria-invalid="true"]){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ferr{font-size:13px;font-weight:600;color:var(--ink);margin-top:2px}
+.ferr:empty{display:none}
+.ferr::before{content:"! ";font-family:var(--f-mono)}
 .inp input{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);font:500 16px var(--f-mono);font-variant-numeric:tabular-nums;padding:10px 4px 10px 10px;outline:none}
 .inp small{font:12px var(--f-mono);color:var(--muted);padding-right:10px}
 .matbar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:2px}
-.matbar i{display:block;height:100%;background:var(--kraft);border-radius:3px;transition:width .2s}
+.matbar i{display:block;height:100%;background:var(--kraft);border-radius:3px;translate:calc(var(--p,100%) - 100%) 0;transition:translate .2s ease-out}
 .mathint{font-size:13px;color:var(--muted);line-height:1.45}
 .mathint:empty{display:none}
-select{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:15px var(--f-body);padding:10px}
+select{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:15px var(--f-body);padding:10px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
 .check input{width:18px;height:18px;accent-color:var(--leaf)}
-.err{font-size:13px;color:var(--cut);min-height:0}
+/* magenta means a cut line, so errors are ink with a mark instead */
+.err{font-size:13px;font-weight:600;color:var(--ink);min-height:0}
+.err:not(:empty)::before{content:"! ";font-family:var(--f-mono)}
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
-.sw{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);cursor:pointer;padding:0}
+.sw{width:30px;height:30px;border-radius:50%;border:1px solid var(--border-control);cursor:pointer;padding:0}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
-.txt{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:15px var(--f-body);padding:10px}
+.txt{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:15px var(--f-body);padding:10px}
 input[type=range]{width:100%;accent-color:var(--leaf)}
 
 .viewer{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);overflow:hidden;min-width:0}
 .vbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .tabs{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-b);padding:3px}
 .tabs button{border:0;background:transparent;color:var(--muted);font:600 14px var(--f-body);padding:7px 15px;border-radius:var(--r-b);cursor:pointer}
-.tabs button[aria-selected="true"]{background:var(--ink);color:var(--on-ink)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:18px;height:0;vertical-align:middle;margin-right:6px}
 .lg-cut{border-top:2px solid var(--cut)}
@@ -393,11 +406,16 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 #genStage canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
 #genStage canvas:active{cursor:grabbing}
 #view3d .stage{position:absolute;inset:0}
+/* camera buttons: the keyboard and single-pointer way to do what drag, wheel and double-click do */
+.cambar{position:absolute;left:12px;right:12px;top:34px;padding:0;border:0;background:transparent;gap:4px}
+.cambar button{background:color-mix(in srgb,var(--surface) 88%,transparent);min-height:32px}
 .foldbar{position:absolute;left:12px;right:12px;bottom:12px;display:flex;align-items:center;gap:12px;padding:6px 14px 6px 6px;border:1px solid var(--line);border-radius:var(--r-b);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px)}
 .foldbar input{flex:1;min-width:0}
 .foldbar .btn{min-width:122px}
 #foldPct{font-size:12px;color:var(--muted);width:3.2em;text-align:right}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* hidden file inputs sit right before their visible label, which shows the focus ring for them */
+.sr:focus-visible + .drop,.sr:focus-visible + label.btn{outline:2px solid var(--focus);outline-offset:2px}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
 .stat{padding:14px 16px;border-right:1px solid var(--line);min-width:0}
 .stat:last-child{border-right:0}
@@ -408,8 +426,8 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 .fits{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-top:1px solid var(--line);font-size:13px}
 .fits b{font-weight:600;color:var(--muted);margin-right:4px}
 .chip{font:500 12px var(--f-mono);padding:4px 9px;border-radius:var(--r-s);border:1px solid var(--line);color:var(--muted)}
-.chip.ok{border-color:color-mix(in srgb,var(--bleed) 60%,transparent);color:var(--bleed);background:color-mix(in srgb,var(--bleed) 10%,transparent)}
-.chip.no{text-decoration:line-through;opacity:.7}
+.chip.ok{border-color:var(--ink);color:var(--ink);background:transparent}
+.chip.no{text-decoration:line-through;color:var(--muted)}
 .actions{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);align-items:center}
 .status{font-size:13px;color:var(--muted)}
 #svgcode{width:100%;height:120px;font:12px var(--f-mono);border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink);padding:10px;margin:0 16px 16px;width:calc(100% - 32px)}
@@ -420,11 +438,10 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 .models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .models label{position:relative;cursor:pointer;min-width:0}
 .models input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.models span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--line);border-radius:12px;font-size:11.5px;font-weight:600;text-align:center;line-height:1.15;color:var(--muted);height:100%;background:var(--surface)}
-.models label:hover span{border-color:color-mix(in srgb,var(--ink) 45%,transparent)}
+.models span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--border-control);border-radius:12px;font-size:12px;font-weight:600;text-align:center;line-height:1.15;color:var(--muted);height:100%;background:var(--surface)}
 .models svg{width:100%;max-width:58px;height:36px}
 .models input:checked + span{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:color-mix(in srgb,var(--leaf) 9%,var(--surface))}
-.models input:focus-visible + span{outline:2px solid var(--crease);outline-offset:2px}
+.models input:focus-visible + span{outline:2px solid var(--focus);outline-offset:2px}
 .mgroup{font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 6px;letter-spacing:.02em}
 .mgroup:first-of-type{margin-top:0}
 .partbar{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
@@ -435,7 +452,7 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 
 /* Import */
 .drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;padding:22px 12px;border:1.5px dashed color-mix(in srgb,var(--ink) 30%,transparent);border-radius:var(--r);cursor:pointer;background:var(--surface)}
-.drop:hover,.drop.over{border-color:var(--crease)}
+.drop.over{border-color:var(--ink)}
 .drop strong{font-size:14px}
 .drop span{font-size:12.5px;color:var(--muted)}
 .groups{display:flex;flex-direction:column;gap:10px}
@@ -456,7 +473,13 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 .nupline{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:13px;color:var(--muted)}
 .nupline b{display:block;font:500 20px var(--f-mono);color:var(--ink)}
 .rates summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);padding:4px 0 10px}
-.tablewrap{overflow-x:auto}
+/* edge shadows appear only while there is more table to scroll to */
+.tablewrap{overflow-x:auto;background:
+  linear-gradient(90deg,var(--surface) 30%,transparent) left/24px 100% no-repeat local,
+  linear-gradient(270deg,var(--surface) 30%,transparent) right/24px 100% no-repeat local,
+  radial-gradient(farthest-side at 0 50%,color-mix(in srgb,var(--ink) 16%,transparent),transparent) left/10px 100% no-repeat scroll,
+  radial-gradient(farthest-side at 100% 50%,color-mix(in srgb,var(--ink) 16%,transparent),transparent) right/10px 100% no-repeat scroll;
+  background-color:var(--surface)}
 .cost{width:100%;border-collapse:collapse;font-size:14px}
 .cost td{padding:8px 0;border-bottom:1px solid var(--line);vertical-align:top}
 .cost td:last-child{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
@@ -467,24 +490,23 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 /* Quote */
 .quote{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:start}
 @media (max-width:880px){.quote{grid-template-columns:minmax(0,1fr)}}
-.quote h2{font-size:clamp(30px,4.2vw,48px);font-weight:820;font-stretch:110%;letter-spacing:-.02em}
 .lead2{color:var(--muted);margin:14px 0 24px;max-width:56ch}
 .qform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .qform .full{grid-column:1/-1}
 @media (max-width:520px){.qform{grid-template-columns:minmax(0,1fr)}}
-.qform textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);color:var(--ink);font:15px var(--f-body);padding:10px;resize:vertical}
-.qform input[type=date]{width:100%;border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);color:var(--ink);font:15px var(--f-body);padding:9px 10px}
+.qform textarea{width:100%;min-height:90px;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--paper);color:var(--ink);font:15px var(--f-body);padding:10px;resize:vertical}
+.qform input[type=date]{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--paper);color:var(--ink);font:15px var(--f-body);padding:9px 10px}
 .checks{display:flex;flex-wrap:wrap;gap:8px}
 .checks label{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;border:1px solid var(--line);border-radius:var(--r-s);padding:8px 12px;min-height:40px;cursor:pointer;color:var(--ink)}
-.checks input{accent-color:var(--cut)}
+.checks input{accent-color:var(--leaf)}
 .qspec{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;background:var(--paper);font-size:14px}
 .qspec .flabel{margin:0}
 .qspec dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:8px 0 0}
 .qspec dt{color:var(--muted);font-size:13px}
 .qspec dd{margin:0;font-family:var(--f-mono);font-size:13px;overflow-wrap:anywhere}
 .qout{border:1px solid var(--line);border-radius:var(--r);background:var(--paper);padding:18px}
-.qout h3{font-family:var(--f-body);font-size:15px;font-weight:600;margin-bottom:10px}
-.qout pre{white-space:pre-wrap;word-break:break-word;font:13px/1.55 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:12px;margin:0 0 12px;max-height:440px;overflow:auto}
+.qout h3{font-family:var(--f-body);font-size:15px;font-weight:600;line-height:1.3;margin-bottom:10px}
+.qout pre{white-space:pre-wrap;word-break:break-word;font:13px/1.55 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:12px;margin:0 0 12px;max-height:440px;overflow:auto;overscroll-behavior:contain}
 .qbtns{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
 
 /* Studio rail and viewer */
@@ -497,19 +519,19 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 /* Studio mode switch and layout tools */
 .modesw{display:inline-flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-b);padding:3px;flex:none}
 .modesw button{border:0;border-radius:var(--r-b);background:transparent;color:var(--muted);font:600 13.5px var(--f-body);padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap}
-.modesw button:hover{color:var(--ink)}
 .modesw button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
-.modesw button:focus-visible{outline:2px solid var(--crease);outline-offset:-4px}
-.s-rail > .panel + .panel{margin-top:22px}
+.modesw button:focus-visible{outline:2px solid var(--focus);outline-offset:-4px}
+.modesw button[aria-pressed="true"]:focus-visible{outline-color:var(--on-ink)}
+.s-rail > .panel + .panel{margin-top:40px}
+.s-rail .panel > .panel{margin-top:20px}
 .tools{display:flex;flex-direction:column;border-top:1px solid var(--ink)}
 .tool{position:relative;display:block;cursor:pointer;border-bottom:1px solid var(--line)}
 .tool input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .tool span{display:block;padding:10px 10px 10px 14px;border-left:3px solid transparent}
 .tool strong{display:block;font-size:14px;font-weight:600}
 .tool small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35;margin-top:2px}
-.tool:hover span{background:color-mix(in srgb,var(--kraft) 10%,transparent)}
 .tool input:checked + span{border-left-color:var(--ink);background:var(--surface)}
-.tool input:focus-visible + span{outline:2px solid var(--crease);outline-offset:-2px}
+.tool input:focus-visible + span{outline:2px solid var(--focus);outline-offset:-2px}
 .fcard{border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);padding:10px;margin-top:10px;display:flex;flex-direction:column;gap:8px}
 .fcard strong{display:block;font-size:13.5px;overflow-wrap:anywhere}
 .fcard small{display:block;font:12px var(--f-mono);color:var(--muted)}
@@ -517,13 +539,13 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 .ilist:empty{display:none}
 .irow{display:grid;grid-template-columns:minmax(0,1fr) 92px auto;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .irow strong{display:block;font-size:13px;overflow-wrap:anywhere}
-.irow small{display:block;font:11.5px var(--f-mono);color:var(--muted)}
+.irow small{display:block;font:12px var(--f-mono);color:var(--muted)}
 .irow-roll{grid-template-columns:repeat(3,minmax(0,1fr)) auto}
 .irow-roll .txt{grid-column:1/-1}
 .irow-laser{grid-template-columns:repeat(3,minmax(0,1fr))}
 .irow-laser > div:first-child{grid-column:1/-1}
 .inp.sm input{font-size:14px;padding:7px 2px 7px 8px}
-.inp.sm small{padding-right:6px;font-size:11px}
+.inp.sm small{padding-right:6px;font-size:12px}
 .txt.sm{font-size:14px;padding:7px 8px}
 details.more{border-top:1px solid var(--line);padding-top:10px}
 details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
@@ -535,8 +557,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 /* Layout tools on the landing: five peers of equal weight, so five equal sheets; they differ by their drawing, not their size */
 .lylist{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .lylist li{min-width:0}
-.lylist button{display:flex;flex-direction:column;gap:10px;width:100%;height:100%;text-align:left;padding:14px 14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);color:inherit;font:inherit;cursor:pointer}
-.lylist button:hover{border-color:var(--ink)}
+.lylist button{display:flex;flex-direction:column;gap:10px;width:100%;height:100%;text-align:left;padding:14px 14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);color:inherit;font:inherit;cursor:pointer}
 .lylist svg{width:100%;height:auto;aspect-ratio:4/3;color:var(--muted);background:var(--paper);border-radius:10px}
 .lylist strong{display:block;font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:-.02em;line-height:1.15;margin-top:4px}
 .lylist small{display:block;color:var(--muted);font-size:13.5px;line-height:1.45}
@@ -544,7 +565,6 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 @media (max-width:1000px){.lylist{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.lylist{grid-template-columns:minmax(0,1fr)}.lylist button{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:12px}.lylist svg{grid-row:span 3}.lylist em{display:none}
   .modesw button{padding:6px 9px;font-size:13px}.brand-sm span{display:none}}
-@media (max-width:420px){#btnSend{display:none}}
 
 /* Estimasi harga */
 .modesw .s{display:none}
@@ -565,12 +585,12 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 .irow-est{grid-template-columns:minmax(0,1fr) 96px auto}
 .irow-est select{padding:7px 8px;font-size:13.5px}
 .sync{font-size:12.5px;color:var(--muted)}
-.estpane{flex:1;min-height:0;overflow:auto;padding:16px}
+.estpane{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:16px}
 .estpane .actions{padding:14px 0 0}
 .estout{white-space:pre-wrap;font:13px/1.55 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:12px;margin-top:10px}
 .est-note{margin:0 0 18px;color:var(--muted);font-size:14px;max-width:70ch}
 .pcat{border-top:1.5px solid var(--ink);padding:14px 0 22px}
-.pcat h3{font-family:var(--f-body);font-size:15px;font-weight:650;margin:0 0 2px}
+.pcat h3{font-family:var(--f-body);font-size:15px;font-weight:600;line-height:1.3;margin:0 0 2px}
 .pcat > .mathint{margin:0 0 10px}
 .pempty{color:var(--muted);font-size:13.5px;margin:0 0 10px}
 .setgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:10px}
@@ -580,18 +600,18 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 .ptable td:first-child{min-width:180px}
 .ptable select{padding:7px 8px;font-size:13.5px}
 .ptable .inp{min-width:96px}
-.rtable{border-collapse:collapse;width:100%;font-size:14px;min-width:420px}
+.rtable{border-collapse:collapse;width:100%;font-size:14px}
 .rtable th,.rtable td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
-.rtable thead th{font-weight:650;font-size:14.5px;border-bottom:1.5px solid var(--ink)}
+.rtable thead th{font-weight:600;font-size:14.5px;border-bottom:1.5px solid var(--ink)}
 .rtable thead th small,.rtable td small,.rtable th small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:2px}
 .rtable td{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .rtable td small{font-family:var(--f-body);white-space:normal}
 .rtable tbody th{font-weight:500}
 .rtable tr.cat th{font-size:12px;font-weight:600;color:var(--muted);padding-top:16px;border-bottom:0}
 .rtable .dash{color:var(--muted);font-family:var(--f-body);font-size:12.5px}
-.rtable tr.sum th,.rtable tr.sum td{border-top:1.5px solid var(--ink);font-weight:650}
+.rtable tr.sum th,.rtable tr.sum td{border-top:1.5px solid var(--ink);font-weight:600}
 .rtable tr.sell th,.rtable tr.sell td{font-weight:700;font-size:16px}
-.rtable tr.err-row td{white-space:normal;font-family:var(--f-body);color:var(--cut)}
+.rtable tr.err-row td{white-space:normal;font-family:var(--f-body);color:var(--ink)}
 .warnbox{border:1.5px solid var(--ink);border-radius:var(--r-s);padding:12px 14px;margin-top:16px;font-size:13.5px}
 .warnbox ul{margin:6px 0 0;padding-left:18px}
 .warnbox li+li{margin-top:4px}
@@ -608,6 +628,26 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
 @media (max-width:900px){#estBody .s-main{order:0}#estBody .estpane{overflow:visible}}
 .pfile{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-6px 0 18px}
 .pfile .mathint{margin:0;flex-basis:100%}
+/* Hover tints only where a pointer can hover; on touch a tapped radio label would otherwise stay tinted like a second choice */
+@media (hover:hover){
+  .btn-ink:hover,.btn-cut:hover{background:color-mix(in srgb,var(--ink) 84%,var(--leaf))}
+  .btn-line:hover{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  .btn-quiet:hover{color:var(--ink)}
+  .dock .round:hover{border-color:var(--ink)}
+  .menu a:hover{background:var(--paper)}
+  .mlist button:hover{background:var(--surface)}
+  .mlist button:hover em{opacity:1}
+  .tcard:hover{border-color:var(--ink)}
+  .models label:hover span{border-color:color-mix(in srgb,var(--ink) 45%,transparent)}
+  .drop:hover{border-color:var(--ink)}
+  .modesw button:hover{color:var(--ink)}
+  .tool:hover span{background:color-mix(in srgb,var(--kraft) 10%,transparent)}
+  .lylist button:hover{border-color:var(--ink)}
+}
+/* iOS zooms into any field under 16px, and the studio cannot scroll back out */
+@media (max-width:640px){
+  select,.txt,.txt.sm,.inp.sm input,.qform textarea,.qform input[type=date],#estPaste,.grp select,.irow-est select,.ptable select{font-size:1rem}
+}
 </style>
 
 </head>
@@ -641,7 +681,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
           <div class="hero-stage" id="heroStage" role="img" aria-label="Model 3D box hexagonal putih yang bisa diputar"></div>
           <figcaption class="ticket-strip">
             <span class="mono" id="heroTicket">Box magnet buku</span>
-            <button type="button" class="btn btn-line btn-sm" id="heroFold">Buka jadi pola</button>
+            <button type="button" class="btn btn-line btn-sm" id="heroFold">Buka lipatan</button>
           </figcaption>
         </figure>
       </div>
@@ -730,7 +770,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--m
     <div class="wrap calc-grid">
       <div class="chat">
         <p class="chat-from">Contoh spek yang ditempel dari chat</p>
-        <pre class="specdemo" aria-label="Contoh spek dari chat">spek: softbox slide
+        <pre class="specdemo">spek: softbox slide
 ukuran: 4 x 15 x 2,5 cm
 bahan: ivory 300 gsm
 inner: busa eva 5 mm
@@ -757,7 +797,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
       <div class="faq">
         <details><summary>Ukuran yang diisi itu ukuran dalam atau luar?</summary><p>Ukuran dalam, yaitu ruang yang tersedia untuk produk. Lipatin menambahkan tebal bahan ke setiap panel, jadi ukuran luar kotak akan sedikit lebih besar dari angka yang kamu isi. Pada hardbox, tutup dibuat sedikit lebih besar dari alas supaya bisa menutup rapat. Pada laci, sleeve dibuat sedikit lebih longgar dari lacinya.</p></details>
         <details><summary>Bagaimana pola hardbox dihitung?</summary><p>Ukuran yang diisi adalah ukuran dalam. Dinding board berdiri mengelilingi alas, jadi ukuran luar bertambah dua kali tebal board. Tutup dan sleeve dibuat 1 mm lebih longgar ditambah tebal kertas pembungkus. Kertas pembungkus menutup dinding luar, melewati tepi atas, lalu masuk ke dalam sejauh lipatan masuk yang kamu atur. Sisi panjangnya punya telinga yang membungkus sudut. Kalau lipatan masuk lebih pendek dari tinggi dinding, kertas dalam dibuat dengan dinding supaya tidak ada board yang terlihat. Pada box magnet, papan sampul diberi celah engsel 1,5 kali tebal board, dan posisi magnet ditandai di flap dan dinding depan.</p></details>
-        <details><summary>File apa saja yang bisa diimport?</summary><p>SVG dari Illustrator, CorelDRAW, atau Inkscape, dan DXF dari aplikasi CAD. Garis potong dan lipat dikenali dari warna, layer, dan pola putus-putus, dan kamu bisa mengubahnya kalau tebakannya salah. File AI atau CDR perlu disimpan ulang sebagai SVG atau DXF dulu. Kalau ukurannya terbaca salah, atur skala atau isi lebar pola yang sebenarnya.</p></details>
+        <details><summary>File apa saja yang bisa dibuka?</summary><p>SVG dari Illustrator, CorelDRAW, atau Inkscape, dan DXF dari aplikasi CAD. Garis potong dan lipat dikenali dari warna, layer, dan pola putus-putus, dan kamu bisa mengubahnya kalau tebakannya salah. File AI atau CDR perlu disimpan ulang sebagai SVG atau DXF dulu. Kalau ukurannya terbaca salah, atur skala atau isi lebar pola yang sebenarnya.</p></details>
         <details><summary>File SVG-nya bisa dibuka pakai aplikasi apa?</summary><p>Adobe Illustrator, CorelDRAW, Inkscape, dan Affinity Designer. Ukurannya ditulis dalam milimeter, jadi saat dibuka langsung berskala 1:1. Garis potong, lipat, dan bleed ada di grup terpisah.</p></details>
         <details><summary>Seberapa akurat hitungan plano dan biayanya?</summary><p>Isi per plano dihitung dari kotak pembatas pola dengan susunan lurus dan diputar. Pola yang bisa disusun saling mengunci kadang muat lebih banyak di mesin. Tarif biaya di sana hanya contoh, jadi ganti dengan tarif percetakanmu sendiri. Angka yang kamu ubah tersimpan di browser ini.</p></details>
         <details><summary>Apa beda reverse tuck dan straight tuck?</summary><p>Pada reverse tuck, tutup atas menempel di panel belakang dan tutup bawah di panel depan, jadi lidahnya berlawanan arah. Pada straight tuck, kedua tutup menempel di panel belakang, sehingga sisi depan kotak bersih dari celah lidah. Straight tuck cocok untuk kemasan yang dipajang menghadap pembeli.</p></details>
@@ -804,16 +844,16 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
 <div class="curtain" id="curtain" aria-hidden="true"></div>
 
 <div class="studio" id="studio" hidden>
+  <h1 class="sr" id="studioTitle" tabindex="-1">Studio Lipatin</h1>
   <header class="s-top">
     <a class="brand brand-sm" href="#atas" id="exitBrand" aria-label="Keluar studio, kembali ke halaman utama">
       <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true"><path d="M10 2h8v6h8v8h-8v10h-8V16H2V8h8z" fill="none" stroke="var(--cut)" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 8h8M10 16h8M10 8v8M18 8v8" stroke="var(--crease)" stroke-width="1.6" stroke-dasharray="2 2"/></svg>
       <span>Studio</span>
     </a>
     <div class="modesw" id="modeSw" role="group" aria-label="Mode studio"><button type="button" data-mode="box" aria-pressed="true">Box</button><button type="button" data-mode="layout" aria-pressed="false"><span class="l">Layout cetak</span><span class="s">Layout</span></button><button type="button" data-mode="est" aria-pressed="false"><span class="l">Estimasi harga</span><span class="s">Harga</span></button></div>
-    <div class="ticket" id="ticket" aria-live="polite"></div>
+    <div class="ticket" id="ticket"></div>
     <div class="s-actions">
-      <button type="button" class="btn btn-line btn-sm" id="btnTpl">Template</button>
-      <button type="button" class="btn btn-ink btn-sm" id="btnSend">Kirim ke percetakan</button>
+      <button type="button" class="btn btn-line btn-sm" id="btnTpl">Pilih template</button>
       <button type="button" class="btn btn-quiet btn-sm theme-btn" data-theme-toggle aria-label="Ganti ke mode gelap" title="Ganti ke mode gelap"><svg class="i-moon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><svg class="i-sun" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
       <button type="button" class="btn btn-quiet btn-sm" id="btnExit">Keluar</button>
     </div>
@@ -838,10 +878,10 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
                 <div class="field" id="fW"><label for="inW"><span id="lbW">Lebar</span> <b>L</b></label><div class="inp"><input id="inW" type="number" inputmode="decimal" min="10" max="600" step="1" value="60"><small>mm</small></div></div>
                 <div class="field" id="fD"><label for="inD"><span id="lbD">Tinggi</span> <b>T</b></label><div class="inp"><input id="inD" type="number" inputmode="decimal" min="10" max="600" step="1" value="30"><small>mm</small></div></div>
               </div>
-              <div class="field" id="fX" hidden style="margin-top:8px"><label for="inX" id="lbX">Tinggi tutup</label><div class="inp"><input id="inX" type="number" inputmode="decimal" min="5" max="600" step="1" value="30"><small>mm</small></div></div>
+              <div class="field" id="fX" hidden style="margin-top:8px"><label for="inX" id="lbX">Tinggi tutup</label><div class="inp"><input id="inX" aria-errormessage="inX-err" type="number" inputmode="decimal" min="5" max="600" step="1" value="30"><small>mm</small></div><p class="ferr" id="inX-err"></p></div>
               <div class="row2" id="hbFields" hidden style="margin-top:8px">
                 <div class="field"><label for="inHBM">Konstruksi board</label><select id="inHBM"><option value="v">V-groove satu lembar</option><option value="p">Panel dipotong terpisah</option></select></div>
-                <div class="field"><label for="inTI">Lipatan masuk kertas</label><div class="inp"><input id="inTI" type="number" inputmode="decimal" min="5" max="80" step="1" value="15"><small>mm</small></div></div>
+                <div class="field"><label for="inTI">Lipatan masuk kertas</label><div class="inp"><input id="inTI" aria-errormessage="inTI-err" type="number" inputmode="decimal" min="5" max="80" step="1" value="15"><small>mm</small></div><p class="ferr" id="inTI-err"></p></div>
               </div>
               <p class="err" id="err" role="status"></p>
             </fieldset>
@@ -855,11 +895,13 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             <div class="row2">
               <div class="field">
                 <label for="inT">Tebal bahan</label>
-                <div class="inp"><input id="inT" type="number" inputmode="decimal" min="0.05" max="20" step="0.01" value="0.42"><small>mm</small></div>
+                <div class="inp"><input id="inT" aria-errormessage="inT-err" type="number" inputmode="decimal" min="0.05" max="20" step="0.01" value="0.42"><small>mm</small></div>
+                <p class="ferr" id="inT-err"></p>
               </div>
               <div class="field" id="glueField">
                 <label for="inG">Lidah lem</label>
-                <div class="inp"><input id="inG" type="number" inputmode="decimal" min="8" max="50" step="1" value="15"><small>mm</small></div>
+                <div class="inp"><input id="inG" aria-errormessage="inG-err" type="number" inputmode="decimal" min="8" max="50" step="1" value="15"><small>mm</small></div>
+                <p class="ferr" id="inG-err"></p>
               </div>
             </div>
 
@@ -893,8 +935,8 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
           <div class="panel" id="importBlock" hidden>
             <fieldset>
               <legend>File dieline</legend>
-              <label class="drop" id="dropZone" for="inFile"><strong>Pilih file SVG atau DXF</strong><span>atau seret file ke sini</span></label>
               <input type="file" id="inFile" accept=".svg,.dxf,image/svg+xml" class="sr">
+              <label class="drop" id="dropZone" for="inFile"><strong>Pilih file SVG atau DXF</strong><span>atau seret file ke sini</span></label>
               <p class="mathint" id="fileInfo" style="margin-top:8px"></p>
             </fieldset>
             <div class="field" id="scaleField" hidden>
@@ -903,7 +945,8 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             </div>
             <div class="field" id="manualField" hidden>
               <label for="inRealW">Lebar pola sebenarnya</label>
-              <div class="inp"><input id="inRealW" type="number" inputmode="decimal" min="1" step="0.1"><small>mm</small></div>
+              <div class="inp"><input id="inRealW" aria-errormessage="inRealW-err" type="number" inputmode="decimal" min="1" step="0.1"><small>mm</small></div>
+              <p class="ferr" id="inRealW-err"></p>
             </div>
             <fieldset id="groupsField" hidden>
               <legend>Jenis garis di file</legend>
@@ -916,18 +959,24 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
     <section class="s-main" aria-label="Pratinjau">
       <div class="viewer">
           <div class="vbar">
-            <div class="tabs" role="tablist" aria-label="Mode pratinjau">
-              <button type="button" role="tab" id="tab2d" aria-selected="true" aria-controls="view2d">Dieline</button>
-              <button type="button" role="tab" id="tab3d" aria-selected="false" aria-controls="view3d">Pratinjau 3D</button>
-              <button type="button" role="tab" id="tabPlano" aria-selected="false" aria-controls="viewPlano">Plano &amp; biaya</button>
+            <div class="tabs" role="group" aria-label="Mode pratinjau">
+              <button type="button" id="tab2d" aria-pressed="true" aria-controls="view2d">Dieline</button>
+              <button type="button" id="tab3d" aria-pressed="false" aria-controls="view3d">Pratinjau 3D</button>
+              <button type="button" id="tabPlano" aria-pressed="false" aria-controls="viewPlano">Plano &amp; biaya</button>
             </div>
             <div class="legend"><span><i class="lg-cut"></i>Potong</span><span id="lgFold"><i class="lg-fold"></i><span id="lgFoldTxt">Lipat</span></span><span id="lgGuide" hidden><i class="lg-guide"></i>Posisi board</span><span id="lgBleed"><i class="lg-bleed"></i>Bleed</span></div>
           </div>
           <div class="partbar" id="partBar" role="group" aria-label="Bagian pola" hidden></div>
-          <div class="canvas" id="view2d" role="tabpanel" aria-labelledby="tab2d"></div>
-          <div class="canvas" id="view3d" role="tabpanel" aria-labelledby="tab3d" hidden>
+          <div class="canvas" id="view2d"></div>
+          <div class="canvas" id="view3d" hidden>
             <div class="stage" id="genStage"></div>
-            <span class="hint" id="hint3d">Seret untuk memutar · scroll atau cubit untuk zoom · klik dua kali untuk reset</span>
+            <span class="hint" id="hint3d">Seret untuk memutar · scroll atau cubit untuk zoom · klik dua kali untuk reset · atau pakai tombol kamera</span>
+            <div class="partbar cambar" id="camBar" role="group" aria-label="Kamera 3D" hidden>
+              <button type="button" data-cam="left">Putar kiri</button><button type="button" data-cam="right">Putar kanan</button>
+              <button type="button" data-cam="up">Lebih atas</button><button type="button" data-cam="down">Lebih bawah</button>
+              <button type="button" data-cam="in">Perbesar</button><button type="button" data-cam="out">Perkecil</button>
+              <button type="button" data-cam="reset">Reset</button>
+            </div>
             <div class="foldbar" id="foldBar">
               <button type="button" class="btn btn-ink btn-sm" id="btnFold">Buka lipatan</button>
               <label class="sr" for="inFold">Tingkat lipatan</label>
@@ -936,7 +985,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             </div>
             <div class="msg3d" id="msg3d" hidden><div><strong>Pratinjau 3D belum tersedia untuk file sendiri</strong>Lipatin belum bisa menebak urutan lipat dari pola bebas. Dieline, ukuran, dan hitungan plano tetap bisa dipakai.</div></div>
           </div>
-          <div class="planoview" id="viewPlano" role="tabpanel" aria-labelledby="tabPlano" hidden>
+          <div class="planoview" id="viewPlano" hidden>
             <div class="pgrid">
               <div class="field" id="fSheetB" hidden><label for="pSheetB">Plano board</label>
                 <select id="pSheetB">
@@ -995,7 +1044,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             <button type="button" class="btn btn-ink btn-sm" id="btnDl" hidden>Unduh SVG</button>
             <button type="button" class="btn btn-line btn-sm" id="btnAi" hidden>Unduh PDF untuk Illustrator</button>
             <button type="button" class="btn btn-line btn-sm" id="btnCopy">Salin kode SVG</button>
-            <button type="button" class="btn btn-line btn-sm" id="btnQuote">Kirim ke percetakan</button>
+            <button type="button" class="btn btn-line btn-sm" id="btnQuote">Minta penawaran</button>
             <span class="status" id="status" role="status"></span>
           </div>
           <textarea id="svgcode" readonly hidden aria-label="Kode SVG"></textarea>
@@ -1021,7 +1070,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
           <button type="button" class="btn btn-ink btn-sm" id="lyPdf" hidden>Unduh PDF siap cetak</button>
           <button type="button" class="btn btn-ink btn-sm" id="lySvg" hidden>Unduh SVG</button>
           <button type="button" class="btn btn-line btn-sm" id="lyDxf" hidden>Unduh DXF (zip)</button>
-          <button type="button" class="btn btn-line btn-sm" id="lyQuote">Kirim ke percetakan</button>
+          <button type="button" class="btn btn-line btn-sm" id="lyQuote">Minta penawaran</button>
           <span class="status" id="lyStatus" role="status"></span>
         </div>
       </div>
@@ -1032,7 +1081,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
       <div class="panel">
         <fieldset><legend><label for="estPaste">Tempel spek dari chat</label></legend>
           <textarea class="txt" id="estPaste" rows="8" placeholder="spek: softbox slide&#10;ukuran: 4 x 15 x 2,5 cm&#10;bahan: ivory 300 gsm&#10;finishing: lam doff + foil gold&#10;qty: 1000 pcs"></textarea>
-          <div class="readrow"><button type="button" class="btn btn-ink btn-sm" id="estRead">Baca spek</button><span class="mathint">Isian di bawah terisi otomatis, lalu tinggal dicek.</span></div>
+          <div class="readrow"><button type="button" class="btn btn-ink btn-sm" id="estRead">Baca spek</button><span class="mathint">Semua referensi di bawah diganti dengan hasil bacaan, lalu tinggal dicek.</span></div>
           <div id="estReport" aria-live="polite"></div>
         </fieldset>
         <div class="refbar" id="estRefs" role="group" aria-label="Referensi"></div>
@@ -1042,13 +1091,13 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
     <section class="s-main" aria-label="Hasil estimasi">
       <div class="viewer">
         <div class="vbar">
-          <div class="tabs" id="estTabs" role="tablist" aria-label="Estimasi">
-            <button type="button" role="tab" data-esttab="hasil" aria-selected="true" aria-controls="estResultWrap">Hasil</button>
-            <button type="button" role="tab" data-esttab="harga" aria-selected="false" aria-controls="estPrice">Daftar harga</button>
+          <div class="tabs" id="estTabs" role="group" aria-label="Estimasi">
+            <button type="button" data-esttab="hasil" aria-pressed="true" aria-controls="estResultWrap">Hasil</button>
+            <button type="button" data-esttab="harga" aria-pressed="false" aria-controls="estPrice">Daftar harga</button>
           </div>
           <span class="sync" id="estSync" role="status"></span>
         </div>
-        <div class="estpane" id="estResultWrap" role="tabpanel">
+        <div class="estpane" id="estResultWrap">
           <div id="estResult"></div>
           <div class="actions">
             <button type="button" class="btn btn-ink btn-sm" id="estCopy" hidden>Salin ringkasan untuk customer</button>
@@ -1056,7 +1105,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
           </div>
           <pre class="estout" id="estOut" hidden></pre>
         </div>
-        <div class="estpane" id="estPrice" role="tabpanel" hidden></div>
+        <div class="estpane" id="estPrice" hidden></div>
       </div>
     </section>
   </div>
@@ -1069,7 +1118,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
 </dialog>
 
 <dialog class="dlg dlg-wide" id="dlgQuote" aria-labelledby="dlgQuoteTitle">
-  <div class="dlg-head"><h2 id="dlgQuoteTitle">Kirim ke percetakan</h2><button type="button" class="btn btn-quiet btn-sm" data-close>Tutup</button></div>
+  <div class="dlg-head"><h2 id="dlgQuoteTitle">Minta penawaran ke percetakan</h2><button type="button" class="btn btn-quiet btn-sm" data-close>Tutup</button></div>
   <div class="quote">
     <div>
       <p class="dlg-note">Spesifikasi box diambil dari studio. Lengkapi data di bawah, lalu salin ringkasannya ke chat percetakan.</p>
@@ -1077,7 +1126,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
           <div class="qspec full" id="qSpec"></div>
           <div class="field"><label for="qName">Nama</label><input class="txt" id="qName" type="text" autocomplete="name"></div>
           <div class="field"><label for="qBrand">Usaha atau brand <span style="color:var(--muted)">(opsional)</span></label><input class="txt" id="qBrand" type="text" autocomplete="organization"></div>
-          <div class="field"><label for="qPhone">Nomor WhatsApp</label><input class="txt" id="qPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xx"></div>
+          <div class="field"><label for="qPhone">Nomor WhatsApp</label><input class="txt" id="qPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0812 3456 7890"></div>
           <div class="field"><label for="qQty">Jumlah</label><div class="inp"><input id="qQty" type="number" inputmode="numeric" min="1" step="1" value="1000"><small>pcs</small></div></div>
           <div class="field"><label for="qColor">Cetak</label>
             <select id="qColor">
@@ -1967,7 +2016,13 @@ function createViewer(opt={}){
     getFold:()=>fold,
     /* extra turn around the box, on top of whatever the user dragged */
     setSpin(a){ view.spin=a; },
-    animateTo(to,dur){ const span=Math.abs(to-fold); if(span<0.001) return; anim={from:fold,to,t0:performance.now(),dur:dur*span}; },
+    animateTo(to,dur){ const span=Math.abs(to-fold); if(span<0.001) return;
+      if(reduced()){ anim=null; fold=clamp(to,0,1); apply(false); return; }
+      anim={from:fold,to,t0:performance.now(),dur:dur*span}; },
+    /* the button route to what drag, wheel and double-click do */
+    orbit(da,de){ view.az+=da; view.el=clamp(view.el+de,0.04,1.5); },
+    zoomBy(k){ view.zoom=clamp(view.zoom*k,0.35,2.5); },
+    resetView(){ view.az=AZ; view.el=EL; view.zoom=1; },
     onFold(cb){ foldCb=cb; }
   };
 }
@@ -2028,8 +2083,8 @@ function readSVG(text){
   const groups=new Map(); let count=0;
   try{
     const els=live.querySelectorAll('path,line,polyline,polygon,rect,circle,ellipse');
-    if(els.length>20000) throw new Error('File terlalu rumit (lebih dari 20.000 objek garis).');
-    const rootScr=live.getScreenCTM(); if(!rootScr) throw new Error('File SVG tidak bisa diukur.');
+    if(els.length>20000) throw new Error('File terlalu rumit (lebih dari 20.000 objek garis). Hapus arsiran, teks, dan gambar, sisakan garis potong dan lipat, lalu buka lagi.');
+    const rootScr=live.getScreenCTM(); if(!rootScr) throw new Error('File SVG tidak bisa diukur. Simpan ulang sebagai SVG dari aplikasinya, lalu buka lagi.');
     const rootInv=rootScr.inverse();
     els.forEach(el=>{
       if(el.closest('defs,clipPath,mask,symbol,pattern,marker')) return;
@@ -2156,7 +2211,7 @@ function readDXF(text){
     }
     if(polys) addEnt(e,polys);
   }
-  if(!count) throw new Error(blocks?'Garis di file ini tersimpan sebagai block. Explode dulu di aplikasi CAD, lalu simpan ulang.':'Tidak ada garis yang terbaca di file DXF ini.');
+  if(!count) throw new Error(blocks?'Garis di file ini tersimpan sebagai block. Explode dulu di aplikasi CAD, lalu simpan ulang.':'Tidak ada garis yang terbaca di file DXF ini. Simpan ulang sebagai DXF ASCII, atau ekspor sebagai SVG lalu buka lagi.');
   const notes=[]; if(blocks) notes.push(`${blocks} block dilewati, explode dulu kalau ada garis yang hilang`); if(unsupported) notes.push(`${unsupported} objek tidak didukung`);
   return {kind:'dxf',groups:[...groups.values()],autoK:unitK,unitTxt,exact:true,count,notes};
 }
@@ -2258,7 +2313,7 @@ function partBarUI(m){
   bar.hidden=false;
   bar.innerHTML=m.parts.map(p=>`<button type="button" data-k="${p.key}" aria-pressed="${p.key===state.part}">${p.name}</button>`).join('');
 }
-$('#partBar').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; state.part=b.dataset.k; render(); });
+$('#partBar').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; state.part=b.dataset.k; render(); $(`#partBar [data-k="${state.part}"]`)?.focus(); });
 
 function render(){
   if(state.model==='import'){ renderImportView(); return; }
@@ -2303,25 +2358,33 @@ function renderImportView(){
 }
 function render3d(){
   const isImp=state.model==='import';
-  $('#msg3d').hidden=!isImp; $('#foldBar').hidden=isImp||!V3; $('#hint3d').hidden=isImp;
+  $('#msg3d').hidden=!isImp; $('#foldBar').hidden=isImp||!V3; $('#hint3d').hidden=isImp; $('#camBar').hidden=isImp||!V3;
   if(isImp){ if(V3) V3.stop(); return; }
   if(V3){ V3.build(state,current.m); return; }
   buildBox(els.stage,{L:state.L,W:state.model==='hex'?state.L:state.W,D:state.D,color:state.color,label:state.label||' ',open:35,tray:state.model==='tray',rx:-22,ry:-38,size:Math.max(110,Math.min(els.v3.clientWidth*0.42,els.v3.clientHeight*0.5,230))});
 }
 
 /* Inputs */
+/* Marks a field invalid and says why under it; an empty message clears both */
+function fieldErr(inp,msg,box){
+  const p=box||$('#'+inp.id+'-err'); if(p&&!box) p.textContent=msg;
+  if(msg){ inp.setAttribute('aria-invalid','true'); if(p) inp.setAttribute('aria-describedby',p.id); }
+  else { inp.removeAttribute('aria-invalid'); inp.removeAttribute('aria-describedby'); }
+}
 function readDims(){
   const hex=MODELS[state.model].hex;
   const vals={L:+$('#inL').value, W:hex?state.W:+$('#inW').value, D:+$('#inD').value};
-  const bad=Object.entries(vals).find(([,v])=>!isFinite(v)||v<10||v>600);
+  const isBad=v=>!isFinite(v)||v<10||v>600;
+  const bad=Object.entries(vals).find(([,v])=>isBad(v));
+  ['L','W','D'].forEach(k=>fieldErr($('#in'+k),bad&&isBad(vals[k])?'x':'',els.err));
   if(bad){ els.err.textContent='Isi ukuran antara 10 dan 600 mm.'; return; }
   els.err.textContent='';
   Object.assign(state,vals); render();
 }
 ['#inL','#inW','#inD'].forEach(id=>$(id).addEventListener('input',readDims));
-$('#inX').addEventListener('input',e=>{ const v=+e.target.value; if(isFinite(v)&&v>=5&&v<=620){ state.X=v; state.Xs[state.model]=v; render(); } });
+$('#inX').addEventListener('input',e=>{ const v=+e.target.value; if(isFinite(v)&&v>=5&&v<=620){ fieldErr(e.target,''); state.X=v; state.Xs[state.model]=v; render(); } else fieldErr(e.target,'Isi antara 5 dan 620 mm.'); });
 $('#inHBM').addEventListener('change',e=>{ state.HBM=e.target.value; render(); });
-$('#inTI').addEventListener('input',e=>{ const v=+e.target.value; if(isFinite(v)&&v>=5&&v<=80){ state.TI=v; render(); } });
+$('#inTI').addEventListener('input',e=>{ const v=+e.target.value; if(isFinite(v)&&v>=5&&v<=80){ fieldErr(e.target,''); state.TI=v; render(); } else fieldErr(e.target,'Isi antara 5 dan 80 mm.'); });
 function switchModel(k){
   const wasHB=isHB();
   state.model=k;
@@ -2343,7 +2406,7 @@ function applyMat(id){
 }
 function updateMatUI(){
   const m=MAT[state.mat];
-  $('#matBar').style.width=clamp(Math.log(state.T/0.08)/Math.log(15/0.08)*100,3,100)+'%';
+  $('#matBar').style.setProperty('--p',clamp(Math.log(state.T/0.08)/Math.log(15/0.08)*100,3,100)+'%');
   let h= m ? m.group.hint+glueNote : 'Tebal diisi manual. Ukur beberapa lembar sekaligus dengan jangka sorong lalu bagi jumlahnya supaya hasilnya akurat.';
   if(isHB()) h= m&&/greyboard/.test(m.group.g) ? 'Tebal board menentukan ukuran luar, celah engsel, dan posisi magnet. Dinding berdiri mengelilingi alas, jadi ukuran luar bertambah dua kali tebal board.' : 'Hardbox biasanya memakai greyboard 1 sampai 3 mm. Bahan ini tetap dihitung, tapi hasilnya akan kurang kaku.';
   const dims=MODELS[state.model].hex?[state.L,state.D]:[state.L,state.W,state.D];
@@ -2351,9 +2414,9 @@ function updateMatUI(){
   $('#matHint').textContent=h;
 }
 sel.addEventListener('change',e=>{ if(e.target.value==='custom'){ state.mat='custom'; glueNote=''; $('#inT').focus(); } else applyMat(e.target.value); render(); });
-$('#inT').addEventListener('input',e=>{ const v=+e.target.value; if(!isFinite(v)||v<0.05||v>20) return; state.T=v; glueNote='';
+$('#inT').addEventListener('input',e=>{ const v=+e.target.value; if(!isFinite(v)||v<0.05||v>20){ fieldErr(e.target,'Isi tebal antara 0,05 dan 20 mm.'); return; } fieldErr(e.target,''); state.T=v; glueNote='';
   if(!MAT[state.mat]||MAT[state.mat].t!==v){ state.mat='custom'; sel.value='custom'; } render(); });
-$('#inG').addEventListener('input',e=>{ const v=+e.target.value; if(isFinite(v)&&v>=8&&v<=50){ state.glue=v; glueNote=''; render(); } });
+$('#inG').addEventListener('input',e=>{ const v=+e.target.value; if(isFinite(v)&&v>=8&&v<=50){ fieldErr(e.target,''); state.glue=v; glueNote=''; render(); } else fieldErr(e.target,'Isi lidah lem antara 8 dan 50 mm.'); });
 $('#inBleed').addEventListener('change',e=>{ state.bleed=e.target.checked; render(); });
 $('#inLabel').addEventListener('input',e=>{ state.label=e.target.value; if(state.view==='3d') render3d(); });
 function swatchGroup(id,key){
@@ -2370,8 +2433,9 @@ $('#form').addEventListener('submit',e=>e.preventDefault());
 let intro=false;
 function setView(v){
   state.view=v;
-  [['2d','#tab2d',els.v2],['3d','#tab3d',els.v3],['plano','#tabPlano',els.vp]].forEach(([k,t,p])=>{ $(t).setAttribute('aria-selected',k===v); p.hidden=k!==v; });
+  [['2d','#tab2d',els.v2],['3d','#tab3d',els.v3],['plano','#tabPlano',els.vp]].forEach(([k,t,p])=>{ $(t).setAttribute('aria-pressed',k===v); p.hidden=k!==v; });
   partBarUI(current&&current.m);
+  $('#camBar').hidden=!(v==='3d'&&V3&&state.model!=='import');
   if(v==='3d'){
     render3d();
     if(V3&&state.model!=='import'){
@@ -2384,8 +2448,10 @@ function setView(v){
 $('#tab2d').addEventListener('click',()=>setView('2d'));
 $('#tab3d').addEventListener('click',()=>setView('3d'));
 $('#tabPlano').addEventListener('click',()=>setView('plano'));
+const CAM={left:()=>V3.orbit(-.35,0),right:()=>V3.orbit(.35,0),up:()=>V3.orbit(0,.2),down:()=>V3.orbit(0,-.2),in:()=>V3.zoomBy(.85),out:()=>V3.zoomBy(1.18),reset:()=>V3.resetView()};
+$('#camBar').addEventListener('click',e=>{ const b=e.target.closest('[data-cam]'); if(b&&V3) CAM[b.dataset.cam](); });
 
-function syncFoldUI(f){ const pct=Math.round(f*100); $('#inFold').value=pct; $('#foldPct').textContent=pct+'%'; $('#btnFold').textContent= f>0.5?(isHB()?'Bongkar':'Buka lipatan'):(isHB()?'Rakit box':'Lipat kotak'); }
+function syncFoldUI(f){ const pct=Math.round(f*100); $('#inFold').value=pct; $('#foldPct').textContent=pct+'%'; $('#btnFold').textContent= f>0.5?(isHB()?'Bongkar':'Buka lipatan'):(isHB()?'Rakit lagi':'Lipat lagi'); }
 if(V3){
   V3.onFold(syncFoldUI);
   $('#inFold').addEventListener('input',e=>V3.setFold(+e.target.value/100));
@@ -2456,7 +2522,7 @@ async function loadFile(file){
     scaleOptions(imp); groupsUI(imp);
     if(state.model!=='import'){ state.model='import'; $('#m-import').checked=true; fieldsUI(); }
     render();
-  }catch(err){ info.textContent=err.message||'File tidak bisa dibaca.'; }
+  }catch(err){ info.textContent=err.message||'File tidak bisa dibaca. Simpan ulang dari aplikasinya, lalu buka lagi.'; }
 }
 $('#inFile').addEventListener('change',e=>loadFile(e.target.files[0]));
 $('#inScale').addEventListener('change',e=>{
@@ -2464,7 +2530,7 @@ $('#inScale').addEventListener('change',e=>{
   if(state.impScale==='manual'&&state.imp&&!state.impRealW){ const g=importGeo(state.imp); state.impRealW=Math.round(g.w*10)/10; $('#inRealW').value=state.impRealW; }
   if(state.imp) groupsUI(state.imp); render();
 });
-$('#inRealW').addEventListener('input',e=>{ const v=+e.target.value; if(v>0){ state.impRealW=v; if(state.imp) groupsUI(state.imp); render(); } });
+$('#inRealW').addEventListener('input',e=>{ const v=+e.target.value; if(v>0){ fieldErr(e.target,''); state.impRealW=v; if(state.imp) groupsUI(state.imp); render(); } else fieldErr(e.target,'Isi lebar pola dalam mm, lebih dari 0.'); });
 $('#groups').addEventListener('change',e=>{ const i=e.target.dataset.i; if(i==null||!state.imp) return; state.imp.groups[+i].role=e.target.value; render(); });
 [$('#dropZone'),els.v2].forEach(z=>{
   z.addEventListener('dragover',e=>{ e.preventDefault(); z.classList.add('over'); });
@@ -2489,8 +2555,8 @@ function sheetDrawing(itemSVG,w,h,res,SW,SH,margin){
     ${uses}</svg>`;
 }
 const itemSVGfn=g=>sw=> g.imported
-  ? `<path d="${plD(g.crease)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}"/><path d="${plD(g.cut)}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`
-  : `<path d="${g.polys.map(p=>polyD(p.pts)).join('')}" fill="var(--sheet)"/><path d="${segD(g.folds)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}"/><path d="${segD(g.cuts)}${g.holes.map(h=>polyD(h)).join('')}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`;
+  ? `<path d="${plD(g.crease)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}" stroke-dasharray="${f2(sw*5)} ${f2(sw*3.5)}"/><path d="${plD(g.cut)}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`
+  : `<path d="${g.polys.map(p=>polyD(p.pts)).join('')}" fill="var(--sheet)"/><path d="${segD(g.folds)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}" stroke-dasharray="${f2(sw*5)} ${f2(sw*3.5)}"/><path d="${segD(g.cuts)}${g.holes.map(h=>polyD(h)).join('')}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`;
 const sheetOf=id=>{ const v=$('#'+id).value; return v==='custom'?[pv('pSW'),pv('pSH')]:v.split('x').map(Number); };
 const costRows=rows=>rows.map(([a,b,c])=>`<tr><td>${a}<small>${b}</small></td><td>${rp(c)}</td></tr>`).join('');
 function renderPlano(){
@@ -2502,7 +2568,7 @@ function renderPlano(){
   $$('.hbOnly').forEach(e=>e.hidden=!hb); $$('.cartonOnly').forEach(e=>e.hidden=!!hb);
   if(hb) return renderPlanoHB(current.m);
   const g=current&&current.g;
-  if(!g){ $('#sheetSvg').innerHTML='<div class="empty"><div><strong>Belum ada pola</strong>Pilih model atau import file dulu.</div></div>'; $('#nupLine').innerHTML=''; $('#costTable').innerHTML=''; return; }
+  if(!g){ $('#sheetSvg').innerHTML='<div class="empty"><div><strong>Belum ada pola</strong>Pilih model, atau buka file sendiri.</div></div>'; $('#nupLine').innerHTML=''; $('#costTable').innerHTML=''; return; }
   const [SW,SH]=sheetOf('pSheet');
   const qty=Math.max(1,Math.round(pv('pQty'))), margin=pv('pMargin'), gap=pv('pGap');
   const res=impose(g.w,g.h,SW,SH,margin,gap);
@@ -2608,8 +2674,8 @@ function specRows(){
 function updateQuote(){
   const rows=specRows();
   $('#qSpec').innerHTML= rows
-    ? `<p class="flabel">Spesifikasi dari generator</p><dl>${rows.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`
-    : `<p class="flabel">Spesifikasi dari generator</p><p style="color:var(--muted);margin-top:6px">Belum ada pola. Pilih model di generator atau import file dulu.</p>`;
+    ? `<p class="flabel">Spesifikasi dari studio</p><dl>${rows.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`
+    : `<p class="flabel">Spesifikasi dari studio</p><p style="color:var(--muted);margin-top:6px">Belum ada pola. Pilih model box di studio, atau buka file sendiri.</p>`;
   const val=id=>$('#'+id).value.trim();
   const fin=$$('#qFin input:checked').map(i=>i.value);
   const qty=Math.max(1,Math.round(+val('qQty')||0));
@@ -2690,7 +2756,7 @@ const loadScript=src=>new Promise((res,rej)=>{ const s=document.createElement('s
 let libsP=null;
 /* pdf.worker is loaded as a plain script first, so pdf.js runs it on the main thread (the artifact frame cannot start a cross-origin worker) */
 function libs(){
-  if(!libsP){ libsP=(async()=>{ await loadScript(LIBS.pdfjsW); await loadScript(LIBS.pdfjs); await loadScript(LIBS.pdflib); if(!window.pdfjsLib||!window.PDFLib) throw new Error('Pustaka PDF tidak termuat.'); })(); libsP.catch(()=>{ libsP=null; }); }
+  if(!libsP){ libsP=(async()=>{ await loadScript(LIBS.pdfjsW); await loadScript(LIBS.pdfjs); await loadScript(LIBS.pdflib); if(!window.pdfjsLib||!window.PDFLib) throw new Error('Pustaka PDF tidak termuat. Periksa koneksi lalu coba lagi.'); })(); libsP.catch(()=>{ libsP=null; }); }
   return libsP;
 }
 /* [key, label, paper w, paper h, print area w, print area h] in mm. 32 × 47 cm with a 31,5 × 45 cm print area is the shop default. */
@@ -2723,7 +2789,7 @@ async function readJobFile(file){
   if(ext==='pdf'||file.type==='application/pdf'){
     await libs();
     let doc;
-    try{ doc=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true}); }catch(e){ throw new Error(`${file.name} tidak bisa dibuka sebagai PDF.`); }
+    try{ doc=await PDFLib.PDFDocument.load(buf,{ignoreEncryption:true}); }catch(e){ throw new Error(`${file.name} tidak bisa dibuka sebagai PDF. Ekspor ulang tanpa kata sandi, lalu tambahkan lagi.`); }
     const pages=doc.getPages().map(p=>{
       const m=p.getMediaBox(), t=p.getTrimBox(), b=p.getBleedBox();
       const hasTrim=Math.abs(t.width-m.width)>0.5||Math.abs(t.height-m.height)>0.5;
@@ -2735,7 +2801,7 @@ async function readJobFile(file){
   }
   if(/^(jpe?g|png)$/.test(ext)){
     const url=URL.createObjectURL(new Blob([buf],{type:ext==='png'?'image/png':'image/jpeg'}));
-    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error(`${file.name} tidak bisa dibaca sebagai gambar.`)); i.src=url; });
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error(`${file.name} tidak bisa dibaca sebagai gambar. Simpan ulang sebagai JPG atau PNG, lalu tambahkan lagi.`)); i.src=url; });
     const w=img.naturalWidth/300*25.4, h=img.naturalHeight/300*25.4;
     const f={id,name:file.name,kind:'img',buf,png:ext==='png',px:[img.naturalWidth,img.naturalHeight],imgW:w,imgH:h,bleed:0,thumbs:{0:url},pages:[{}]};
     LY.files[id]=f; return f;
@@ -2908,7 +2974,7 @@ function shapePolys(kind,w,h,r){
 }
 function laserFromImport(imp,name){
   const k=imp.autoK, use=imp.groups.filter(G=>G.role!=='ignore');
-  if(!use.length) throw new Error('Tidak ada garis potong di file ini.');
+  if(!use.length) throw new Error('Tidak ada garis potong di file ini. Pastikan garis potong memakai stroke, bukan isian warna, lalu tambahkan lagi.');
   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
   use.forEach(G=>G.polys.forEach(p=>p.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);})));
   const tr=p=>p.map(([x,y])=>[(x-x0)*k,(y-y0)*k]);
@@ -2975,7 +3041,7 @@ function previewSVG(R,si){
     sh.pl.forEach(p=>{
       const it=laserItem(p.iid); if(!it) return;
       const tf=p.r?`translate(${f2(p.x+p.w)} ${f2(p.y)}) rotate(90)`:`translate(${f2(p.x)} ${f2(p.y)})`;
-      body+=`<g transform="${tf}"><path d="${plD(it.engP)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw*0.8)}"/><path d="${plD(it.cutP)}" fill="var(--sheet)" fill-rule="evenodd" stroke="var(--cut)" stroke-width="${f2(sw)}"/></g>`;
+      body+=`<g transform="${tf}"><path d="${plD(it.engP)}" fill="none" stroke="var(--engrave)" stroke-width="${f2(sw*0.8)}" stroke-dasharray="${f2(sw*1.5)} ${f2(sw*1.5)}"/><path d="${plD(it.cutP)}" fill="var(--sheet)" fill-rule="evenodd" stroke="var(--cut)" stroke-width="${f2(sw)}"/></g>`;
     });
   } else {
     const cbOf=p=>{ const f=LY.files[p.fid]; return f?Math.min(pageGeom(f,p.pi).b,R.gap/2):0; };
@@ -3183,7 +3249,7 @@ async function lyAddFiles(files){
       if(t==='book'){ for(let i=0;i<Math.min(f.pages.length,200);i++) thumbOf(f,i).then(()=>lyRender()); } else thumbOf(f,0).then(()=>lyRender());
       if(t==='nup'&&f.kind==='pdf'&&f.pages.length>1) thumbOf(f,1).then(()=>lyRender());
     }
-  }catch(err){ LY.err=err.message||'File tidak bisa dibaca.'; }
+  }catch(err){ LY.err=err.message||'File tidak bisa dibaca. Simpan ulang dari aplikasinya, lalu buka lagi.'; }
   LY.busy=false; saveLY(); lyParams(); lyRun();
 }
 ly('#lyParams').addEventListener('input',e=>{
@@ -3206,7 +3272,7 @@ ly('#lyParams').addEventListener('change',e=>{ if(e.target.tagName==='SELECT'||e
 ly('#lyParams').addEventListener('click',e=>{ const b=e.target.closest('[data-idel]'); if(!b) return; LY[LY.tool].items.splice(+b.dataset.idel,1); saveLY(); lyParams(); lyRun(); });
 let lyT=null; const lyRunSoon=()=>{ clearTimeout(lyT); lyT=setTimeout(lyRun,180); };
 function lyRun(){
-  try{ LY.result=computeLayout(); }catch(err){ LY.result={error:'Layout gagal dihitung: '+(err.message||err)}; }
+  try{ LY.result=computeLayout(); }catch(err){ LY.result={error:'Layout belum bisa dihitung dari isian ini. Cek lagi ukuran kertas dan jumlahnya, atau muat ulang halaman.'}; console.error(err); }
   if(LY.result&&LY.result.sheets&&LY.sheetIdx>=LY.result.sheets.length) LY.sheetIdx=0;
   lyRender(); ticketUI(); updateQuote();
 }
@@ -3216,7 +3282,7 @@ function lyRender(){
   ly('#lyNav').hidden=!R||!R.sheets||R.sheets.length<2;
   if(LY.busy){ v.innerHTML='<div class="empty"><div><strong>Membaca file…</strong>File PDF besar butuh beberapa detik.</div></div>'; return; }
   if(!R){ v.innerHTML=''; return; }
-  if(R.empty){ v.innerHTML=`<div class="empty"><div><strong>Belum ada file</strong>${esc(R.empty)}</div></div>`; ly('#lyStats').innerHTML=''; return; }
+  if(R.empty){ v.innerHTML=`<div class="empty"><div><strong>Belum ada yang disusun</strong>${esc(R.empty)}</div></div>`; ly('#lyStats').innerHTML=''; return; }
   if(R.error){ v.innerHTML=`<div class="empty"><div><strong>Belum bisa disusun</strong>${esc(R.error)}</div></div>`; ly('#lyStats').innerHTML=''; return; }
   const i=LY.sheetIdx, sh=R.sheets[i];
   v.innerHTML=previewSVG(R,i);
@@ -3230,13 +3296,13 @@ async function lySave(name,data){
   const st=ly('#lyStatus');
   if(!downloads){ st.textContent='Unduhan tidak tersedia di tampilan ini. Buka halaman ini di claude.ai untuk mengunduh.'; return; }
   try{ await downloads.save({filename:name,data}); st.textContent=`Tersimpan sebagai ${name}`; }
-  catch(err){ const c=err&&err.code; st.textContent= c==='declined'?'Unduhan dibatalkan.':c==='rate_limited'?'Masih ada konfirmasi unduhan yang terbuka. Coba lagi sebentar.':c==='too_large'?'File terlalu besar untuk diunduh di sini.':'Unduhan gagal. Coba lagi.'; }
+  catch(err){ const c=err&&err.code; st.textContent= c==='declined'?'Unduhan dibatalkan.':c==='rate_limited'?'Masih ada konfirmasi unduhan yang terbuka. Coba lagi sebentar.':c==='too_large'?'File terlalu besar untuk diunduh di sini. Bagi jadi beberapa hitungan, lalu unduh lagi.':'Unduhan gagal. Coba lagi.'; }
 }
 ly('#lyPdf').addEventListener('click',async()=>{
   const R=LY.result, st=ly('#lyStatus'); if(!R||!R.sheets) return;
   st.textContent='Menyusun PDF…'; ly('#lyPdf').disabled=true;
   try{ const bytes=await buildPDF(R); st.textContent=''; await lySave(`lipatin-layout-${LY.tool}.pdf`,new Blob([bytes],{type:'application/pdf'})); }
-  catch(err){ st.textContent='PDF gagal dibuat: '+(err.message||err); }
+  catch(err){ st.textContent='PDF belum jadi. Periksa koneksi, lalu klik Unduh PDF siap cetak lagi.'; console.error(err); }
   ly('#lyPdf').disabled=false;
 });
 ly('#lySvg').addEventListener('click',()=>{ const R=LY.result; if(R&&R.laser) lySave('lipatin-akrilik.svg',laserSVG(R)); });
@@ -3246,7 +3312,7 @@ ly('#lyDxf').addEventListener('click',()=>{ const R=LY.result; if(R&&R.laser) ly
 function setStudioMode(m){
   studioMode=m;
   $$('#modeSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));
-  $('#boxBody').hidden=m!=='box'; $('#lyBody').hidden=m!=='layout'; $('#estBody').hidden=m!=='est'; $('#btnTpl').hidden=m!=='box'; $('#btnSend').hidden=m==='est';
+  $('#boxBody').hidden=m!=='box'; $('#lyBody').hidden=m!=='layout'; $('#estBody').hidden=m!=='est'; $('#btnTpl').hidden=m!=='box';
   if(m==='layout'){ if(V3) V3.stop(); lyParams(); lyRun(); libs().catch(()=>{}); }
   else if(m==='est'){ if(V3) V3.stop(); estRun(); }
   else { setView(state.view); }
@@ -3268,7 +3334,7 @@ const heroStage=$('#heroStage');
 let heroIntro=false, heroVisible=false;
 if(HERO){
   HERO.build(heroHex,heroHexModel);
-  HERO.onFold(f=>{ $('#heroFold').textContent= f>0.5?'Buka jadi pola':'Rakit lagi'; });
+  HERO.onFold(f=>{ $('#heroFold').textContent= f>0.5?'Buka lipatan':'Lipat lagi'; });
   HERO.setFold(1);
   const io=window.IntersectionObserver ? new IntersectionObserver(es=>es.forEach(e=>{ heroVisible=e.isIntersecting; heroRun(); }),{threshold:.15}) : null;
   if(io) io.observe(heroStage); else { heroVisible=true; }
@@ -3323,7 +3389,7 @@ $('#heroSheets').innerHTML=heroModel.parts.map((p,i)=>{
   const w=list.find(x=>x.p.key==='wrap');
   $('#heroPlano').innerHTML=sheetDrawing(itemSVGfn(w.it.g),w.it.w,w.it.h,w.res,SP[0],SP[1],margin);
   $('#heroFacts').innerHTML=`<div><dt>${esc(w.it.name)} per plano</dt><dd>${w.res.n}</dd></div><div><dt>Lembar board</dt><dd>${nf(r.sB,0)}</dd></div><div><dt>Lembar pembungkus</dt><dd>${nf(r.sW,0)}</dd></div>`;
-  $('#heroFactsNote').textContent=`Dihitung langsung dari box magnet buku di atas:1.000 box, board 79 × 109 cm, kertas 65 × 100 cm, jarak antar pola 6 mm, insheet 5%.`;
+  $('#heroFactsNote').textContent=`Dihitung langsung dari box magnet buku di atas: 1.000 box, board 79 × 109 cm, kertas 65 × 100 cm, jarak antar pola 6 mm, insheet 5%.`;
 })();
 
 /* Model index: every row opens the studio on that model */
@@ -3339,7 +3405,7 @@ $('#listB').innerHTML=ORDER_B.map(row).join('');
 /* ---------- Hero choreography: scrolling walks the white hexagonal box through three chapters ----------
    Mechanism (the tuck lid and dust flaps open, then the tuck slides back in), taken apart (down to its one flat sheet),
    and assembled again (glued body, glued base, tuck lid closing). The caption sits in its own row above the stage,
-   never over the box. Reduced motion: nothing moves on scroll; the "Buka jadi pola" button still works. */
+   never over the box. Reduced motion: nothing moves on scroll; the "Buka lipatan" button still works. */
 (function(){
   if(!HERO) return;
   const hero=$('.hero'), grid=$('.hero-grid'), sheet=$('.proofsheet'), proof=$('.proof');
@@ -3347,7 +3413,7 @@ $('#listB').innerHTML=ORDER_B.map(row).join('');
   const pinMq=matchMedia('(min-width:901px) and (min-height:700px)'), calmMq=matchMedia('(prefers-reduced-motion: reduce)');
   const sm=t=>t*t*(3-2*t);
   const hold=v=>()=>v, rise=t=>sm(t), fall=t=>1-sm(t);
-  const START=['Box hexagonal', calmMq.matches?'Geser untuk memutar, atau tekan Buka jadi pola.':'Geser untuk memutar. Scroll untuk melihat cara kerjanya.'];
+  const START=['Box hexagonal', calmMq.matches?'Geser untuk memutar, atau tekan Buka lipatan.':'Geser untuk memutar. Scroll untuk melihat cara kerjanya.'];
   const MECH=['Mekanisme','Tutup berlidah membuka, lalu lidahnya masuk lagi di antara dinding dan sayap.'];
   const APART=['Dibongkar','Satu lembar Ivory 310 gsm, dipon lalu dilipat. Tidak ada potongan kedua.'];
   const BUILD=['Dirakit','Dinding dilem jadi enam sisi, alas dilem, lalu tutup berlidah menutup.'];
@@ -3438,7 +3504,7 @@ function priceChanged(){
     priceSaving=priceSaving.then(()=>priceRef.set(body)).then(()=>{ priceDirty=false; priceStamp=body.updatedAt; estSync('Tersimpan untuk tim'); },e=>{
       priceDirty=false;
       if(e&&e.code==='invalid_argument'){ priceCanWrite=false; estPriceUI(); estSync('Kamu hanya bisa melihat daftar harga ini'); }
-      else estSync('Gagal menyimpan. Perubahan belum masuk ke daftar tim.');
+      else estSync('Perubahan belum tersimpan ke daftar tim. Periksa koneksi, lalu ubah lagi angkanya supaya tersimpan.');
     });
   },700);
 }
@@ -3450,7 +3516,7 @@ function estPriceUI(){
   const ro=!priceCanWrite, dis=ro?' disabled':'';
   const S=PRICE.set;
   const head= priceMode==='shared'
-    ? (ro?'Daftar harga ini hanya untuk tim percetakan. Minta akses Contributor ke pemilik halaman supaya bisa melihat dan mengubahnya.':'Daftar harga ini dipakai bersama. Perubahan langsung terlihat oleh semua orang yang membuka Lipatin.')
+    ? (ro?'Daftar harga ini hanya untuk tim percetakan. Minta akses Contributor ke pemilik halaman supaya bisa mengubahnya.':'Daftar harga ini dipakai bersama. Perubahan langsung terlihat oleh semua orang yang membuka Lipatin.')
     : 'Daftar harga tersimpan di browser ini saja. Buka Lipatin dari claude.ai supaya daftar ini dipakai bersama tim.';
   const cell=(c,i,[f,label,type])=>{
     const v=PRICE[c.k][i][f]??'';
@@ -3464,7 +3530,7 @@ function estPriceUI(){
       <p class="mathint">Area cetak diletakkan di tengah kertas. Insheet ditambahkan ke jumlah lembar. Pisau dihitung sekali per pola, pon per lembar.</p></section>
     ${EST_CATS.map(c=>`<section class="pcat"><h3>${c.name}</h3><p class="mathint">${c.note}</p>
       ${PRICE[c.k].length?`<div class="tablewrap"><table class="ptable"><thead><tr>${c.cols.map(x=>`<th>${x[1]}</th>`).join('')}<th><span class="sr">Hapus</span></th></tr></thead><tbody>
-        ${PRICE[c.k].map((it,i)=>`<tr>${c.cols.map(col=>cell(c,i,col)).join('')}<td>${ro?'':`<button type="button" class="btn btn-quiet btn-sm" data-pdel="${c.k}" data-pi="${i}" aria-label="Hapus ${esc(it.nama||'baris')}">Hapus</button>`}</td></tr>`).join('')}</tbody></table></div>`:`<p class="pempty">Belum ada isi.</p>`}
+        ${PRICE[c.k].map((it,i)=>`<tr>${c.cols.map(col=>cell(c,i,col)).join('')}<td>${ro?'':`<button type="button" class="btn btn-quiet btn-sm" data-pdel="${c.k}" data-pi="${i}" aria-label="Hapus ${esc(it.nama||'baris')}">Hapus</button>`}</td></tr>`).join('')}</tbody></table></div>`:`<p class="pempty">Belum ada isi. Tambahkan supaya bisa dipilih di estimasi.</p>`}
       ${ro?'':`<button type="button" class="btn btn-line btn-sm" data-padd="${c.k}">Tambah ${c.name.toLowerCase()}</button>`}</section>`).join('')}`;
   estSync(priceMode==='shared'?(priceStamp?`Diperbarui ${new Date(priceStamp).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`:'Belum pernah diisi'):'Tersimpan di browser ini');
 }
@@ -3477,14 +3543,19 @@ $('#estPrice').addEventListener('input',e=>{
 });
 $('#estPrice').addEventListener('change',async e=>{
   if(e.target.id!=='pImport'||!e.target.files[0]) return;
+  if(!confirm('Ganti seluruh daftar harga dengan isi file ini?\n\nDaftar harga di browser ini tertimpa. Simpan dulu ke file kalau masih perlu.')){ e.target.value=''; return; }
   try{ const d=JSON.parse(await e.target.files[0].text()); if(!d||typeof d!=='object'||!Array.isArray(d.kertas)) throw 0; PRICE=normPrice(d); priceChanged(); estPriceUI(); estFormUI(); estRun(); estSync('Daftar harga dimuat dari file'); }
-  catch(err){ estSync('File itu bukan daftar harga Lipatin.'); }
+  catch(err){ estSync('File ini bukan daftar harga Lipatin. Pilih file .json dari tombol Simpan daftar harga ke file.'); }
 });
 $('#estPrice').addEventListener('click',e=>{
   if(e.target.closest('[data-pexport]')){ if(downloads) downloads.save({filename:'lipatin-daftar-harga.json',data:new Blob([JSON.stringify(PRICE,null,2)],{type:'application/json'})}).then(()=>estSync('Daftar harga tersimpan ke file'),()=>estSync('Unduhan dibatalkan')); return; }
   const a=e.target.closest('[data-padd]'), r=e.target.closest('[data-pdel]');
   if(a){ const k=a.dataset.padd, it={id:uid(),nama:''}; EST_CATS.find(c=>c.k===k).cols.forEach(([f,,t])=>{ if(f!=='nama') it[f]=t==='unit'?'pcs':0; }); PRICE[k].push(it); priceChanged(); estPriceUI(); const ins=$$(`#estPrice [data-pc="${k}"][data-pf="nama"]`); ins[ins.length-1]?.focus(); estFormUI(); return; }
-  if(r){ PRICE[r.dataset.pdel].splice(+r.dataset.pi,1); priceChanged(); estPriceUI(); estFormUI(); estRun(); }
+  if(r){ const k=r.dataset.pdel, i=+r.dataset.pi, it=PRICE[k][i];
+    /* the shared list changes for the whole team, so it asks first */
+    if(priceMode==='shared'&&!confirm(`Hapus "${it.nama||'baris ini'}" dari daftar harga tim?\n\nSemua yang membuka Lipatin tidak bisa memilih ${it.nama||'baris ini'} lagi di estimasi.`)) return;
+    PRICE[k].splice(i,1); priceChanged(); estPriceUI(); estFormUI(); estRun();
+    ($(`#estPrice [data-pdel="${k}"][data-pi="${Math.min(i,PRICE[k].length-1)}"]`)||$(`#estPrice [data-padd="${k}"]`))?.focus(); }
 });
 
 /* ---- Matching words from a chat to items in the price list ---- */
@@ -3706,9 +3777,11 @@ $('#estForm').addEventListener('click',e=>{
   else if(t.dataset.findel!=null) r.fin.splice(+t.dataset.findel,1);
   else if(t.hasAttribute('data-aksadd')) r.aks.push({id:PRICE.aksesoris[0].id,jml:0});
   else if(t.dataset.aksdel!=null) r.aks.splice(+t.dataset.aksdel,1);
-  else if(t.hasAttribute('data-refdel')){ EST.refs.splice(EST.active,1); EST.active=Math.max(0,EST.active-1); }
+  else if(t.hasAttribute('data-refdel')){ if(!confirm(`Hapus referensi ${LETTER(EST.active)} beserta isiannya?`)) return; EST.refs.splice(EST.active,1); EST.active=Math.max(0,EST.active-1); }
   else return;
+  const back= t.dataset.findel!=null?'[data-finadd]': t.dataset.aksdel!=null?'[data-aksadd]':null;
   saveEST(); estFormUI(); estRun();
+  if(back) $('#estForm '+back)?.focus(); else if(t.hasAttribute('data-refdel')) $(`#estRefs [data-ref="${EST.active}"]`)?.focus();
 });
 $('#estRefs').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
@@ -3731,7 +3804,7 @@ function estRepUI(){
 let estT=null; const estRunSoon=()=>{ clearTimeout(estT); estT=setTimeout(estRun,200); };
 let EST_RES=[];
 function estRun(){
-  EST_RES=EST.refs.map(r=>{ try{ return estCompute(r); }catch(err){ return {error:'Gagal menghitung: '+(err.message||err)}; } });
+  EST_RES=EST.refs.map(r=>{ try{ return estCompute(r); }catch(err){ console.error(err); return {error:'Referensi ini belum bisa dihitung. Cek lagi ukuran, bahan, dan jumlahnya.'}; } });
   estResultUI(); if(studioMode==='est') ticketUI();
 }
 function estResultUI(){
@@ -3784,7 +3857,7 @@ $('#estCopy').addEventListener('click',()=>{
 });
 function estTab(t){
   EST.tab=t; saveEST();
-  $$('#estTabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.esttab===t));
+  $$('#estTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.esttab===t));
   $('#estResultWrap').hidden=t!=='hasil'; $('#estPrice').hidden=t!=='harga';
 }
 $('#estBody').addEventListener('click',e=>{ const b=e.target.closest('[data-esttab]'); if(b) estTab(b.dataset.esttab); });
@@ -3797,10 +3870,10 @@ function lyDemo(k){
   let b='';
   if(k==='nup'){ for(let i=0;i<4;i++) for(let j=0;j<5;j++) b+=R(10+i*25.5,8+j*15,23,13,'fill="var(--kraft)" fill-opacity=".35" stroke="var(--ink)" stroke-width=".8"');
     for(let i=0;i<=4;i++){ const x=10+i*25.5-(i?2.5:0); b+=`<path d="M${x} 1v5M${x} 84v5" stroke="var(--ink)" stroke-width=".7"/>`; } }
-  if(k==='gang'){ [[8,8,50,34],[62,8,26,44],[92,8,20,20],[92,32,20,20],[8,46,24,36],[36,46,22,16],[36,66,22,16],[62,56,50,26]].forEach(([x,y,w,h],i)=>b+=R(x,y,w,h,`fill="${['var(--kraft)','var(--crease)','var(--bleed)'][i%3]}" fill-opacity=".3" stroke="var(--ink)" stroke-width=".8"`)); }
+  if(k==='gang'){ [[8,8,50,34],[62,8,26,44],[92,8,20,20],[92,32,20,20],[8,46,24,36],[36,46,22,16],[36,66,22,16],[62,56,50,26]].forEach(([x,y,w,h],i)=>b+=R(x,y,w,h,`fill="var(--kraft)" fill-opacity="${['.2','.35','.5'][i%3]}" stroke="var(--ink)" stroke-width=".8"`)); }
   if(k==='book'){ b+=R(14,12,44,64,'fill="var(--paper)" stroke="var(--ink)" stroke-width=".8"')+R(62,12,44,64,'fill="var(--paper)" stroke="var(--ink)" stroke-width=".8"')+'<path d="M60 6v80" stroke="var(--crease)" stroke-dasharray="3 2"/>'
     +'<text x="36" y="48" font-size="14" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono, monospace">16</text><text x="84" y="48" font-size="14" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono, monospace">1</text>'; }
-  if(k==='roll'){ b=R(1,1,118,88,'fill="var(--surface)" stroke="currentColor" stroke-dasharray="4 3"')+R(8,6,104,22,'fill="var(--kraft)" fill-opacity=".35" stroke="var(--ink)" stroke-width=".8"')+R(8,32,50,52,'fill="var(--crease)" fill-opacity=".25" stroke="var(--ink)" stroke-width=".8"')+R(62,32,50,24,'fill="var(--bleed)" fill-opacity=".3" stroke="var(--ink)" stroke-width=".8"')+R(62,60,50,24,'fill="var(--bleed)" fill-opacity=".3" stroke="var(--ink)" stroke-width=".8"'); return `<svg viewBox="0 0 120 90" aria-hidden="true">${b}</svg>`; }
+  if(k==='roll'){ b=R(1,1,118,88,'fill="var(--surface)" stroke="currentColor" stroke-dasharray="4 3"')+R(8,6,104,22,'fill="var(--kraft)" fill-opacity=".35" stroke="var(--ink)" stroke-width=".8"')+R(8,32,50,52,'fill="var(--kraft)" fill-opacity=".2" stroke="var(--ink)" stroke-width=".8"')+R(62,32,50,24,'fill="var(--kraft)" fill-opacity=".5" stroke="var(--ink)" stroke-width=".8"')+R(62,60,50,24,'fill="var(--kraft)" fill-opacity=".5" stroke="var(--ink)" stroke-width=".8"'); return `<svg viewBox="0 0 120 90" aria-hidden="true">${b}</svg>`; }
   if(k==='laser'){ for(let i=0;i<5;i++) for(let j=0;j<3;j++) b+=`<circle cx="${16+i*22}" cy="${16+j*22}" r="9" fill="none" stroke="var(--cut)" stroke-width="1"/>`;
     b+=R(8,72,34,12,'rx="3" fill="none" stroke="var(--cut)" stroke-width="1"')+R(46,72,34,12,'rx="3" fill="none" stroke="var(--cut)" stroke-width="1"')+R(84,72,28,12,'rx="3" fill="none" stroke="var(--cut)" stroke-width="1"'); }
   return `<svg viewBox="0 0 120 90" aria-hidden="true">${sheet}${b}</svg>`;
@@ -3838,24 +3911,28 @@ $('#lyLanding').innerHTML=TOOLS.map(t=>`<li><button type="button" data-studio="l
 let pendingModel=null;
 function curtainSwap(fn){
   if(reduced()){ fn(); return; }
-  const c=$('#curtain'); c.className='curtain'; void c.offsetWidth; c.classList.add('in');
+  const c=$('#curtain'); if(c.classList.contains('in')) return;
+  c.className='curtain'; void c.offsetWidth; c.classList.add('in');
   setTimeout(()=>{ fn(); c.classList.remove('in'); c.classList.add('out'); setTimeout(()=>{ c.className='curtain'; },460); },440);
 }
 function enterStudio(){
   if(!$('#studio').hidden){ if(pendingModel){ routeStudio(pendingModel); pendingModel=null; } return; }
   curtainSwap(()=>{
+    if(location.hash!=='#studio') return;
     $('#landing').hidden=true; $('#studio').hidden=false; document.body.classList.add('in-studio');
     if(pendingModel){ routeStudio(pendingModel); pendingModel=null; } else if(studioMode!=='box') setStudioMode(studioMode); else { render(); setView(state.view); }
     heroRun();
-    $('#exitBrand').focus();
+    document.title='Studio · Lipatin'; $('#studioTitle').focus();
   });
 }
 function leaveStudio(){
   if($('#studio').hidden) return;
   curtainSwap(()=>{
+    if(location.hash==='#studio') return;
     $('#studio').hidden=true; $('#landing').hidden=false; document.body.classList.remove('in-studio');
     if(V3) V3.stop();
     heroRun();
+    document.title='Lipatin'; (lastTrigger&&document.contains(lastTrigger)?lastTrigger:$('.brand')).focus(); lastTrigger=null;
   });
 }
 /* 'ly:nup' opens a layout tool, a model key opens the box generator */
@@ -3869,7 +3946,8 @@ function selectModel(k){
   const r=$('#m-'+k); if(r) r.checked=true;
   if(state.model!==k) switchModel(k); else render();
 }
-function openStudio(k){ pendingModel=k||null; if(location.hash==='#studio') enterStudio(); else location.hash='studio'; }
+let lastTrigger=null;
+function openStudio(k){ lastTrigger=document.activeElement; pendingModel=k||null; if(location.hash==='#studio') enterStudio(); else location.hash='studio'; }
 window.addEventListener('hashchange',()=>{ if(location.hash==='#studio') enterStudio(); else leaveStudio(); });
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-studio]'); if(!b) return; e.preventDefault(); openStudio(b.dataset.studio||null); });
 $('#btnExit').addEventListener('click',()=>{ location.hash='atas'; });
@@ -3884,12 +3962,13 @@ $('#exitBrand').addEventListener('click',e=>{ e.preventDefault(); location.hash=
 
 /* Dialogs: templates and the quote */
 $('#btnTpl').addEventListener('click',()=>$('#dlgTpl').showModal());
-['#btnSend','#btnQuote'].forEach(id=>$(id).addEventListener('click',()=>{ updateQuote(); $('#dlgQuote').showModal(); }));
+$('#btnQuote').addEventListener('click',()=>{ updateQuote(); $('#dlgQuote').showModal(); });
 $$('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
 $$('dialog').forEach(d=>d.addEventListener('click',e=>{ if(e.target===d) d.close(); }));
 
-/* Job ticket in the studio header */
-function ticketUI(){
+/* Job ticket in the studio header. It truncates when the header is tight, so the full line also goes in its title. */
+function ticketUI(){ ticketFill(); const t=$('#ticket'); t.title=[...t.children].map(e=>e.textContent).join(' · '); }
+function ticketFill(){
   const t=$('#ticket');
   if(studioMode==='est'){
     const r=EST.refs[0], x=EST_RES[0];
@@ -3898,7 +3977,7 @@ function ticketUI(){
   }
   if(studioMode==='layout'){
     const T=TOOLS.find(x=>x.k===LY.tool), R=LY.result;
-    t.innerHTML=`<b>${esc(T.name)}</b>`+(R&&R.stats?R.stats.slice(0,2).map(([a,b])=>`<span>${esc(a)} ${esc(b)}</span>`).join(''):'<span>belum ada file</span>');
+    t.innerHTML=`<b>${esc(T.name)}</b>`+(R&&R.stats?R.stats.slice(0,2).map(([a,b])=>`<span>${esc(a)} ${esc(b)}</span>`).join(''):'<span>belum ada yang disusun</span>');
     return;
   }
   if(state.model==='import'){ t.innerHTML= state.imp?`<b>File sendiri</b><span>${esc(state.imp.name)}</span>`:'<b>File sendiri</b><span>belum ada file</span>'; return; }
