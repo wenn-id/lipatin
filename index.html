@@ -2588,6 +2588,7 @@ function startNester(){
       nester.done.set(key,data.error?{state:'failed'}:{state:'done',...data});
       if(nester.done.size>40) nester.done.delete(nester.done.keys().next().value);
       if(state.view==='plano') renderPlano();
+      if(studioMode==='est') estRunSoon();
       startNester();
     };
     nester.worker.onerror=e=>{ e.preventDefault(); nesterFailed(e.message); };
@@ -3718,15 +3719,20 @@ function estCompute(ref){
     const nodes=[]; (function walk(n){ if(!n.invisible) nodes.push(n); (n.children||[]).forEach(walk); })(pc.root);
     let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; nodes.forEach(n=>n.poly.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}));
     const g=derive({nodes,w:x1-x0,h:y1-y0});
-    pieces.push({name:m.pieces.length>1?(i===0?'Bagian luar':'Bagian dalam'):'Dieline',w:x1-x0,h:y1-y0,count:1,cut:g.cutLen,grp:'luar'});
+    pieces.push({name:m.pieces.length>1?(i===0?'Bagian luar':'Bagian dalam'):'Dieline',w:x1-x0,h:y1-y0,count:1,cut:g.cutLen,grp:'luar',g});
   });
   let innerPaper=null;
   if(ref.inner.type==='kertas'){ innerPaper=find('kertas',ref.inner.id); if(innerPaper) pieces.push({name:'Inner kertas',w:L+2*D,h:W+2*D,count:1,cut:2*(L+W)+2*(L+2*D+W+2*D),grp:'inner'}); else warn.push('Kertas inner tidak ada di daftar harga.'); }
-  const raw={luar:0,liner:0,inner:0,board:0}; let pisauM=0, bad=null;
+  const raw={luar:0,liner:0,inner:0,board:0}; let pisauM=0, bad=null, nestPending=false;
   const bw=board?(+board.w||0)*10:0, bh=board?(+board.h||0)*10:0;
   if(hb&&!(bw>0&&bh>0)) return {error:`Isi ukuran lembar ${board.nama} di Daftar harga.`};
   pieces.forEach(p=>{
-    const r= p.grp==='board' ? impose(p.w,p.h,bw,bh,0,gap) : impose(p.w,p.h,PW,PH,0,gap);
+    let r= p.grp==='board' ? impose(p.w,p.h,bw,bh,0,gap) : impose(p.w,p.h,PW,PH,0,gap);
+    /* carton dielines use the same nested count as the plano tab once the worker has it */
+    p.how='';
+    if(p.g){ const ns=nested(p.g,PW,PH,0,gap);
+      if(ns.state==='pending') nestPending=true;
+      else if(ns.state==='done'&&ns.count>r.n){ r={n:ns.count}; p.how=' (susunan dikunci)'; } }
     p.n=r.n; if(!r.n){ bad=bad||p; return; }
     raw[p.grp]+=qty*p.count/r.n;
     if(p.grp!=='board') pisauM+=r.n*p.cut/1000;
@@ -3734,7 +3740,8 @@ function estCompute(ref){
   if(bad) return {error:`${bad.name} (${nf(bad.w,0)} × ${nf(bad.h,0)} mm) tidak muat di ${bad.grp==='board'?`lembar board ${nf(bw/10)} × ${nf(bh/10)} cm`:`area cetak ${nf(PW/10)} × ${nf(PH/10)} cm`}.`};
   const sh=k=>Math.ceil(raw[k]*(1+ins));
   const sL=sh('luar'), sLi=sh('liner'), sIn=sh('inner'), sB=sh('board');
-  pieces.forEach(p=>facts.push(`${p.name}: ${p.n} per lembar`));
+  pieces.forEach(p=>facts.push(`${p.name}: ${p.n} per lembar${p.how||''}`));
+  if(nestPending) facts.push('Susunan dikunci masih dihitung; jumlah lembar bisa turun sebentar lagi.');
   const add=(cat,name,detail,v,once)=>rows.push({cat,name,detail,v,once:!!once});
   const zero=(it,f,label)=>{ if(it&&!(+it[f]>0)) warn.push(`Harga ${label||it.nama} masih Rp0.`); };
   add('Bahan',paper.nama+(hb?' (pembungkus)':''),`${nf(sL,0)} lembar × ${rp(paper.harga||0)}`,sL*(+paper.harga||0)); zero(paper,'harga');

@@ -1,0 +1,31 @@
+name: Tes
+
+# Runs on every push and pull request, so a pattern that changes by accident is caught before Pages serves it.
+on:
+  push:
+  pull_request:
+
+jobs:
+  golden:
+    name: Golden mesin pola
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node tests/golden.mjs
+
+  nest:
+    name: Inti nesting (Rust)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: nest
+      - run: cargo test --locked
