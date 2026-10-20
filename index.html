@@ -472,6 +472,8 @@ input[type=range]{width:100%;accent-color:var(--leaf)}
 .sheetbox svg{width:100%;height:100%;display:block}
 .nupline{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:13px;color:var(--muted)}
 .nupline b{display:block;font:500 20px var(--f-mono);color:var(--ink)}
+.nestnote{margin:0;font-size:13px;color:var(--muted)}
+.nestnote b{color:var(--ink);font-weight:600}
 .rates summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);padding:4px 0 10px}
 /* edge shadows appear only while there is more table to scroll to */
 .tablewrap{overflow-x:auto;background:
@@ -799,7 +801,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
         <details><summary>Bagaimana pola hardbox dihitung?</summary><p>Ukuran yang diisi adalah ukuran dalam. Dinding board berdiri mengelilingi alas, jadi ukuran luar bertambah dua kali tebal board. Tutup dan sleeve dibuat 1 mm lebih longgar ditambah tebal kertas pembungkus. Kertas pembungkus menutup dinding luar, melewati tepi atas, lalu masuk ke dalam sejauh lipatan masuk yang kamu atur. Sisi panjangnya punya telinga yang membungkus sudut. Kalau lipatan masuk lebih pendek dari tinggi dinding, kertas dalam dibuat dengan dinding supaya tidak ada board yang terlihat. Pada box magnet, papan sampul diberi celah engsel 1,5 kali tebal board, dan posisi magnet ditandai di flap dan dinding depan.</p></details>
         <details><summary>File apa saja yang bisa dibuka?</summary><p>SVG dari Illustrator, CorelDRAW, atau Inkscape, dan DXF dari aplikasi CAD. Garis potong dan lipat dikenali dari warna, layer, dan pola putus-putus, dan kamu bisa mengubahnya kalau tebakannya salah. File AI atau CDR perlu disimpan ulang sebagai SVG atau DXF dulu. Kalau ukurannya terbaca salah, atur skala atau isi lebar pola yang sebenarnya.</p></details>
         <details><summary>File SVG-nya bisa dibuka pakai aplikasi apa?</summary><p>Adobe Illustrator, CorelDRAW, Inkscape, dan Affinity Designer. Ukurannya ditulis dalam milimeter, jadi saat dibuka langsung berskala 1:1. Garis potong, lipat, dan bleed ada di grup terpisah.</p></details>
-        <details><summary>Seberapa akurat hitungan plano dan biayanya?</summary><p>Isi per plano dihitung dari kotak pembatas pola dengan susunan lurus dan diputar. Pola yang bisa disusun saling mengunci kadang muat lebih banyak di mesin. Tarif biaya di sana hanya contoh, jadi ganti dengan tarif percetakanmu sendiri. Angka yang kamu ubah tersimpan di browser ini.</p></details>
+        <details><summary>Seberapa akurat hitungan plano dan biayanya?</summary><p>Isi per plano dihitung dua cara. Kotak pembatas menyusun persegi panjang di sekeliling pola, lurus dan diputar. Susunan dikunci memakai bentuk dieline yang sebenarnya, jadi tutup dan sayap bisa saling mengisi, termasuk pola yang diputar 180°. Yang muat lebih banyak dipakai, dan jarak antar pola tetap dijaga. Pola dari file sendiri dan hardbox masih dihitung dari kotak pembatas. Tarif biaya di sana hanya contoh, jadi ganti dengan tarif percetakanmu sendiri. Angka yang kamu ubah tersimpan di browser ini.</p></details>
         <details><summary>Apa beda reverse tuck dan straight tuck?</summary><p>Pada reverse tuck, tutup atas menempel di panel belakang dan tutup bawah di panel depan, jadi lidahnya berlawanan arah. Pada straight tuck, kedua tutup menempel di panel belakang, sehingga sisi depan kotak bersih dari celah lidah. Straight tuck cocok untuk kemasan yang dipajang menghadap pembeli.</p></details>
         <details><summary>Bahan apa yang cocok untuk produkku?</summary><p>Art carton dan Ivory 250 sampai 350 gsm cocok untuk kosmetik, obat, dan makanan ringan. Duplex lebih hemat kalau bagian dalam kotak tidak terlihat. Greyboard dipakai untuk hardbox dan laci premium. Kardus E-flute pas untuk mailer kiriman online, sedangkan B-flute ke atas untuk barang berat atau mudah pecah. Angka tebal di daftar bahan adalah perkiraan umum, jadi kamu bisa mengubahnya di kolom Tebal bahan.</p></details>
         <details><summary>Bagaimana tutupnya bisa terkunci?</summary><p>Pada tuck end dan hexagonal, ada potongan kecil (slit) di kedua ujung garis lipat lidah. Lidah masuk di antara panel depan dan sayap, lalu tertahan gesekan. Pada mailer, dinding samping digulung ke dalam dan lidah kecil di ujungnya masuk ke lubang di alas, jadi box berdiri kokoh tanpa lem. Untuk bahan di atas 0,5 mm, minta percetakan mengecek toleransi lipatnya sebelum membuat pisau pon.</p></details>
@@ -1012,6 +1014,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             <div class="field" id="fItem" hidden style="max-width:420px"><label for="pItem">Lihat susunan</label><select id="pItem"></select></div>
             <div class="sheetbox" id="sheetSvg"></div>
             <div class="nupline" id="nupLine"></div>
+            <p class="nestnote" id="nestNote" aria-live="polite"></p>
             <details class="rates">
               <summary>Tarif produksi (angka contoh, ubah sesuai tarif percetakan)</summary>
               <div class="pgrid">
@@ -2545,11 +2548,15 @@ PKEYS.forEach(k=>{ if(saved[k]!=null) $('#'+k).value=saved[k]; });
 PKEYS.forEach(k=>$('#'+k).addEventListener('input',()=>{ const o={}; PKEYS.forEach(q=>o[q]=$('#'+q).value); store.set('lipatin-plano',o); renderPlano(); }));
 $('#pItem').addEventListener('change',()=>renderPlano());
 const pv=id=>Math.max(0,+$('#'+id).value||0);
+// The hero and the studio both draw a sheet, so each drawing needs its own id for <use> to find its own pattern
+let sheetDrawings=0;
 function sheetDrawing(itemSVG,w,h,res,SW,SH,margin){
-  const M=Math.max(SW,SH), sw=M/320;
-  const uses=res.rects.map(r=>{ const x=margin+r.x, y=margin+r.y; return r.r?`<use href="#pl-item" transform="translate(${f2(x+h)} ${f2(y)}) rotate(90)"/>`:`<use href="#pl-item" transform="translate(${f2(x)} ${f2(y)})"/>`; }).join('');
+  const M=Math.max(SW,SH), sw=M/320, id='pl-item-'+(++sheetDrawings);
+  const uses=res.place
+    ? res.place.map(p=>`<use href="#${id}" transform="translate(${f2(p.x)} ${f2(p.y)})${p.rot?` rotate(${p.rot})`:''}"/>`).join('')
+    : res.rects.map(r=>{ const x=margin+r.x, y=margin+r.y; return r.r?`<use href="#${id}" transform="translate(${f2(x+h)} ${f2(y)}) rotate(90)"/>`:`<use href="#${id}" transform="translate(${f2(x)} ${f2(y)})"/>`; }).join('');
   return `<svg viewBox="${f2(-M*0.02)} ${f2(-M*0.02)} ${f2(SW+M*0.04)} ${f2(SH+M*0.04)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Susunan ${res.n} pola di plano ${SW} kali ${SH} milimeter">
-    <defs><g id="pl-item">${itemSVG(sw)}</g></defs>
+    <defs><g id="${id}">${itemSVG(sw)}</g></defs>
     <rect x="0" y="0" width="${SW}" height="${SH}" fill="var(--surface)" stroke="var(--ink)" stroke-width="${f2(sw)}"/>
     <rect x="${margin}" y="${margin}" width="${f2(Math.max(0,SW-2*margin))}" height="${f2(Math.max(0,SH-2*margin))}" fill="none" stroke="var(--muted)" stroke-width="${f2(sw*0.7)}" stroke-dasharray="${f2(sw*6)} ${f2(sw*4)}"/>
     ${uses}</svg>`;
@@ -2557,6 +2564,51 @@ function sheetDrawing(itemSVG,w,h,res,SW,SH,margin){
 const itemSVGfn=g=>sw=> g.imported
   ? `<path d="${plD(g.crease)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}" stroke-dasharray="${f2(sw*5)} ${f2(sw*3.5)}"/><path d="${plD(g.cut)}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`
   : `<path d="${g.polys.map(p=>polyD(p.pts)).join('')}" fill="var(--sheet)"/><path d="${segD(g.folds)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}" stroke-dasharray="${f2(sw*5)} ${f2(sw*3.5)}"/><path d="${segD(g.cuts)}${g.holes.map(h=>polyD(h)).join('')}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`;
+/* Nesting the real dieline shape runs in a Web Worker on the Rust core in nest/, compiled to lipatin_nest_bg.wasm and
+   loaded the first time the plano tab draws a carton. impose() answers at once and stays the answer when the worker
+   cannot load (file://, old browser) or when the nested layout does not fit more. */
+const nester={worker:null,broken:false,job:null,next:null,done:new Map()};
+function nested(g,SW,SH,margin,gap){
+  if(nester.broken) return {state:'broken'};
+  if(g.imported||!g.polys||!g.polys.length) return {state:'imported'};
+  const polys=JSON.stringify(g.polys.map(p=>p.pts)), key=[SW,SH,margin,gap,polys].join('|');
+  if(nester.done.has(key)) return nester.done.get(key);
+  if(!nester.job||nester.job.key!==key) nester.next={key,polys,w:SW,h:SH,margin,gap};
+  startNester();
+  return {state:'pending'};
+}
+function startNester(){
+  if(nester.job||!nester.next||nester.broken) return;
+  if(!nester.worker){
+    try{ nester.worker=new Worker('nest-worker.js',{type:'module'}); }catch(e){ return nesterFailed(e); }
+    nester.worker.onmessage=({data})=>{
+      if(data.fatal) return nesterFailed(data.error);
+      const {key}=nester.job; nester.job=null;
+      if(data.error) console.warn('Susunan dikunci gagal dihitung:',data.error);
+      nester.done.set(key,data.error?{state:'failed'}:{state:'done',...data});
+      if(nester.done.size>40) nester.done.delete(nester.done.keys().next().value);
+      if(state.view==='plano') renderPlano();
+      startNester();
+    };
+    nester.worker.onerror=e=>{ e.preventDefault(); nesterFailed(e.message); };
+  }
+  nester.job=nester.next; nester.next=null;
+  const {key,...msg}=nester.job; nester.worker.postMessage(msg);
+}
+function nesterFailed(why){
+  console.warn('Susunan dikunci tidak tersedia, memakai kotak pembatas:',why);
+  nester.broken=true; nester.job=nester.next=null;
+  if(nester.worker) nester.worker.terminate();
+  if(state.view==='plano') renderPlano();
+}
+const motifText=m=>{ const b=m.split(' | '); return b.length>1?`dua blok, ${b[0]} dan ${b[1]}`:`motif ${m}`; };
+function nestNote(box,nest){
+  if(nest.state==='done'&&nest.count>box.n) return `<b>Susunan dikunci</b>: bentuk dieline asli, ${motifText(nest.motif)}. Muat ${nest.count-box.n} pola lebih banyak dari kotak pembatas (${box.n}).`;
+  if(nest.state==='done') return `<b>Kotak pembatas</b>: susunan dikunci tidak menambah isi untuk ukuran ini.`;
+  if(nest.state==='pending') return `<b>Kotak pembatas</b>. Sedang menghitung susunan dikunci dari bentuk dieline asli…`;
+  if(nest.state==='imported') return `<b>Kotak pembatas</b>: pola dari file sendiri dihitung dari kotak pembatasnya.`;
+  return `<b>Kotak pembatas</b>: susunan dikunci tidak bisa dihitung di browser ini.`;
+}
 const sheetOf=id=>{ const v=$('#'+id).value; return v==='custom'?[pv('pSW'),pv('pSH')]:v.split('x').map(Number); };
 const costRows=rows=>rows.map(([a,b,c])=>`<tr><td>${a}<small>${b}</small></td><td>${rp(c)}</td></tr>`).join('');
 function renderPlano(){
@@ -2568,11 +2620,13 @@ function renderPlano(){
   $$('.hbOnly').forEach(e=>e.hidden=!hb); $$('.cartonOnly').forEach(e=>e.hidden=!!hb);
   if(hb) return renderPlanoHB(current.m);
   const g=current&&current.g;
-  if(!g){ $('#sheetSvg').innerHTML='<div class="empty"><div><strong>Belum ada pola</strong>Pilih model, atau buka file sendiri.</div></div>'; $('#nupLine').innerHTML=''; $('#costTable').innerHTML=''; return; }
+  if(!g){ $('#sheetSvg').innerHTML='<div class="empty"><div><strong>Belum ada pola</strong>Pilih model, atau buka file sendiri.</div></div>'; $('#nupLine').innerHTML=''; $('#nestNote').innerHTML=''; $('#costTable').innerHTML=''; return; }
   const [SW,SH]=sheetOf('pSheet');
   const qty=Math.max(1,Math.round(pv('pQty'))), margin=pv('pMargin'), gap=pv('pGap');
-  const res=impose(g.w,g.h,SW,SH,margin,gap);
+  const box=impose(g.w,g.h,SW,SH,margin,gap), nest=nested(g,SW,SH,margin,gap);
+  const res= nest.state==='done'&&nest.count>box.n ? {n:nest.count,place:nest.placements} : box;
   $('#sheetSvg').innerHTML=sheetDrawing(itemSVGfn(g),g.w,g.h,res,SW,SH,margin);
+  $('#nestNote').innerHTML= res.n ? nestNote(box,nest) : '';
   if(!res.n){
     $('#nupLine').innerHTML=`<span>Pola ${nf(g.w,0)} × ${nf(g.h,0)} mm tidak muat di plano ${SW/10} × ${SH/10} cm. Pilih plano lebih besar atau pecah pola jadi beberapa bagian.</span>`;
     $('#costTable').innerHTML=''; return;
@@ -2606,6 +2660,7 @@ function planoHB(list,qty,SB,SP,margin,gap,waste){
   return {bad,dieM,sB:sh('board'),sW:sh('wrap'),sL:sh('liner')};
 }
 function renderPlanoHB(m){
+  $('#nestNote').innerHTML='';
   const list=[]; m.parts.forEach(p=>p.items.forEach(it=>list.push({p,it})));
   const ps=$('#pItem'), sig=state.model+'|'+list.map(x=>x.it.name).join('|');
   if(ps.dataset.sig!==sig){
