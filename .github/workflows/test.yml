@@ -7,7 +7,7 @@ on:
 
 jobs:
   golden:
-    name: Golden mesin pola
+    name: Golden mesin pola dan WASM
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,6 +15,8 @@ jobs:
         with:
           node-version: 24
       - run: node tests/golden.mjs
+      # the committed lipatin_nest_bg.wasm, run the way the browser worker runs it
+      - run: node tests/nest-wasm.mjs
 
   nest:
     name: Inti nesting (Rust)
