@@ -806,7 +806,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
         <details><summary>Bagaimana pola hardbox dihitung?</summary><p>Ukuran yang diisi adalah ukuran dalam. Dinding board berdiri mengelilingi alas, jadi ukuran luar bertambah dua kali tebal board. Tutup dan sleeve dibuat 1 mm lebih longgar ditambah tebal kertas pembungkus. Kertas pembungkus menutup dinding luar, melewati tepi atas, lalu masuk ke dalam sejauh lipatan masuk yang kamu atur. Sisi panjangnya punya telinga yang membungkus sudut. Kalau lipatan masuk lebih pendek dari tinggi dinding, kertas dalam dibuat dengan dinding supaya tidak ada board yang terlihat. Pada box magnet, papan sampul diberi celah engsel 1,5 kali tebal board, dan posisi magnet ditandai di flap dan dinding depan.</p></details>
         <details><summary>File apa saja yang bisa dibuka?</summary><p>SVG dari Illustrator, CorelDRAW, atau Inkscape, dan DXF dari aplikasi CAD. Garis potong dan lipat dikenali dari warna, layer, dan pola putus-putus, dan kamu bisa mengubahnya kalau tebakannya salah. File AI atau CDR perlu disimpan ulang sebagai SVG atau DXF dulu. Kalau ukurannya terbaca salah, atur skala atau isi lebar pola yang sebenarnya.</p></details>
         <details><summary>File SVG-nya bisa dibuka pakai aplikasi apa?</summary><p>Adobe Illustrator, CorelDRAW, Inkscape, dan Affinity Designer. Ukurannya ditulis dalam milimeter, jadi saat dibuka langsung berskala 1:1. Garis potong, lipat, dan bleed ada di grup terpisah.</p></details>
-        <details><summary>Seberapa akurat hitungan plano dan biayanya?</summary><p>Isi per plano dihitung dua cara. Kotak pembatas menyusun persegi panjang di sekeliling pola, lurus dan diputar. Susunan dikunci memakai bentuk dieline yang sebenarnya, jadi tutup dan sayap bisa saling mengisi, termasuk pola yang diputar 180°. Yang muat lebih banyak dipakai, dan jarak antar pola tetap dijaga. Pola dari file sendiri dan hardbox masih dihitung dari kotak pembatas. Tarif biaya di sana hanya contoh, jadi ganti dengan tarif percetakanmu sendiri. Angka yang kamu ubah tersimpan di browser ini.</p></details>
+        <details><summary>Seberapa akurat hitungan plano dan biayanya?</summary><p>Isi per plano dihitung dua cara. Kotak pembatas menyusun persegi panjang di sekeliling pola, lurus dan diputar. Susunan dikunci memakai bentuk dieline yang sebenarnya, jadi tutup dan sayap bisa saling mengisi, termasuk pola yang diputar 180°. Yang muat lebih banyak dipakai, dan jarak antar pola tetap dijaga. Pola dari file sendiri dan board hardbox masih dihitung dari kotak pembatas, karena board dipotong lurus sebelum V-groove. Tarif biaya di sana hanya contoh, jadi ganti dengan tarif percetakanmu sendiri. Angka yang kamu ubah tersimpan di browser ini.</p></details>
         <details><summary>Apa beda reverse tuck dan straight tuck?</summary><p>Pada reverse tuck, tutup atas menempel di panel belakang dan tutup bawah di panel depan, jadi lidahnya berlawanan arah. Pada straight tuck, kedua tutup menempel di panel belakang, sehingga sisi depan kotak bersih dari celah lidah. Straight tuck cocok untuk kemasan yang dipajang menghadap pembeli.</p></details>
         <details><summary>Bahan apa yang cocok untuk produkku?</summary><p>Art carton dan Ivory 250 sampai 350 gsm cocok untuk kosmetik, obat, dan makanan ringan. Duplex lebih hemat kalau bagian dalam kotak tidak terlihat. Greyboard dipakai untuk hardbox dan laci premium. Kardus E-flute pas untuk mailer kiriman online, sedangkan B-flute ke atas untuk barang berat atau mudah pecah. Angka tebal di daftar bahan adalah perkiraan umum, jadi kamu bisa mengubahnya di kolom Tebal bahan.</p></details>
         <details><summary>Bagaimana tutupnya bisa terkunci?</summary><p>Pada tuck end dan hexagonal, ada potongan kecil (slit) di kedua ujung garis lipat lidah. Lidah masuk di antara panel depan dan sayap, lalu tertahan gesekan. Pada mailer, dinding samping digulung ke dalam dan lidah kecil di ujungnya masuk ke lubang di alas, jadi box berdiri kokoh tanpa lem. Untuk bahan di atas 0,5 mm, minta percetakan mengecek toleransi lipatnya sebelum membuat pisau pon.</p></details>
@@ -2572,19 +2572,23 @@ const itemSVGfn=g=>sw=> g.imported
   : `<path d="${g.polys.map(p=>polyD(p.pts)).join('')}" fill="var(--sheet)"/><path d="${segD(g.folds)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw)}" stroke-dasharray="${f2(sw*5)} ${f2(sw*3.5)}"/><path d="${segD(g.cuts)}${g.holes.map(h=>polyD(h)).join('')}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.2)}"/>`;
 /* Nesting the real dieline shape runs in a Web Worker on the Rust core in nest/, compiled to lipatin_nest_bg.wasm and
    loaded the first time the plano tab draws a carton. impose() answers at once and stays the answer when the worker
-   cannot load (file://, old browser) or when the nested layout does not fit more. */
-const nester={worker:null,broken:false,job:null,next:null,done:new Map()};
+   cannot load (file://, old browser) or when the nested layout does not fit more. A hardbox asks for several pieces at
+   once, so jobs wait in a queue and the one asked for last runs first. */
+const nester={worker:null,broken:false,job:null,queue:new Map(),done:new Map()};
 function nested(g,SW,SH,margin,gap){
   if(nester.broken) return {state:'broken'};
   if(g.imported||!g.polys||!g.polys.length) return {state:'imported'};
   const polys=JSON.stringify(g.polys.map(p=>p.pts)), key=[SW,SH,margin,gap,polys].join('|');
   if(nester.done.has(key)) return nester.done.get(key);
-  if(!nester.job||nester.job.key!==key) nester.next={key,polys,w:SW,h:SH,margin,gap};
+  if(!nester.job||nester.job.key!==key){
+    nester.queue.delete(key); nester.queue.set(key,{key,polys,w:SW,h:SH,margin,gap});
+    if(nester.queue.size>16) nester.queue.delete(nester.queue.keys().next().value);
+  }
   startNester();
   return {state:'pending'};
 }
 function startNester(){
-  if(nester.job||!nester.next||nester.broken) return;
+  if(nester.job||!nester.queue.size||nester.broken) return;
   if(!nester.worker){
     try{ nester.worker=new Worker('nest-worker.js',{type:'module'}); }catch(e){ return nesterFailed(e); }
     nester.worker.onmessage=({data})=>{
@@ -2599,16 +2603,16 @@ function startNester(){
     };
     nester.worker.onerror=e=>{ e.preventDefault(); nesterFailed(e.message); };
   }
-  nester.job=nester.next; nester.next=null;
+  nester.job=[...nester.queue.values()].pop(); nester.queue.delete(nester.job.key);
   const {key,...msg}=nester.job; nester.worker.postMessage(msg);
 }
 function nesterFailed(why){
   console.warn('Susunan dikunci tidak tersedia, memakai kotak pembatas:',why);
-  nester.broken=true; nester.job=nester.next=null;
+  nester.broken=true; nester.job=null; nester.queue.clear();
   if(nester.worker) nester.worker.terminate();
   if(state.view==='plano') renderPlano();
 }
-const motifText=m=>{ const b=m.split(' | '); return b.length>1?`dua blok, ${b[0]} dan ${b[1]}`:`motif ${m}`; };
+const motifText=m=>{ const b=m.split(' | '); return b.length<2?`motif ${m}`:b[0]===b[1]?`dua blok ${b[0]}`:`dua blok, ${b[0]} dan ${b[1]}`; };
 function nestNote(box,nest){
   if(nest.state==='done'&&nest.count>box.n) return `<b>Susunan dikunci</b>: bentuk dieline asli, ${motifText(nest.motif)}. Muat ${nest.count-box.n} pola lebih banyak dari kotak pembatas (${box.n}).`;
   if(nest.state==='done') return `<b>Kotak pembatas</b>: susunan dikunci tidak menambah isi untuk ukuran ini.`;
@@ -2653,11 +2657,15 @@ function renderPlano(){
   $('#nupLine').innerHTML=`<span><b>${res.n}</b>pola per plano</span><span><b>${nf(sheetsAll,0)}</b>lembar plano${waste?` (termasuk insheet ${nf(waste*100,0)}%)`:''}</span><span><b>${nf(usage,0)}%</b>${g.imported?'perkiraan ':''}kertas terpakai</span>`;
   $('#costTable').innerHTML=costRows(rows)+`<tr class="total"><td>Perkiraan total untuk ${nf(qty,0)} pcs</td><td>${rp(total)}</td></tr><tr class="per"><td>Per pcs</td><td>${rp(total/qty)}</td></tr>`;
 }
-/* Hardbox: every piece is imposed on its own sheet type (board or paper), then sheets are summed per material */
-function planoHB(list,qty,SB,SP,margin,gap,waste){
+/* Hardbox: every piece is imposed on its own sheet type (board or paper), then sheets are summed per material.
+   With nest, wrap and liner (die-cut paper) also try the nested layout; board blanks are cut straight before the
+   V-groove, so board stays on bounding boxes. */
+function planoHB(list,qty,SB,SP,margin,gap,waste,nest){
   const tot={board:0,wrap:0,liner:0}; let dieM=0, bad=null;
   list.forEach(x=>{
-    const S=x.p.key==='board'?SB:SP, r=impose(x.it.w,x.it.h,S[0],S[1],margin,gap);
+    const S=x.p.key==='board'?SB:SP, box=impose(x.it.w,x.it.h,S[0],S[1],margin,gap);
+    x.box=box; x.nest= !nest?null : x.p.key==='board'?{state:'board'} : nested(x.it.g,S[0],S[1],margin,gap);
+    const r= x.nest&&x.nest.state==='done'&&x.nest.count>box.n ? {n:x.nest.count,place:x.nest.placements} : box;
     x.res=r; x.S=S;
     if(!r.n){ bad=bad||x; return; }
     tot[x.p.key]+=qty*x.it.count/r.n;
@@ -2667,7 +2675,6 @@ function planoHB(list,qty,SB,SP,margin,gap,waste){
   return {bad,dieM,sB:sh('board'),sW:sh('wrap'),sL:sh('liner')};
 }
 function renderPlanoHB(m){
-  $('#nestNote').innerHTML='';
   const list=[]; m.parts.forEach(p=>p.items.forEach(it=>list.push({p,it})));
   const ps=$('#pItem'), sig=state.model+'|'+list.map(x=>x.it.name).join('|');
   if(ps.dataset.sig!==sig){
@@ -2676,9 +2683,16 @@ function renderPlanoHB(m){
   }
   const qty=Math.max(1,Math.round(pv('pQty'))), margin=pv('pMargin'), gap=pv('pGap'), waste=pv('rWaste')/100;
   const SB=sheetOf('pSheetB'), SP=sheetOf('pSheet');
-  const {bad,dieM,sB,sW,sL}=planoHB(list,qty,SB,SP,margin,gap,waste);
   const sel=list[+ps.value]||list[0];
+  // the piece on screen goes into the nesting queue last, so it is answered first
+  const {bad,dieM,sB,sW,sL}=planoHB([...list.filter(x=>x!==sel),sel],qty,SB,SP,margin,gap,waste,true);
   $('#sheetSvg').innerHTML=sheetDrawing(itemSVGfn(sel.it.g),sel.it.w,sel.it.h,sel.res,sel.S[0],sel.S[1],margin);
+  const others=list.filter(x=>x!==sel), won=others.filter(x=>x.res!==x.box).length, waiting=others.some(x=>x.nest.state==='pending');
+  $('#nestNote').innerHTML= !sel.res.n ? '' : (sel.nest.state==='board'
+    ? `<b>Kotak pembatas</b>: board dipotong lurus dulu sebelum V-groove, jadi dihitung dari kotak pembatas.`
+    : nestNote(sel.box,sel.nest))
+    + (won ? ` Susunan dikunci juga dipakai di ${won} potongan kertas lain.` : '')
+    + (waiting ? ' Potongan lain masih dihitung.' : '');
   if(bad){
     $('#nupLine').innerHTML=`<span>${esc(bad.p.name)} · ${esc(bad.it.name)} (${nf(bad.it.w,0)} × ${nf(bad.it.h,0)} mm) tidak muat di plano ${bad.S[0]/10} × ${bad.S[1]/10} cm. Pilih plano lebih besar.</span>`;
     $('#costTable').innerHTML=''; return;
@@ -3730,7 +3744,8 @@ function estCompute(ref){
   const SW=+S.sw||320, SH=+S.sh||470, PW=Math.min(SW,+S.pw||SW), PH=Math.min(SH,+S.ph||SH), gap=+S.gap||0, ins=(+S.insheet||0)/100;
   /* pieces of the box */
   const pieces=[];
-  if(hb) m.parts.forEach(p=>p.items.forEach(it=>pieces.push({name:`${p.name} · ${it.name}`,w:it.w,h:it.h,count:it.count,cut:it.g.cutLen,grp:p.key==='board'?'board':p.key==='liner'?'liner':'luar'})));
+  // wrap and liner are die-cut and can be nested; board blanks are cut straight, so they carry no pattern here
+  if(hb) m.parts.forEach(p=>p.items.forEach(it=>pieces.push({name:`${p.name} · ${it.name}`,w:it.w,h:it.h,count:it.count,cut:it.g.cutLen,grp:p.key==='board'?'board':p.key==='liner'?'liner':'luar',g:p.key==='board'?null:it.g})));
   else m.pieces.forEach((pc,i)=>{
     const nodes=[]; (function walk(n){ if(!n.invisible) nodes.push(n); (n.children||[]).forEach(walk); })(pc.root);
     let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; nodes.forEach(n=>n.poly.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}));
@@ -3744,7 +3759,7 @@ function estCompute(ref){
   if(hb&&!(bw>0&&bh>0)) return {error:`Isi ukuran lembar ${board.nama} di Daftar harga.`};
   pieces.forEach(p=>{
     let r= p.grp==='board' ? impose(p.w,p.h,bw,bh,0,gap) : impose(p.w,p.h,PW,PH,0,gap);
-    /* carton dielines use the same nested count as the plano tab once the worker has it */
+    /* dielines (carton, hardbox wrap and liner) use the same nested count as the plano tab once the worker has it */
     p.how='';
     if(p.g){ const ns=nested(p.g,PW,PH,0,gap);
       if(ns.state==='pending') nestPending=true;
