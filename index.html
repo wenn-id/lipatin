@@ -411,8 +411,8 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 #genStage canvas:active{cursor:grabbing}
 #view3d .stage{position:absolute;inset:0}
 /* camera buttons: the keyboard and single-pointer way to do what drag, wheel and double-click do */
-.cambar{position:absolute;left:12px;right:12px;top:34px;padding:0;border:0;background:transparent;gap:4px}
-.cambar button{background:color-mix(in srgb,var(--surface) 88%,transparent);min-height:32px}
+.partbar.cambar{position:absolute;left:12px;right:12px;top:34px;padding:0;border:0;background:transparent;gap:4px}
+.partbar.cambar button{background:color-mix(in srgb,var(--surface) 88%,transparent);min-height:32px}
 .foldbar{position:absolute;left:12px;right:12px;bottom:12px;display:flex;align-items:center;gap:12px;padding:6px 14px 6px 6px;border:1px solid var(--line);border-radius:var(--r-b);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px)}
 .foldbar input{flex:1;min-width:0}
 .foldbar .btn{min-width:122px}
@@ -1841,6 +1841,8 @@ function createViewer(opt={}){
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShadowMaterial({opacity:0.17}));
   ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
   const holder=new THREE.Group(); scene.add(holder);
+  /* panel outlines: a flat white sheet facing the light has no shading left, so its edges carry the shape */
+  const lineMat=opt.edges?new THREE.LineBasicMaterial({color:0x2a332d,transparent:true,opacity:.42}):null;
   const col=h=>new THREE.Color(h).convertSRGBToLinear();
   const ease=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
   const prog=(p,[a,b])=>ease((p-a)/(b-a));
@@ -1888,6 +1890,7 @@ function createViewer(opt={}){
     }
     trash.push(geo);
     const m=new THREE.Mesh(geo,mats); m.rotation.x=Math.PI/2; m.castShadow=true; m.receiveShadow=true;
+    if(lineMat){ const ed=new THREE.EdgesGeometry(geo,40); trash.push(ed); m.add(new THREE.LineSegments(ed,lineMat)); }
     return m;
   }
   function add(node,parent,php,pn){
@@ -2035,7 +2038,7 @@ function createViewer(opt={}){
     onFold(cb){ foldCb=cb; }
   };
 }
-const V3=createViewer();
+const V3=createViewer({exposure:1.05,edges:true});
 const HERO=createViewer({wheel:false,az:0.78,el:0.5,exposure:1.1});
 
 /* CSS box: hero decoration and fallback when WebGL is unavailable */
