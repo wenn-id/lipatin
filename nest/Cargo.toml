@@ -1,0 +1,10 @@
+[package]
+name = "nest"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+geo = "0.33.1"
+rayon = "1.12.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
