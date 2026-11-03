@@ -1079,16 +1079,29 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             <div class="stage" id="genStage"></div>
             <span class="hint" id="hint3d">Seret untuk memutar · scroll atau cubit untuk zoom · klik dua kali untuk reset · atau pakai tombol kamera</span>
             <div class="partbar cambar" id="camBar" role="group" aria-label="Kamera 3D" hidden>
-              <button type="button" data-cam="left">Putar kiri</button><button type="button" data-cam="right">Putar kanan</button>
-              <button type="button" data-cam="up">Lebih atas</button><button type="button" data-cam="down">Lebih bawah</button>
-              <button type="button" data-cam="in">Perbesar</button><button type="button" data-cam="out">Perkecil</button>
-              <button type="button" data-cam="reset">Reset</button>
+              <button type="button" data-cam="front" title="Tampak Depan">Depan</button>
+              <button type="button" data-cam="top" title="Tampak Atas">Atas</button>
+              <button type="button" data-cam="side" title="Tampak Samping">Samping</button>
+              <button type="button" data-cam="iso" title="Sudut Tiga Perempat Studio">3/4 Studio</button>
+              <button type="button" data-cam="spin" id="btnSpin" title="Putar 360° otomatis">🔄 Putar 360°</button>
+              <button type="button" data-cam="in" title="Perbesar">Zoom +</button>
+              <button type="button" data-cam="out" title="Perkecil">Zoom −</button>
+              <button type="button" data-cam="reset" title="Reset Kamera">Reset</button>
             </div>
             <div class="foldbar" id="foldBar">
-              <button type="button" class="btn btn-ink btn-sm" id="btnFold">Buka lipatan</button>
-              <label class="sr" for="inFold">Tingkat lipatan</label>
-              <input id="inFold" type="range" min="0" max="100" value="100">
-              <span class="mono" id="foldPct">100%</span>
+              <div class="fold-seg" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <button type="button" class="btn btn-ink btn-sm" id="btnFold">Buka lipatan</button>
+                <label class="sr" for="inFold">Tingkat lipatan</label>
+                <input id="inFold" type="range" min="0" max="100" value="100" title="Lipatan kotak (0% = rata, 100% = terlipat)">
+                <span class="mono" id="foldPct">100%</span>
+              </div>
+              <div class="fold-divider" style="width:1px;height:24px;background:var(--line);margin:0 4px"></div>
+              <div class="lid-seg" style="display:flex;align-items:center;gap:8px">
+                <button type="button" class="btn btn-outline btn-sm" id="btnLid" title="Buka / tutup bagian atas kotak">Buka tutup</button>
+                <label class="sr" for="inLid">Buka tutup</label>
+                <input id="inLid" type="range" min="0" max="100" value="0" style="width:75px" title="Buka/tutup lid (0% = tertutup rapat, 100% = terbuka lebar)">
+                <span class="mono" id="lidPct">0%</span>
+              </div>
             </div>
             <div class="msg3d" id="msg3d" hidden><div><strong>Pratinjau 3D belum tersedia untuk file sendiri</strong>Lipatin belum bisa menebak urutan lipat dari pola bebas. Dieline, ukuran, dan hitungan plano tetap bisa dipakai.</div></div>
           </div>
@@ -2060,6 +2073,7 @@ function createViewer(opt={}){
   const view={az:AZ,el:EL,zoom:1,r:150,rt:150,ty:0,tyt:0,spin:0};
   let pieces=[], nodes=[], Tv=0.4, trash=[], fold=1, anim=null, running=false, host=null, foldCb=null, model=null, mats=null;
   let activeTexs=null, outerMat=null, curMRef=null, curSRef=null, curLookRef=null;
+  let lidOpen=0, lidAnim=null, lidCb=null, autoSpin=false, spinCb=null, camAnim=null;
 
   function drawImgMask(ctx, img, x, y, w, h, color){
     try {
@@ -2315,10 +2329,26 @@ function createViewer(opt={}){
   function apply(snap){
     for(const N of nodes){
       const {n,pivot,base}=N; let deg, insE;
-      if(n.tuck){ const pre=prog(fold,n.pre); deg=tuckBeta(N.pn&&N.pn._deg||0,pre,n.tuck); insE=pre; }
+      if(n.tuck){
+        const isLidChild = N.pn && (N.pn.n.label === 'TUTUP' || N.pn.n.isLid) && (!N.pn.n.stage || N.pn.n.stage[0] >= 0.55);
+        const pre=prog(fold,n.pre);
+        let baseBeta = tuckBeta(N.pn&&N.pn._deg||0,pre,n.tuck);
+        if(isLidChild && lidOpen > 0){
+          baseBeta *= (1 - lidOpen);
+        }
+        deg = baseBeta;
+        insE = pre * (1 - (isLidChild ? lidOpen : 0));
+      }
       else{
-        const e=prog(fold,n.stage); deg=n.angle*e; insE=e;
-        if(n.dip && e>=1){ const d=clamp((fold-n.dip[0])/(n.dip[1]-n.dip[0]),0,1); deg+=13*Math.sin(Math.PI*d); }
+        const isTopLid = (n.label === 'TUTUP' || n.isLid) && (!n.stage || n.stage[0] >= 0.55);
+        const e=prog(fold,n.stage);
+        let baseAngle = n.angle * e;
+        if(isTopLid && lidOpen > 0){
+          baseAngle = (n.angle * e) * (1 - lidOpen) - lidOpen * 45;
+        }
+        deg = baseAngle;
+        insE = e * (1 - (isTopLid ? lidOpen : 0));
+        if(n.dip && e>=1 && lidOpen === 0){ const d=clamp((fold-n.dip[0])/(n.dip[1]-n.dip[0]),0,1); deg+=13*Math.sin(Math.PI*d); }
       }
       n._deg=deg;
       const ins=(n.insetMM!=null?n.insetMM:(n.inset||0)*Tv*1.05)*insE;
@@ -2329,19 +2359,31 @@ function createViewer(opt={}){
     if(model&&model.fixed){
       for(const P of pieces){ P.cg.position.set(-P.c0[0],0,-P.c0[1]); P.pg.rotation.set(0,0,0); P.pg.position.set(P.c0[0],0,P.c0[1]); }
       if(model.assemble) model.assemble(fold,pieces,Tv,prog,model.anchors);
+      if(lidOpen > 0 && pieces.length > 1 && pieces[1]){
+        pieces[1].pg.position.y += lidOpen * (Math.max(30, pieces[0].size.y * 0.85) + 15);
+      }
     } else {
-    for(const P of pieces){
-      const e=P.stand?prog(fold,P.stand):0; P.rp.rotation.x=Math.PI/2*e; P.rp.rotation.y=Math.PI*e;
-      P.pg.position.set(0,0,0); P.pg.rotation.set(0,0,0); P.cg.position.set(0,0,0);
-      P.pg.updateMatrixWorld(true);
-      box3.setFromObject(P.pg); box3.getCenter(v); box3.getSize(P.size);
-      P.cg.position.set(-v.x,-box3.min.y,-v.z);
-    }
-    const gap=Math.max(...pieces.map(P=>Math.max(P.size.x,P.size.z)))*0.12;
-    const total=pieces.reduce((a,P)=>a+P.size.x,0)+gap*(pieces.length-1);
-    let cum=-total/2; const X=pieces.map(P=>{ const x=cum+P.size.x/2; cum+=P.size.x+gap; return x; });
-    if(model&&model.assemble) model.assemble(fold,pieces,X,Tv,prog);
-    else pieces.forEach((P,i)=>P.pg.position.set(X[i],0,0));
+      for(const P of pieces){
+        const e=P.stand?prog(fold,P.stand):0; P.rp.rotation.x=Math.PI/2*e; P.rp.rotation.y=Math.PI*e;
+        P.pg.position.set(0,0,0); P.pg.rotation.set(0,0,0); P.cg.position.set(0,0,0);
+        P.pg.updateMatrixWorld(true);
+        box3.setFromObject(P.pg); box3.getCenter(v); box3.getSize(P.size);
+        P.cg.position.set(-v.x,-box3.min.y,-v.z);
+      }
+      const gap=Math.max(...pieces.map(P=>Math.max(P.size.x,P.size.z)))*0.12;
+      const total=pieces.reduce((a,P)=>a+P.size.x,0)+gap*(pieces.length-1);
+      let cum=-total/2; const X=pieces.map(P=>{ const x=cum+P.size.x/2; cum+=P.size.x+gap; return x; });
+      if(model&&model.assemble) model.assemble(fold,pieces,X,Tv,prog);
+      else pieces.forEach((P,i)=>P.pg.position.set(X[i],0,0));
+
+      if(lidOpen > 0 && pieces.length > 1 && pieces[1]){
+        const mKey = model ? (model.key || '') : '';
+        if(mKey === 'drawer' || (model && model.name && /laci/i.test(model.name))){
+          pieces[1].pg.position.z += lidOpen * (Math.max(25, pieces[0].size.z * 0.65) + 15);
+        } else {
+          pieces[1].pg.position.y += lidOpen * (Math.max(30, pieces[0].size.y * 0.85) + 15);
+        }
+      }
     }
     holder.updateMatrixWorld(true);
     box3.setFromObject(holder); box3.getCenter(v); box3.getSize(sz);
@@ -2360,6 +2402,15 @@ function createViewer(opt={}){
     if(!running) return;
     requestAnimationFrame(frame);
     if(anim){ const t=Math.min(1,(performance.now()-anim.t0)/anim.dur); fold=anim.from+(anim.to-anim.from)*t; if(t>=1) anim=null; apply(false); }
+    if(lidAnim){ const t=Math.min(1,(performance.now()-lidAnim.t0)/lidAnim.dur); lidOpen=lidAnim.from+(lidAnim.to-lidAnim.from)*ease(t); if(t>=1) lidAnim=null; apply(false); if(lidCb) lidCb(lidOpen); }
+    if(autoSpin){ view.spin += 0.0075; }
+    if(camAnim){
+      const t=Math.min(1,(performance.now()-camAnim.t0)/camAnim.dur); const et=ease(t);
+      view.az=camAnim.fromAz+(camAnim.toAz-camAnim.fromAz)*et;
+      view.el=camAnim.fromEl+(camAnim.toEl-camAnim.fromEl)*et;
+      view.zoom=camAnim.fromZoom+(camAnim.toZoom-camAnim.fromZoom)*et;
+      if(t>=1) camAnim=null;
+    }
     view.r+=(view.rt-view.r)*0.1; view.ty+=(view.tyt-view.ty)*0.1;
     const half=camera.fov*Math.PI/360, hh=Math.atan(Math.tan(half)*camera.aspect);
     const d=view.r/Math.sin(Math.min(half,hh))*1.08*view.zoom;
@@ -2377,7 +2428,10 @@ function createViewer(opt={}){
     renderer.render(scene,camera);
   }
   const el=renderer.domElement, ptrs=new Map(); let pinch=null;
-  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  el.addEventListener('pointerdown',e=>{
+    if(autoSpin){ autoSpin=false; if(spinCb) spinCb(false); }
+    camAnim=null;
+    el.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:view.zoom}; } });
   el.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p) return;
     if(ptrs.size===1){ view.az-=(e.clientX-p.x)*0.008; view.el=clamp(view.el+(e.clientY-p.y)*0.006,0.04,1.5); }
@@ -2391,8 +2445,29 @@ function createViewer(opt={}){
     build,
     start(h){ if(host!==h){ host=h; h.innerHTML=''; h.appendChild(el); if(ro) ro.observe(h); } resize(); if(!running){ running=true; requestAnimationFrame(frame); } },
     stop(){ running=false; },
-    setFold(f){ anim=null; fold=clamp(f,0,1); apply(false); },
+    setFold(f){ anim=null; fold=clamp(f,0,1); if(fold < 0.6 && lidOpen > 0){ lidOpen=0; if(lidCb) lidCb(0); } apply(false); },
     getFold:()=>fold,
+    setLidOpen(l){ lidAnim=null; lidOpen=clamp(l,0,1); apply(false); if(lidCb) lidCb(lidOpen); },
+    getLidOpen:()=>lidOpen,
+    animateLidTo(to,dur=600){
+      const span=Math.abs(to-lidOpen); if(span<0.001) return;
+      if(reduced()){ lidAnim=null; lidOpen=clamp(to,0,1); apply(false); if(lidCb) lidCb(lidOpen); return; }
+      lidAnim={from:lidOpen,to,t0:performance.now(),dur:dur*span};
+    },
+    onLid(cb){ lidCb=cb; },
+    toggleSpin(){ autoSpin=!autoSpin; if(spinCb) spinCb(autoSpin); return autoSpin; },
+    isSpinning:()=>autoSpin,
+    onSpin(cb){ spinCb=cb; },
+    setCameraPreset(preset){
+      view.spin=0;
+      let targetAz=AZ, targetEl=EL;
+      if(preset==='front'){ targetAz=0; targetEl=0.06; }
+      else if(preset==='top'){ targetAz=0; targetEl=1.48; }
+      else if(preset==='side'){ targetAz=Math.PI/2; targetEl=0.06; }
+      else if(preset==='iso'){ targetAz=AZ; targetEl=EL; }
+      if(reduced()){ view.az=targetAz; view.el=targetEl; view.zoom=1; return; }
+      camAnim={fromAz:view.az,toAz:targetAz,fromEl:view.el,toEl:targetEl,fromZoom:view.zoom,toZoom:1,t0:performance.now(),dur:420};
+    },
     /* extra turn around the box, on top of whatever the user dragged */
     setSpin(a){ view.spin=a; },
     animateTo(to,dur){ const span=Math.abs(to-fold); if(span<0.001) return;
@@ -2401,7 +2476,7 @@ function createViewer(opt={}){
     /* the button route to what drag, wheel and double-click do */
     orbit(da,de){ view.az+=da; view.el=clamp(view.el+de,0.04,1.5); },
     zoomBy(k){ view.zoom=clamp(view.zoom*k,0.35,2.5); },
-    resetView(){ view.az=AZ; view.el=EL; view.zoom=1; },
+    resetView(){ view.az=AZ; view.el=EL; view.zoom=1; view.spin=0; autoSpin=false; if(spinCb) spinCb(false); },
     onFold(cb){ foldCb=cb; },
     updateTextures(){
       if(!activeTexs || !outerMat || !curMRef || !curSRef) return;
@@ -3315,14 +3390,64 @@ function setView(v){
 $('#tab2d').addEventListener('click',()=>setView('2d'));
 $('#tab3d').addEventListener('click',()=>setView('3d'));
 $('#tabPlano').addEventListener('click',()=>setView('plano'));
-const CAM={left:()=>V3.orbit(-.35,0),right:()=>V3.orbit(.35,0),up:()=>V3.orbit(0,.2),down:()=>V3.orbit(0,-.2),in:()=>V3.zoomBy(.85),out:()=>V3.zoomBy(1.18),reset:()=>V3.resetView()};
-$('#camBar').addEventListener('click',e=>{ const b=e.target.closest('[data-cam]'); if(b&&V3) CAM[b.dataset.cam](); });
+const CAM={
+  left:()=>V3.orbit(-.35,0),
+  right:()=>V3.orbit(.35,0),
+  up:()=>V3.orbit(0,.2),
+  down:()=>V3.orbit(0,-.2),
+  in:()=>V3.zoomBy(.85),
+  out:()=>V3.zoomBy(1.18),
+  reset:()=>V3.resetView(),
+  front:()=>V3.setCameraPreset('front'),
+  top:()=>V3.setCameraPreset('top'),
+  side:()=>V3.setCameraPreset('side'),
+  iso:()=>V3.setCameraPreset('iso'),
+  spin:()=>V3.toggleSpin()
+};
+$('#camBar').addEventListener('click',e=>{ const b=e.target.closest('[data-cam]'); if(b&&V3&&CAM[b.dataset.cam]) CAM[b.dataset.cam](); });
 
-function syncFoldUI(f){ const pct=Math.round(f*100); $('#inFold').value=pct; $('#foldPct').textContent=pct+'%'; $('#btnFold').textContent= f>0.5?(isHB()?'Bongkar':'Buka lipatan'):(isHB()?'Rakit lagi':'Lipat lagi'); }
+function syncSpinUI(s){
+  const btn = $('#btnSpin');
+  if(!btn) return;
+  btn.setAttribute('aria-pressed', s ? 'true' : 'false');
+  btn.textContent = s ? '⏸️ Jeda putar' : '🔄 Putar 360°';
+}
+
+function syncFoldUI(f){
+  const pct=Math.round(f*100);
+  $('#inFold').value=pct;
+  $('#foldPct').textContent=pct+'%';
+  $('#btnFold').textContent= f>0.5?(isHB()?'Bongkar':'Buka lipatan'):(isHB()?'Rakit lagi':'Lipat lagi');
+}
+
+function syncLidUI(l){
+  const pct=Math.round(l*100);
+  if($('#inLid')) $('#inLid').value=pct;
+  if($('#lidPct')) $('#lidPct').textContent=pct+'%';
+  if($('#btnLid')) $('#btnLid').textContent= l>0.5?'Tutup lid':'Buka tutup';
+}
+
 if(V3){
   V3.onFold(syncFoldUI);
+  V3.onLid(syncLidUI);
+  V3.onSpin(syncSpinUI);
+
   $('#inFold').addEventListener('input',e=>V3.setFold(+e.target.value/100));
   $('#btnFold').addEventListener('click',()=>V3.animateTo(V3.getFold()>0.5?0:1,4200));
+
+  $('#inLid')?.addEventListener('input',e=>V3.setLidOpen(+e.target.value/100));
+  $('#btnLid')?.addEventListener('click',()=>{
+    if(V3.getLidOpen() > 0.5){
+      V3.animateLidTo(0, 600);
+    } else {
+      if(V3.getFold() < 0.95){
+        V3.animateTo(1, 1400);
+        setTimeout(()=>V3.animateLidTo(1, 600), 800);
+      } else {
+        V3.animateLidTo(1, 600);
+      }
+    }
+  });
 } else { $('#foldBar').hidden=true; $('#hint3d').textContent='Seret untuk memutar'; }
 
 /* CSS-box drag (fallback only) */
