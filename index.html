@@ -391,6 +391,10 @@ select{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
 .sw{width:30px;height:30px;border-radius:50%;border:1px solid var(--border-control);cursor:pointer;padding:0}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.fin-pills{display:flex;gap:6px;flex-wrap:wrap}
+.fin-btn{background:var(--surface);color:var(--muted);border:1px solid var(--border-control);border-radius:20px;padding:5px 12px;font:500 var(--t-micro) var(--f-body);cursor:pointer;transition:all .15s ease}
+.fin-btn:hover{color:var(--ink);border-color:var(--ink)}
+.fin-btn[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink);font-weight:600}
 .txt{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:var(--t-control) var(--f-body);padding:10px}
 input[type=range]{width:100%;accent-color:var(--ink)}
 
@@ -936,6 +940,16 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
                 <label for="inLabel" id="lbLabel">Teks di sisi depan</label>
                 <input class="txt" id="inLabel" type="text" maxlength="24" value="SEREH">
               </div>
+              <div style="margin-top:12px">
+                <p class="flabel" style="margin-bottom:6px">Finishing spesial</p>
+                <div class="fin-pills" id="finSw">
+                  <button type="button" class="fin-btn" data-fin="standard" aria-pressed="true">Standar</button>
+                  <button type="button" class="fin-btn" data-fin="gold" aria-pressed="false">✨ Poli Emas</button>
+                  <button type="button" class="fin-btn" data-fin="silver" aria-pressed="false">🪙 Poli Perak</button>
+                  <button type="button" class="fin-btn" data-fin="spotuv" aria-pressed="false">💧 Spot UV</button>
+                  <button type="button" class="fin-btn" data-fin="emboss" aria-pressed="false">🏔️ Emboss</button>
+                </div>
+              </div>
             </fieldset>
           </div>
 
@@ -1202,7 +1216,7 @@ const MATS=[
 ];
 const MAT={}; MATS.forEach(gr=>gr.items.forEach(([id,name,t])=>MAT[id]={id,name,t,group:gr}));
 
-const state={model:'rte',L:90,W:60,D:30,X:30,Xs:{},T:0.42,mat:'iv310',glue:15,bleed:true,color:'#C89F72',inner:'#F4F1EC',label:'SEREH',view:'2d',imp:null,impScale:'auto',impRealW:0,TI:15,HBM:'v',part:'board'};
+const state={model:'rte',L:90,W:60,D:30,X:30,Xs:{},T:0.42,mat:'iv310',glue:15,bleed:true,color:'#C89F72',inner:'#F4F1EC',label:'SEREH',finish:'standard',view:'2d',imp:null,impScale:'auto',impRealW:0,TI:15,HBM:'v',part:'board'};
 
 /* ---------- Geometry helpers ---------- */
 function arc(cx,cy,r,a0,a1,n=6){const o=[];for(let k=0;k<=n;k++){const a=(a0+(a1-a0)*k/n)*Math.PI/180;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;}
@@ -1815,11 +1829,45 @@ function dimsText(s){
 }
 
 /* ---------- WebGL folding preview ---------- */
-const LOOK={'Kertas tipis':{inner:'#F5F4F0',rough:.5},'Art carton':{inner:'#F3F2EE',rough:.42},'Ivory':{inner:'#F2F0E9',rough:.6},
-  'Duplex':{inner:'#B3B0A8',rough:.62},'Kraft':{inner:'#B98D5F',rough:.86},'Karton tebal (greyboard)':{inner:'#8E8A82',rough:.9},
-  'Kardus single wall':{inner:'#BF9465',rough:.9,flute:true},'Kardus double & triple wall':{inner:'#BF9465',rough:.9,flute:true}};
+const LOOK={'Kertas tipis':{inner:'#F5F4F0',rough:.5},'Art carton':{inner:'#F3F2EE',rough:.38},'Ivory':{inner:'#F2F0E9',rough:.55},
+  'Duplex':{inner:'#B3B0A8',rough:.62},'Kraft':{inner:'#B98D5F',rough:.88,kraft:true},'Karton tebal (greyboard)':{inner:'#8E8A82',rough:.9},
+  'Kardus single wall':{inner:'#BF9465',rough:.9,flute:true,kraft:true},'Kardus double & triple wall':{inner:'#BF9465',rough:.9,flute:true,kraft:true}};
 const matLook=s=>{ const m=MAT[s.mat]; return (m&&LOOK[m.group.g])||{inner:'#ECE9E2',rough:.7}; };
 function lum(hex){ const n=parseInt(hex.slice(1),16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return (0.299*r+0.587*g+0.114*b)/255; }
+
+function makeStudioEnv(renderer){
+  try{
+    const cv=document.createElement('canvas'); cv.width=1024; cv.height=512;
+    const ctx=cv.getContext('2d');
+    const bg=ctx.createLinearGradient(0,0,0,512);
+    bg.addColorStop(0,'#20242a'); bg.addColorStop(0.4,'#464c55'); bg.addColorStop(0.5,'#707782');
+    bg.addColorStop(0.56,'#4e545e'); bg.addColorStop(1,'#1e2126');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,1024,512);
+
+    const sb1=ctx.createRadialGradient(280,140,5,280,140,170);
+    sb1.addColorStop(0,'rgba(255,255,255,1)'); sb1.addColorStop(0.28,'rgba(250,252,255,.92)');
+    sb1.addColorStop(0.65,'rgba(215,225,240,.32)'); sb1.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sb1; ctx.beginPath(); ctx.ellipse(280,140,210,110,-0.15,0,Math.PI*2); ctx.fill();
+
+    const sb2=ctx.createRadialGradient(780,180,5,780,180,140);
+    sb2.addColorStop(0,'rgba(255,255,255,.88)'); sb2.addColorStop(0.32,'rgba(242,246,255,.55)');
+    sb2.addColorStop(0.7,'rgba(200,215,230,.18)'); sb2.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sb2; ctx.beginPath(); ctx.ellipse(780,180,150,85,0.18,0,Math.PI*2); ctx.fill();
+
+    const sb3=ctx.createRadialGradient(512,60,5,512,60,130);
+    sb3.addColorStop(0,'rgba(255,255,255,.75)'); sb3.addColorStop(0.4,'rgba(235,240,250,.35)');
+    sb3.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sb3; ctx.beginPath(); ctx.ellipse(512,60,320,50,0,0,Math.PI*2); ctx.fill();
+
+    const tex=new THREE.CanvasTexture(cv);
+    tex.mapping=THREE.EquirectangularReflectionMapping;
+    const pmrem=new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    const envMap=pmrem.fromEquirectangular(tex).texture;
+    pmrem.dispose(); tex.dispose();
+    return envMap;
+  }catch(e){ return null; }
+}
 
 function createViewer(opt={}){
   const AZ=opt.az!=null?opt.az:0.62, EL=opt.el!=null?opt.el:0.42;
@@ -1833,6 +1881,8 @@ function createViewer(opt={}){
   /* filmic tone mapping keeps white board from clipping to flat white when it faces the light */
   if(opt.exposure){ renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=opt.exposure; }
   const scene=new THREE.Scene();
+  const envMap=makeStudioEnv(renderer);
+  if(envMap) scene.environment=envMap;
   const camera=new THREE.PerspectiveCamera(30,1,1,20000);
   scene.add(new THREE.HemisphereLight(0xffffff,0x9a958c,0.6));
   const sun=new THREE.DirectionalLight(0xffffff,0.78); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-0.0004; sun.shadow.normalBias=0.02;
@@ -1849,26 +1899,98 @@ function createViewer(opt={}){
   const view={az:AZ,el:EL,zoom:1,r:150,rt:150,ty:0,tyt:0,spin:0};
   let pieces=[], nodes=[], Tv=0.4, trash=[], fold=1, anim=null, running=false, host=null, foldCb=null, model=null, mats=null;
 
-  function outerTex(m,s){
+  function outerTextures(m,s,look){
     const W=m.w, H=m.h, k=Math.min(2048/W,2048/H,10);
-    const cv=document.createElement('canvas'); cv.width=Math.ceil(W*k); cv.height=Math.ceil(H*k);
-    const x=cv.getContext('2d'); x.scale(k,k);
-    x.fillStyle=s.color; x.fillRect(0,0,W,H);
-    const txt=(s.label||'').trim();
+    const cw=Math.ceil(W*k), ch=Math.ceil(H*k);
+
+    const cvCol=document.createElement('canvas'); cvCol.width=cw; cvCol.height=ch;
+    const xCol=cvCol.getContext('2d'); xCol.scale(k,k);
+    xCol.fillStyle=s.color; xCol.fillRect(0,0,W,H);
+
+    const isKraft=(look&&look.kraft)||s.color==='#C89F72'||s.color==='#B98D5F';
+    if(isKraft){
+      xCol.save();
+      const nFib=Math.floor(W*H*0.008);
+      for(let i=0;i<nFib;i++){
+        const fx=Math.random()*W, fy=Math.random()*H, fl=0.5+Math.random()*1.8, fa=Math.random()*Math.PI;
+        xCol.strokeStyle=Math.random()>0.4?'rgba(60,40,15,0.08)':'rgba(255,255,255,0.12)';
+        xCol.lineWidth=0.35+Math.random()*0.4;
+        xCol.beginPath(); xCol.moveTo(fx,fy); xCol.lineTo(fx+Math.cos(fa)*fl,fy+Math.sin(fa)*fl); xCol.stroke();
+      }
+      xCol.restore();
+    }
+
+    const cvRough=document.createElement('canvas'); cvRough.width=cw; cvRough.height=ch;
+    const xRough=cvRough.getContext('2d'); xRough.scale(k,k);
+    const baseRough=look.rough!=null?look.rough:0.7;
+    const rb=Math.round(Math.min(1,Math.max(0,baseRough))*255);
+    xRough.fillStyle=`rgb(${rb},${rb},${rb})`; xRough.fillRect(0,0,W,H);
+
+    const cvMetal=document.createElement('canvas'); cvMetal.width=cw; cvMetal.height=ch;
+    const xMetal=cvMetal.getContext('2d'); xMetal.scale(k,k);
+    xMetal.fillStyle='#000000'; xMetal.fillRect(0,0,W,H);
+
+    const cvBump=document.createElement('canvas'); cvBump.width=cw; cvBump.height=ch;
+    const xBump=cvBump.getContext('2d'); xBump.scale(k,k);
+    xBump.fillStyle='#808080'; xBump.fillRect(0,0,W,H);
+
+    const txt=(s.label||'').trim(), fin=s.finish||'standard';
     if(txt) m.print.forEach(L=>{
       const side=L.rot%180===0, bw=side?L.w:L.h, bh=side?L.h:L.w;
       const fs=Math.max(3,Math.min(bw*0.8/(Math.max(3,txt.length)*0.74),bh*0.28));
-      x.save(); x.translate(L.x+L.w/2,L.y+L.h/2); x.rotate(L.rot*Math.PI/180); x.scale(-1,1);
-      x.fillStyle= lum(s.color)>0.55 ? 'rgba(20,24,28,.86)' : 'rgba(255,255,255,.93)';
-      x.font=`500 ${fs}px Newsreader, Georgia, serif`; x.textAlign='center'; x.textBaseline='middle';
-      x.fillText(txt,0,0);
-      x.fillRect(-bw*0.16,fs*0.72,bw*0.32,Math.max(0.35,fs*0.05));
-      x.restore();
+      const drawText=(ctx,fill,ul=true,stroke=null,sw=0)=>{
+        ctx.save(); ctx.translate(L.x+L.w/2,L.y+L.h/2); ctx.rotate(L.rot*Math.PI/180); ctx.scale(-1,1);
+        ctx.font=`500 ${fs}px Newsreader, Georgia, serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+        if(stroke&&sw>0){ ctx.strokeStyle=stroke; ctx.lineWidth=sw; ctx.strokeText(txt,0,0); }
+        if(fill){ ctx.fillStyle=fill; ctx.fillText(txt,0,0); if(ul) ctx.fillRect(-bw*0.16,fs*0.72,bw*0.32,Math.max(0.35,fs*0.05)); }
+        ctx.restore();
+      };
+
+      if(fin==='gold'){
+        drawText(xCol,'#E5B85C');
+        drawText(xMetal,'#ffffff');
+        drawText(xRough,'#282828');
+        drawText(xBump,'#6c6c6c');
+      } else if(fin==='silver'){
+        drawText(xCol,'#E8EBF0');
+        drawText(xMetal,'#ffffff');
+        drawText(xRough,'#202020');
+        drawText(xBump,'#6c6c6c');
+      } else if(fin==='spotuv'){
+        const isB=lum(s.color)>0.55;
+        drawText(xCol,isB?'rgba(10,14,18,0.92)':'rgba(255,255,255,0.95)');
+        drawText(xMetal,'#000000');
+        drawText(xRough,'#0a0a0a');
+        drawText(xBump,'#a8a8a8');
+      } else if(fin==='emboss'){
+        const isB=lum(s.color)>0.55;
+        drawText(xCol,isB?'rgba(20,24,28,.86)':'rgba(255,255,255,.93)');
+        drawText(xMetal,'#000000');
+        drawText(xRough,`rgb(${rb},${rb},${rb})`);
+        drawText(xBump,'#ffffff',true,'#ffffff',fs*0.08);
+      } else {
+        const isB=lum(s.color)>0.55;
+        drawText(xCol,isB?'rgba(20,24,28,.86)':'rgba(255,255,255,.93)');
+        drawText(xMetal,'#000000');
+        drawText(xRough,`rgb(${rb},${rb},${rb})`);
+        drawText(xBump,'#808080');
+      }
     });
-    const tex=new THREE.CanvasTexture(cv);
-    tex.encoding=THREE.sRGBEncoding; tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
-    tex.repeat.set(1/W,-1/H); tex.offset.set(0,1);
-    return tex;
+
+    const initT=cv=>{
+      const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding;
+      t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+      t.repeat.set(1/W,-1/H); t.offset.set(0,1);
+      trash.push(t); return t;
+    };
+
+    return {
+      map:initT(cvCol),
+      roughnessMap:initT(cvRough),
+      metalnessMap:initT(cvMetal),
+      bumpMap:initT(cvBump),
+      bumpScale:fin==='emboss'?0.08:fin==='spotuv'?0.03:(fin==='gold'||fin==='silver')?-0.02:0.01
+    };
   }
   function fluteTex(){
     const cv=document.createElement('canvas'); cv.width=64; cv.height=32; const x=cv.getContext('2d');
@@ -1911,14 +2033,22 @@ function createViewer(opt={}){
     trash.forEach(d=>d.dispose()); trash=[];
     while(holder.children.length) holder.remove(holder.children[0]);
     model=m; Tv=Math.max(s.T,0.15);
-    const look=m.hb?{inner:s.inner,rough:.72}:matLook(s), tex=outerTex(m,s);
-    const outer=new THREE.MeshStandardMaterial({map:tex,roughness:look.rough,metalness:0});
-    const inner=new THREE.MeshStandardMaterial({color:col(look.inner),roughness:.92});
+    const look=m.hb?{inner:s.inner,rough:.72}:matLook(s), texs=outerTextures(m,s,look);
+    const outer=new THREE.MeshStandardMaterial({
+      map:texs.map,
+      roughness:1.0,
+      roughnessMap:texs.roughnessMap,
+      metalness:1.0,
+      metalnessMap:texs.metalnessMap,
+      bumpMap:texs.bumpMap,
+      bumpScale:texs.bumpScale
+    });
+    const inner=new THREE.MeshStandardMaterial({color:col(look.inner),roughness:.92,metalness:0});
     let edge;
-    if(m.hb){ edge=new THREE.MeshStandardMaterial({color:col(s.color),roughness:.72}); }
-    else if(look.flute){ const ft=fluteTex(); ft.repeat.set(1/(Tv*1.4),1/Tv); edge=new THREE.MeshStandardMaterial({map:ft,roughness:.95}); trash.push(ft); }
-    else { const c=new THREE.Color(look.inner).multiplyScalar(.8); edge=new THREE.MeshStandardMaterial({color:c.convertSRGBToLinear(),roughness:.9}); }
-    trash.push(tex,outer,inner,edge);
+    if(m.hb){ edge=new THREE.MeshStandardMaterial({color:col(s.color),roughness:.72,metalness:0}); }
+    else if(look.flute){ const ft=fluteTex(); ft.repeat.set(1/(Tv*1.4),1/Tv); edge=new THREE.MeshStandardMaterial({map:ft,roughness:.95,metalness:0}); trash.push(ft); }
+    else { const c=new THREE.Color(look.inner).multiplyScalar(.8); edge=new THREE.MeshStandardMaterial({color:c.convertSRGBToLinear(),roughness:.9,metalness:0}); }
+    trash.push(outer,inner,edge);
     mats=[inner,edge,outer]; nodes=[];
     pieces=m.pieces.map(pc=>{
       const pg=new THREE.Group(), cg=new THREE.Group(), rp=new THREE.Group(); rp.rotation.order='YXZ';
@@ -2439,6 +2569,11 @@ function swatchGroup(id,key){
   });
 }
 swatchGroup('#swatches','color'); swatchGroup('#innerSw','inner');
+$('#finSw').addEventListener('click',e=>{
+  const b=e.target.closest('.fin-btn'); if(!b) return;
+  $$('#finSw .fin-btn').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+  state.finish=b.dataset.fin; if(state.view!=='3d') setView('3d'); else render3d();
+});
 $('#form').addEventListener('submit',e=>e.preventDefault());
 
 /* Tabs */
