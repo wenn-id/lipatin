@@ -433,6 +433,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 /* camera buttons: the keyboard and single-pointer way to do what drag, wheel and double-click do */
 .partbar.cambar{position:absolute;left:12px;right:12px;top:34px;padding:0;border:0;background:transparent;gap:4px}
 .partbar.cambar button{background:color-mix(in srgb,var(--surface) 88%,transparent);min-height:32px}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.85)}}
 .foldbar{position:absolute;left:12px;right:12px;bottom:12px;display:flex;align-items:center;gap:12px;padding:6px 14px 6px 6px;border:1px solid var(--line);border-radius:var(--r-b);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px)}
 .foldbar input{flex:1;min-width:0}
 .foldbar .btn{min-width:122px}
@@ -1084,9 +1085,19 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
               <button type="button" data-cam="side" title="Tampak Samping">Samping</button>
               <button type="button" data-cam="iso" title="Sudut Tiga Perempat Studio">3/4 Studio</button>
               <button type="button" data-cam="spin" id="btnSpin" title="Putar 360° otomatis">🔄 Putar 360°</button>
+              <span style="width:1px;height:18px;background:var(--line);margin:0 2px;align-self:center"></span>
+              <button type="button" data-cam="glb" id="camBtnGlb" title="Unduh Model 3D (.glb)">📦 3D .glb</button>
+              <button type="button" data-cam="snap" id="camBtnSnap" title="Render Mockup Gambar">📸 Mockup</button>
+              <button type="button" data-cam="rec" id="camBtnRec" title="Rekam Video Animasi">🎬 Rekam</button>
+              <span style="width:1px;height:18px;background:var(--line);margin:0 2px;align-self:center"></span>
               <button type="button" data-cam="in" title="Perbesar">Zoom +</button>
               <button type="button" data-cam="out" title="Perkecil">Zoom −</button>
               <button type="button" data-cam="reset" title="Reset Kamera">Reset</button>
+            </div>
+            <div id="recBadge" class="rec-badge" hidden style="position:absolute;top:76px;left:50%;transform:translateX(-50%);background:rgba(18,24,20,0.92);color:#ffffff;padding:8px 16px;border-radius:24px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.3);z-index:20;backdrop-filter:blur(8px)">
+              <span class="rec-dot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1s infinite"></span>
+              <span id="recText">Merekam 360°... 0%</span>
+              <button type="button" id="btnCancelRec" class="btn btn-sm btn-outline" style="min-height:26px;padding:2px 8px;font-size:11px;color:#ffffff;border-color:rgba(255,255,255,0.4)">Batal</button>
             </div>
             <div class="foldbar" id="foldBar">
               <div class="fold-seg" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
@@ -1165,6 +1176,9 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             <button type="button" class="btn btn-ink btn-sm" id="btnDl" hidden>Unduh SVG</button>
             <button type="button" class="btn btn-line btn-sm" id="btnAi" hidden>Unduh PDF untuk Illustrator</button>
             <button type="button" class="btn btn-line btn-sm" id="btnCopy">Salin kode SVG</button>
+            <button type="button" class="btn btn-ink btn-sm" id="btnGlb" hidden title="Unduh model 3D (.glb) mandiri lengkap dengan tekstur">📦 Unduh 3D (.glb)</button>
+            <button type="button" class="btn btn-line btn-sm" id="btnSnap" hidden title="Render gambar mockup tajam resolusi tinggi">📸 Render Mockup (PNG)</button>
+            <button type="button" class="btn btn-line btn-sm" id="btnRec" hidden title="Rekam video animasi kemasan 360° atau lipatan">🎬 Rekam Video</button>
             <button type="button" class="btn btn-line btn-sm" id="btnQuote">Minta penawaran</button>
             <span class="status" id="status" role="status"></span>
           </div>
@@ -1285,7 +1299,79 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
   </div>
 </dialog>
 
+<dialog class="dlg" id="dlgSnap" aria-labelledby="dlgSnapTitle">
+  <div class="dlg-head">
+    <h2 id="dlgSnapTitle">📸 Render Mockup Resolusi Tinggi</h2>
+    <button type="button" class="btn btn-line btn-sm" data-close>Tutup</button>
+  </div>
+  <p class="dlg-note">Hasil render langsung dari canvas 3D dengan kualitas ultra tajam dan bayangan lantai realistis. Cocok untuk materi promosi, katalog produk, atau presentasi klien.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
+    <div>
+      <label for="snapRes" style="font-weight:600;display:block;margin-bottom:6px">Resolusi Gambar</label>
+      <select id="snapRes" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--ink)">
+        <option value="2048x2048" selected>2K Persegi (2048 × 2048) — Rekomendasi Marketplace</option>
+        <option value="4096x4096">4K Persegi (4096 × 4096) — Ultra Detail</option>
+        <option value="3840x2160">4K Landscape (3840 × 2160) — Presentasi 16:9</option>
+        <option value="1920x1080">Full HD (1920 × 1080) — Banner Web</option>
+      </select>
+    </div>
+    <div>
+      <label for="snapBg" style="font-weight:600;display:block;margin-bottom:6px">Latar Belakang</label>
+      <select id="snapBg" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--ink)">
+        <option value="transparent" selected>Transparan (PNG) + Bayangan Lembut</option>
+        <option value="#ffffff">Putih Studio (#FFFFFF)</option>
+        <option value="#f4f5f7">Abu-abu Netral (#F4F5F7)</option>
+        <option value="#181a1b">Hitam Elegan (#181A1B)</option>
+      </select>
+    </div>
+    <div>
+      <label for="snapCam" style="font-weight:600;display:block;margin-bottom:6px">Sudut Kamera</label>
+      <select id="snapCam" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--ink)">
+        <option value="current" selected>Sudut Pandang Saat Ini</option>
+        <option value="iso">3/4 Studio (Isometric)</option>
+        <option value="front">Tampak Depan</option>
+        <option value="top">Tampak Atas</option>
+        <option value="side">Tampak Samping</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px">
+    <button type="button" class="btn btn-line btn-sm" data-close>Batal</button>
+    <button type="button" class="btn btn-ink btn-sm" id="btnExecuteSnap">Unduh Mockup PNG</button>
+  </div>
+</dialog>
+
+<dialog class="dlg" id="dlgRec" aria-labelledby="dlgRecTitle">
+  <div class="dlg-head">
+    <h2 id="dlgRecTitle">🎬 Rekam Video Animasi Kemasan</h2>
+    <button type="button" class="btn btn-line btn-sm" data-close>Tutup</button>
+  </div>
+  <p class="dlg-note">Rekam video animasi beresolusi tinggi langsung dari browser dalam format WebM/MP4, siap dibagikan ke Instagram Reels, TikTok, YouTube, atau portofolio.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
+    <div>
+      <label for="recMode" style="font-weight:600;display:block;margin-bottom:6px">Mode Animasi</label>
+      <select id="recMode" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--ink)">
+        <option value="spin" selected>🔄 Putaran Turntable 360° Studio</option>
+        <option value="fold">📦 Animasi Lipat Kotak (0% → 100%)</option>
+      </select>
+    </div>
+    <div>
+      <label for="recDur" style="font-weight:600;display:block;margin-bottom:6px">Durasi Animasi</label>
+      <select id="recDur" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--ink)">
+        <option value="5000" selected>5 Detik (Ideal Reels / TikTok / Web)</option>
+        <option value="3000">3 Detik (Cepat / Looping Pendek)</option>
+        <option value="8000">8 Detik (Lambat & Sinematik)</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px">
+    <button type="button" class="btn btn-line btn-sm" data-close>Batal</button>
+    <button type="button" class="btn btn-ink btn-sm" id="btnExecuteRec">Mulai Rekam Video</button>
+  </div>
+</dialog>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 <script>
 (function(){
 'use strict';
@@ -2047,7 +2133,7 @@ function createViewer(opt={}){
   const AZ=opt.az!=null?opt.az:0.62, EL=opt.el!=null?opt.el:0.42;
   if(!window.THREE) return null;
   let renderer;
-  try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); if(!renderer.getContext()) return null; }catch(e){ return null; }
+  try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true}); if(!renderer.getContext()) return null; }catch(e){ return null; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   renderer.outputEncoding=THREE.sRGBEncoding;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -2330,9 +2416,10 @@ function createViewer(opt={}){
     for(const N of nodes){
       const {n,pivot,base}=N; let deg, insE;
       if(n.tuck){
-        const isLidChild = N.pn && (N.pn.n.label === 'TUTUP' || N.pn.n.isLid) && (!N.pn.n.stage || N.pn.n.stage[0] >= 0.55);
+        const pnNode = N.pn ? (N.pn.n || N.pn) : null;
+        const isLidChild = pnNode && (pnNode.label === 'TUTUP' || pnNode.isLid) && (!pnNode.stage || pnNode.stage[0] >= 0.55);
         const pre=prog(fold,n.pre);
-        let baseBeta = tuckBeta(N.pn&&N.pn._deg||0,pre,n.tuck);
+        let baseBeta = tuckBeta(pnNode&&pnNode._deg||0,pre,n.tuck);
         if(isLidChild && lidOpen > 0){
           baseBeta *= (1 - lidOpen);
         }
@@ -2486,10 +2573,201 @@ function createViewer(opt={}){
       if(outerMat.metalnessMap) outerMat.metalnessMap.needsUpdate = true;
       if(outerMat.bumpMap) outerMat.bumpMap.needsUpdate = true;
       if(activeTexs.bumpScale != null) outerMat.bumpScale = activeTexs.bumpScale;
+    },
+    exportGLTF(opt={}){
+      return new Promise((resolve, reject)=>{
+        if(!window.THREE || !window.THREE.GLTFExporter){
+          reject(new Error('Modul GLTFExporter belum tersedia. Periksa koneksi internet.'));
+          return;
+        }
+        try {
+          holder.updateMatrixWorld(true);
+          console.log('exportGLTF holder children:', holder.children.length);
+          const hiddenLines = [];
+          holder.traverse(obj => {
+            if(obj.isLine || obj.isLineSegments){
+              if(obj.visible){ obj.visible = false; hiddenLines.push(obj); }
+            }
+          });
+          const exporter = new THREE.GLTFExporter();
+          const options = {
+            binary: opt.binary !== false,
+            embedImages: true,
+            onlyVisible: true,
+            truncateDrawRange: true,
+            maxTextureSize: opt.maxTextureSize || 2048
+          };
+          exporter.parse(
+            holder,
+            res => {
+              hiddenLines.forEach(l => l.visible = true);
+              resolve(res);
+            },
+            options
+          );
+        } catch(err){
+          reject(err);
+        }
+      });
+    },
+    renderSnapshot(opt={}){
+      return new Promise((resolve, reject)=>{
+        let wasRunning = false;
+        try {
+          const width = opt.width || 2048;
+          const height = opt.height || 2048;
+          const transparent = opt.transparent !== false;
+          const bg = opt.background || (transparent ? null : '#ffffff');
+
+          wasRunning = running;
+          running = false;
+
+          const origSize = new THREE.Vector2();
+          renderer.getSize(origSize);
+          const origPixelRatio = renderer.getPixelRatio();
+          const origAspect = camera.aspect;
+          const origBg = scene.background;
+          const origGroundVis = ground.visible;
+
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+
+          renderer.setPixelRatio(1);
+          renderer.setSize(width, height, false);
+
+          if(bg && bg !== 'transparent'){
+            scene.background = new THREE.Color(bg);
+          } else {
+            scene.background = null;
+          }
+          ground.visible = true;
+
+          renderer.render(scene, camera);
+
+          renderer.domElement.toBlob(blob => {
+            renderer.setPixelRatio(origPixelRatio);
+            renderer.setSize(origSize.x, origSize.y, false);
+            camera.aspect = origAspect;
+            camera.updateProjectionMatrix();
+            scene.background = origBg;
+            ground.visible = origGroundVis;
+
+            renderer.render(scene, camera);
+
+            if(wasRunning){
+              running = true;
+              requestAnimationFrame(frame);
+            }
+
+            if(blob) resolve(blob);
+            else reject(new Error('Gagal merender snapshot canvas WebGL'));
+          }, 'image/png');
+        } catch(err){
+          if(wasRunning){ running = true; requestAnimationFrame(frame); }
+          reject(err);
+        }
+      });
+    },
+    startRecording(opt={}){
+      return new Promise((resolve, reject)=>{
+        if(!renderer || !renderer.domElement.captureStream){
+          reject(new Error('Browser tidak mendukung canvas.captureStream()'));
+          return;
+        }
+        if(typeof MediaRecorder === 'undefined'){
+          reject(new Error('Browser tidak mendukung MediaRecorder API'));
+          return;
+        }
+
+        const duration = opt.duration || 5000;
+        const fps = opt.fps || 30;
+        const mode = opt.mode || 'spin';
+        const onProgress = opt.onProgress || (()=>{});
+
+        let mimeType = 'video/webm;codecs=vp9';
+        if(!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8';
+        if(!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+        if(!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/mp4';
+
+        const stream = renderer.domElement.captureStream(fps);
+        const videoTrack = stream.getVideoTracks()[0];
+        const mediaRecorder = new MediaRecorder(stream, {
+          mimeType,
+          videoBitsPerSecond: opt.bitrate || 6000000
+        });
+
+        const chunks = [];
+        mediaRecorder.ondataavailable = e => {
+          if(e.data && e.data.size > 0) chunks.push(e.data);
+        };
+
+        let isAborted = false;
+        let timerId = null;
+        let animRaf = null;
+
+        const abort = () => {
+          isAborted = true;
+          if(timerId) clearTimeout(timerId);
+          if(animRaf) cancelAnimationFrame(animRaf);
+          if(mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+        };
+        if(opt.onCancelRef) opt.onCancelRef(abort);
+
+        mediaRecorder.onstop = () => {
+          if(isAborted){
+            reject(new Error('Perekaman dibatalkan'));
+            return;
+          }
+          const blob = new Blob(chunks, { type: mimeType });
+          const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+          resolve({ blob, ext, mimeType });
+        };
+
+        const t0 = performance.now();
+        const origSpin = view.spin;
+        const origFold = fold;
+        const origAutoSpin = autoSpin;
+        autoSpin = false;
+
+        mediaRecorder.start(200);
+
+        const recordTick = () => {
+          if(isAborted) return;
+          const elapsed = performance.now() - t0;
+          const progress = clamp(elapsed / duration, 0, 1);
+          onProgress(progress, Math.round(progress * 100));
+
+          if(mode === 'spin'){
+            view.spin = origSpin + progress * Math.PI * 2;
+          } else if(mode === 'fold'){
+            const p = Math.sin(progress * Math.PI);
+            fold = 1 - p * 0.85;
+            apply(false);
+          }
+          renderer.render(scene, camera);
+          if(videoTrack && videoTrack.requestFrame) videoTrack.requestFrame();
+
+          if(elapsed < duration){
+            animRaf = requestAnimationFrame(recordTick);
+          } else {
+            if(mode === 'spin') view.spin = origSpin;
+            if(mode === 'fold') { fold = origFold; apply(false); }
+            if(origAutoSpin) autoSpin = true;
+            timerId = setTimeout(() => {
+              if(mediaRecorder.state !== 'inactive'){
+                try { mediaRecorder.requestData(); } catch(e){}
+                mediaRecorder.stop();
+              }
+            }, 100);
+          }
+        };
+
+        animRaf = requestAnimationFrame(recordTick);
+      });
     }
   };
 }
-const V3=createViewer({exposure:1.05,edges:true});
+const V3=createViewer({exposure:1.05,edges:true}); window.V3=V3;
 const HERO=createViewer({wheel:false,az:0.78,el:0.5,exposure:1.1});
 
 /* CSS box: hero decoration and fallback when WebGL is unavailable */
@@ -3377,7 +3655,16 @@ function setView(v){
   state.view=v;
   [['2d','#tab2d',els.v2],['3d','#tab3d',els.v3],['plano','#tabPlano',els.vp]].forEach(([k,t,p])=>{ $(t).setAttribute('aria-pressed',k===v); p.hidden=k!==v; });
   partBarUI(current&&current.m);
-  $('#camBar').hidden=!(v==='3d'&&V3&&state.model!=='import');
+  const is3D = v==='3d'&&V3&&state.model!=='import';
+  $('#camBar').hidden=!is3D;
+  if(state.model !== 'import'){
+    $('#btnDl').hidden = v !== '2d';
+    $('#btnAi').hidden = v !== '2d';
+    $('#btnCopy').hidden = v !== '2d';
+    $('#btnGlb').hidden = v !== '3d';
+    $('#btnSnap').hidden = v !== '3d';
+    $('#btnRec').hidden = v !== '3d';
+  }
   if(v==='3d'){
     render3d();
     if(V3&&state.model!=='import'){
@@ -3402,7 +3689,10 @@ const CAM={
   top:()=>V3.setCameraPreset('top'),
   side:()=>V3.setCameraPreset('side'),
   iso:()=>V3.setCameraPreset('iso'),
-  spin:()=>V3.toggleSpin()
+  spin:()=>V3.toggleSpin(),
+  glb:()=>saveGlb(),
+  snap:()=>openSnapshotDlg(),
+  rec:()=>openRecordDlg()
 };
 $('#camBar').addEventListener('click',e=>{ const b=e.target.closest('[data-cam]'); if(b&&V3&&CAM[b.dataset.cam]) CAM[b.dataset.cam](); });
 
@@ -3467,6 +3757,125 @@ setTimeout(() => { if(!state.artworks.length) addSampleArtwork(); }, 100);
 /* Outside claude.ai (for example on GitHub Pages) there is no downloads capability: a plain link download does the job */
 const linkDownloads={save:async({filename,data})=>{ const blob= data instanceof Blob ? data : new Blob([data],{type:/\.svg$/.test(filename)?'image/svg+xml':'application/octet-stream'}); const u=URL.createObjectURL(blob), a=document.createElement('a'); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }};
 (async()=>{ try{ downloads=await window.claude?.use?.('downloads'); }catch(e){ downloads=null; } if(!downloads&&!window.claude) downloads=linkDownloads; if(downloads&&state.model!=='import'){ $('#btnDl').hidden=false; $('#btnAi').hidden=false; } })();
+const fname3d=(ext='glb')=>`lipatin-${state.model}-${state.L}x${MODELS[state.model].hex?'hex':state.W}x${state.D}mm.${ext}`;
+
+async function saveGlb(){
+  if(!downloads||!V3) return;
+  els.status.textContent='Mengekspor model 3D .glb...';
+  try {
+    const glbBuffer = await V3.exportGLTF({ binary: true });
+    const fn = fname3d('glb');
+    await downloads.save({
+      filename: fn,
+      data: new Blob([glbBuffer], { type: 'model/gltf-binary' })
+    });
+    els.status.textContent = `Tersimpan sebagai ${fn}`;
+  } catch(err){
+    console.error(err);
+    els.status.textContent = `Gagal mengekspor 3D: ${err.message || 'Error tidak diketahui'}`;
+  }
+}
+
+async function saveSnapshot(options = {}){
+  if(!downloads||!V3) return;
+  els.status.textContent='Merender gambar mockup resolusi tinggi...';
+  try {
+    const fn = fname3d(options.transparent ? 'mockup-transparent.png' : 'mockup.png');
+    const blob = await V3.renderSnapshot(options);
+    await downloads.save({
+      filename: fn,
+      data: blob
+    });
+    els.status.textContent = `Tersimpan sebagai ${fn}`;
+  } catch(err){
+    console.error(err);
+    els.status.textContent = `Gagal merender mockup: ${err.message || 'Error tidak diketahui'}`;
+  }
+}
+
+let recordingActive = false;
+let cancelRecordingFn = null;
+
+async function recordVideo(options = {}){
+  if(!downloads || !V3 || recordingActive) return;
+  recordingActive = true;
+  const badge = $('#recBadge');
+  const txt = $('#recText');
+  if(badge) badge.hidden = false;
+  if(txt) txt.textContent = 'Merekam video 3D... 0%';
+
+  try {
+    const result = await V3.startRecording({
+      mode: options.mode || 'spin',
+      duration: options.duration || 5000,
+      onProgress: (p, pct) => {
+        if(txt) txt.textContent = `Merekam video ${options.mode === 'fold' ? 'lipatan' : '360°'}... ${pct}%`;
+      },
+      onCancelRef: cancelFn => { cancelRecordingFn = cancelFn; }
+    });
+
+    const fn = fname3d(result.ext || 'webm');
+    await downloads.save({
+      filename: fn,
+      data: result.blob
+    });
+    els.status.textContent = `Tersimpan sebagai ${fn}`;
+  } catch(err){
+    if(err.message !== 'Perekaman dibatalkan'){
+      console.error(err);
+      els.status.textContent = `Gagal merekam video: ${err.message}`;
+    } else {
+      els.status.textContent = 'Perekaman video dibatalkan.';
+    }
+  } finally {
+    recordingActive = false;
+    cancelRecordingFn = null;
+    if(badge) badge.hidden = true;
+  }
+}
+
+function openSnapshotDlg(){
+  if(!V3) return;
+  $('#dlgSnap').showModal();
+}
+
+function openRecordDlg(){
+  if(!V3) return;
+  $('#dlgRec').showModal();
+}
+
+$('#btnGlb')?.addEventListener('click', saveGlb);
+$('#btnSnap')?.addEventListener('click', openSnapshotDlg);
+$('#btnRec')?.addEventListener('click', openRecordDlg);
+
+$('#btnExecuteSnap')?.addEventListener('click', async () => {
+  $('#dlgSnap').close();
+  const resVal = $('#snapRes').value.split('x').map(Number);
+  const bgVal = $('#snapBg').value;
+  const camVal = $('#snapCam').value;
+  if(camVal !== 'current' && V3) {
+    V3.setCameraPreset(camVal);
+    await new Promise(r => setTimeout(r, 450));
+  }
+  await saveSnapshot({
+    width: resVal[0],
+    height: resVal[1],
+    transparent: bgVal === 'transparent',
+    background: bgVal === 'transparent' ? null : bgVal
+  });
+});
+
+$('#btnExecuteRec')?.addEventListener('click', async () => {
+  $('#dlgRec').close();
+  const mode = $('#recMode').value;
+  const dur = +$('#recDur').value;
+  await recordVideo({ mode, duration: dur });
+});
+
+$('#btnCancelRec')?.addEventListener('click', () => {
+  if(cancelRecordingFn) cancelRecordingFn();
+});
+
 loadClipper().catch(()=>{});
 async function saveBox(kind){
   if(!downloads||!current||!current.m) return;
