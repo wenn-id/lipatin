@@ -1184,6 +1184,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
           </dl>
           <div class="fits" id="fits"></div>
           <div class="actions">
+            <button type="button" class="btn btn-ink btn-sm" id="btnEstFromBox" title="Hitung estimasi biaya cetak & harga jual custom box ini">💰 Hitung Biaya</button>
             <button type="button" class="btn btn-ink btn-sm" id="btnDl" hidden>Unduh SVG</button>
             <button type="button" class="btn btn-line btn-sm" id="btnAi" hidden>Unduh PDF untuk Illustrator</button>
             <button type="button" class="btn btn-line btn-sm" id="btnCopy">Salin kode SVG</button>
@@ -1227,7 +1228,13 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
     <aside class="s-rail" aria-label="Spek pesanan">
       <div class="panel">
         <fieldset><legend><label for="estPaste">Tempel spek dari chat</label></legend>
-          <textarea class="txt" id="estPaste" rows="8" placeholder="spek: softbox slide&#10;ukuran: 4 x 15 x 2,5 cm&#10;bahan: ivory 300 gsm&#10;finishing: lam doff + foil gold&#10;qty: 1000 pcs"></textarea>
+          <div class="sample-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <button type="button" class="btn btn-line btn-sm" data-chipsample="autolock" style="padding:2px 8px;font-size:var(--t-micro);min-height:24px">📦 Kosmetik 12×8×4</button>
+            <button type="button" class="btn btn-line btn-sm" data-chipsample="pizza" style="padding:2px 8px;font-size:var(--t-micro);min-height:24px">🍕 Pizza 22×22×5</button>
+            <button type="button" class="btn btn-line btn-sm" data-chipsample="pillow" style="padding:2px 8px;font-size:var(--t-micro);min-height:24px">🎀 Pillow Hijab 18×12</button>
+            <button type="button" class="btn btn-line btn-sm" data-chipsample="gable" style="padding:2px 8px;font-size:var(--t-micro);min-height:24px">🛍️ Jinjing 20×15×18</button>
+          </div>
+          <textarea class="txt" id="estPaste" rows="7" placeholder="spek: softbox slide&#10;ukuran: 4 x 15 x 2,5 cm&#10;bahan: ivory 300 gsm&#10;finishing: lam doff + foil gold&#10;qty: 1000 pcs"></textarea>
           <div class="readrow"><button type="button" class="btn btn-ink btn-sm" id="estRead">Baca spek</button><span class="mathint">Semua referensi di bawah diganti dengan hasil bacaan, lalu tinggal dicek.</span></div>
           <div id="estReport" aria-live="polite"></div>
         </fieldset>
@@ -1248,7 +1255,9 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
         <div class="estpane" id="estResultWrap">
           <div id="estResult"></div>
           <div class="actions">
-            <button type="button" class="btn btn-ink btn-sm" id="estCopy" hidden>Salin ringkasan untuk customer</button>
+            <button type="button" class="btn btn-ink btn-sm" id="estCopy" hidden>📋 Salin Format WhatsApp</button>
+            <button type="button" class="btn btn-line btn-sm" id="estPrint" hidden>🖨️ Cetak / PDF Penawaran</button>
+            <button type="button" class="btn btn-line btn-sm" id="btnBackToBox">← Kembali ke Studio Box</button>
             <span class="status" id="estStatus" role="status"></span>
           </div>
           <pre class="estout" id="estOut" hidden></pre>
@@ -4288,6 +4297,109 @@ async function saveBox(kind){
     else { els.status.textContent='Unduhan tidak tersedia di tampilan ini. Pakai tombol Salin.'; $('#btnDl').hidden=true; $('#btnAi').hidden=true; downloads=null; }
   }
 }
+function estimateFromCurrentBox(){
+  const isHb = !!(MODELS[state.model]||{}).hb;
+  const ref = newRef();
+  ref.model = state.model;
+  ref.L = state.L;
+  ref.W = state.model === 'hex' ? state.L : state.W;
+  ref.D = state.D;
+  ref.qty = 1000;
+
+  const matObj = MAT[state.mat];
+  const matName = matObj ? matObj.name : '';
+  const paperMatch = bestMatch(PRICE.kertas, matName) || (PRICE.kertas.length ? PRICE.kertas[0] : null);
+  if(isHb){
+    const boardMatch = bestMatch(PRICE.board, matName) || (PRICE.board.length ? PRICE.board[0] : null);
+    if(boardMatch) ref.board = boardMatch.id;
+    if(paperMatch) ref.kertas = paperMatch.id;
+  } else {
+    if(paperMatch) ref.kertas = paperMatch.id;
+  }
+
+  if(PRICE.cetak.length) ref.cetak = PRICE.cetak[0].id;
+  ref.sisi = 1;
+  const doff = bestMatch(PRICE.laminasi, 'doff');
+  if(doff) ref.lam = doff.id;
+
+  ref.fin = [];
+  if(state.finish && state.finish !== 'standard'){
+    const fMatch = bestMatch(PRICE.finishing, state.finish);
+    if(fMatch){
+      const approxLuas = Math.round(Math.min(ref.L * ref.D * 0.15 / 100, 30)) || 15;
+      ref.fin.push({ id: fMatch.id, luas: approxLuas });
+    }
+  }
+
+  (state.artworks || []).forEach(art => {
+    const artFin = art.finish && art.finish !== 'inherit' ? art.finish : state.finish;
+    if(artFin && artFin !== 'standard'){
+      const fm = bestMatch(PRICE.finishing, artFin);
+      if(fm && !ref.fin.some(f => f.id === fm.id)){
+        const artArea = Math.round((art.w * art.h) / 100) || 12;
+        ref.fin.push({ id: fm.id, luas: artArea });
+      }
+    }
+  });
+
+  EST.refs = [ref];
+  EST.active = 0;
+  saveEST();
+  setStudioMode('est');
+  estFormUI();
+  estTab('hasil');
+  estRun();
+}
+
+$('#btnEstFromBox')?.addEventListener('click', estimateFromCurrentBox);
+$('#btnBackToBox')?.addEventListener('click', () => setStudioMode('box'));
+$('#estPrint')?.addEventListener('click', () => window.print());
+$('#estResult')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-setqty]');
+  if(b){
+    const q = +b.dataset.setqty;
+    const r = EST.refs[EST.active];
+    if(r){
+      r.qty = q;
+      saveEST();
+      estFormUI();
+      estRun();
+    }
+  }
+});
+
+// Quick chat sample chips in #estBody
+$('#estBody')?.addEventListener('click', e => {
+  const chip = e.target.closest('[data-chipsample]');
+  if(chip){
+    const sType = chip.dataset.chipsample;
+    let sampleText = '';
+    if(sType === 'autolock'){
+      sampleText = `spek: auto-bottom lock box\nukuran: 12 x 8 x 4 cm\nbahan: ivory 310 gsm\ncetak: 4 warna 1 sisi\nlaminasi: doff\nfinishing: foil gold (15 cm²)\nqty: 1000 pcs`;
+    } else if(sType === 'pizza'){
+      sampleText = `spek: box pizza\nukuran: 22 x 22 x 5 cm\nbahan: kardus e-flute\ncetak: 1 warna (sablon)\nqty: 1000 pcs`;
+    } else if(sType === 'pillow'){
+      sampleText = `spek: pillow box hijab\nukuran: 18 x 12 x 4 cm\nbahan: ivory 300 gsm\nlaminasi: doff\nfinishing: foil gold\nqty: 500 pcs`;
+    } else if(sType === 'gable'){
+      sampleText = `spek: box jinjing hampers\nukuran: 20 x 15 x 18 cm\nbahan: kraft coklat 275 gsm\ncetak: 1 warna\nqty: 500 pcs`;
+    }
+    if(sampleText){
+      $('#estPaste').value = sampleText;
+      $('#estRead').click();
+    }
+  }
+  if(e.target.id === 'btnResetPrice'){
+    if(confirm('Muat ulang daftar harga standar pasar percetakan Indonesia?')){
+      PRICE = defaultPrice();
+      priceChanged();
+      estPriceUI();
+      estFormUI();
+      estRun();
+      estSync('Daftar harga standar pasar dimuat');
+    }
+  }
+});
+
 $('#btnDl').addEventListener('click',()=>saveBox('svg'));
 $('#btnAi').addEventListener('click',()=>saveBox('ai'));
 $('#btnMaskDl')?.addEventListener('click',()=>saveBox('mask'));
@@ -5366,8 +5478,69 @@ const EST_CATS=[
   {k:'jasa',name:'Jasa per pcs',note:'Lem, rakit, potong board, packing. Yang dicentang di estimasi dihitung untuk setiap pcs.',cols:[['nama','Nama','text'],['harga','Per pcs','rp']]}];
 const EST_SET=[['sw','Lebar kertas','mm'],['sh','Tinggi kertas','mm'],['pw','Lebar area cetak','mm'],['ph','Tinggi area cetak','mm'],['gap','Jarak antar pola','mm'],['insheet','Insheet','%'],['pisau','Pisau pon per meter','Rp'],['pon','Pon atau potong per lembar','Rp'],['markup','Markup dari modal','%'],['bulat','Bulatkan harga per pcs ke','Rp']];
 const UNITS=[['meter','meter'],['pasang','pasang'],['pcs','pcs']];
-const emptyPrice=()=>({kertas:[],cetak:[],laminasi:[],finishing:[],inner:[],board:[],aksesoris:[],jasa:[],set:{sw:320,sh:470,pw:315,ph:450,gap:4,insheet:5,pisau:0,pon:0,markup:0,bulat:100}});
-const normPrice=p=>{ const e=emptyPrice(), o={...e,...(p||{})}; EST_CATS.forEach(c=>{ if(!Array.isArray(o[c.k])) o[c.k]=[]; }); o.set={...e.set,...((p&&p.set)||{})}; return o; };
+const emptyPrice=()=>({kertas:[],cetak:[],laminasi:[],finishing:[],inner:[],board:[],aksesoris:[],jasa:[],set:{sw:650,sh:1000,pw:630,ph:980,gap:6,insheet:5,pisau:45000,pon:250,markup:30,bulat:100}});
+const defaultPrice=()=>({
+  kertas:[
+    {id:'k-iv250', nama:'Ivory 250 gsm', harga:2400},
+    {id:'k-iv300', nama:'Ivory 300 gsm', harga:2800},
+    {id:'k-iv310', nama:'Ivory 310 gsm', harga:2950},
+    {id:'k-iv350', nama:'Ivory 350 gsm', harga:3300},
+    {id:'k-ac260', nama:'Art Carton 260 gsm', harga:2200},
+    {id:'k-ac310', nama:'Art Carton 310 gsm', harga:2600},
+    {id:'k-kr275', nama:'Kraft Coklat 275 gsm', harga:2100},
+    {id:'k-dp310', nama:'Duplex 310 gsm', harga:1900},
+    {id:'k-flute', nama:'Kardus E-Flute', harga:4500},
+    {id:'k-pearl', nama:'Pearl White 250 gsm', harga:5500}
+  ],
+  cetak:[
+    {id:'c-offset', nama:'Offset / Full Color (CMYK)', h1:1500, h2:2800},
+    {id:'c-sablon', nama:'Sablon / Cetak 1 Warna', h1:600, h2:1100}
+  ],
+  laminasi:[
+    {id:'l-doff', nama:'Doff Panas', harga:800},
+    {id:'l-glossy', nama:'Glossy Panas', harga:700},
+    {id:'l-velvet', nama:'Soft Touch / Velvet', harga:1800}
+  ],
+  finishing:[
+    {id:'f-gold', nama:'Poli Emas (Gold Foil)', klise:250, pcs:350},
+    {id:'f-silver', nama:'Poli Perak (Silver Foil)', klise:250, pcs:350},
+    {id:'f-rosegold', nama:'Poli Rose Gold', klise:280, pcs:400},
+    {id:'f-holo', nama:'Foil Pelangi (Hologram)', klise:300, pcs:450},
+    {id:'f-spotuv', nama:'Spot UV Gloss', klise:150, pcs:300},
+    {id:'f-emboss', nama:'Emboss / Timbul', klise:300, pcs:250}
+  ],
+  inner:[
+    {id:'in-eva1', nama:'Busa EVA 1 cm (100×200 cm)', w:100, h:200, harga:65000, potong:1000},
+    {id:'in-eva2', nama:'Busa EVA 2 cm (100×200 cm)', w:100, h:200, harga:110000, potong:1500},
+    {id:'in-spon', nama:'Busa Spon / Busa Hati', w:100, h:200, harga:45000, potong:800}
+  ],
+  board:[
+    {id:'b-gb30', nama:'Greyboard No. 30 (2 mm)', w:79, h:109, harga:14000},
+    {id:'b-gb40', nama:'Greyboard No. 40 (1.5 mm)', w:79, h:109, harga:11500},
+    {id:'b-gb25', nama:'Greyboard No. 25 (2.5 mm)', w:79, h:109, harga:17000}
+  ],
+  aksesoris:[
+    {id:'a-pita', nama:'Pita Satin 2 cm', satuan:'meter', harga:1200},
+    {id:'a-magnet', nama:'Magnet Neodymium', satuan:'pasang', harga:2500}
+  ],
+  jasa:[
+    {id:'j-lem', nama:'Lem & Rakit Box', harga:500},
+    {id:'j-qc', nama:'QC & Packing Plastik', harga:300}
+  ],
+  set:{sw:650,sh:1000,pw:630,ph:980,gap:6,insheet:5,pisau:45000,pon:250,markup:30,bulat:100}
+});
+const normPrice=p=>{
+  const isFilled = p && Array.isArray(p.kertas) && p.kertas.length > 0;
+  const e = isFilled ? emptyPrice() : defaultPrice();
+  const o = {...e, ...(p||{})};
+  EST_CATS.forEach(c=>{
+    if(!Array.isArray(o[c.k]) || (!o[c.k].length && !isFilled)){
+      o[c.k] = (e[c.k] || []).map(x=>({...x}));
+    }
+  });
+  o.set = {...e.set, ...((p&&p.set)||{})};
+  return o;
+};
 const uid=()=>'i'+Math.random().toString(36).slice(2,9);
 let PRICE=normPrice(null), priceMode='local', priceCanWrite=true, priceRef=null, priceSaving=Promise.resolve(), priceDirty=false, priceStash=null, priceStamp='';
 
@@ -5421,7 +5594,7 @@ function estPriceUI(){
     if(type==='unit') return `<td><select aria-label="${label}" data-pc="${c.k}" data-pi="${i}" data-pf="${f}"${dis}>${UNITS.map(([u,t])=>`<option value="${u}"${v===u?' selected':''}>${t}</option>`).join('')}</select></td>`;
     return `<td><div class="inp sm"><input type="number" min="0" step="${type==='rp'?50:1}" inputmode="decimal" aria-label="${label}" data-pc="${c.k}" data-pi="${i}" data-pf="${f}" value="${v===''?'':+v}"${dis}><small>${type==='rp'?'Rp':'cm'}</small></div></td>`;
   };
-  const fileTools= priceMode==='local' ? `<div class="pfile"><button type="button" class="btn btn-line btn-sm" data-pexport>Simpan daftar harga ke file</button><label class="btn btn-line btn-sm" for="pImport">Muat dari file</label><input type="file" id="pImport" class="sr" accept=".json,application/json"><span class="mathint">Kirim file ini ke teman satu tim supaya daftar harganya sama.</span></div>` : '';
+  const fileTools= priceMode==='local' ? `<div class="pfile"><button type="button" class="btn btn-line btn-sm" data-pexport>Simpan daftar harga ke file</button><label class="btn btn-line btn-sm" for="pImport">Muat dari file</label><input type="file" id="pImport" class="sr" accept=".json,application/json"><button type="button" class="btn btn-line btn-sm" id="btnResetPrice">Muat harga standar pasar</button><span class="mathint">Daftar harga standar industri kemasan Indonesia (Ivory, Duplex, Kraft, Cetak, Laminasi, Finishing).</span></div>` : '';
   $('#estPrice').innerHTML=`<p class="est-note">${head}</p>${fileTools}
     <section class="pcat"><h3>Pengaturan hitung</h3><div class="setgrid">${EST_SET.map(([k,l,u])=>`<div class="field"><label for="ps-${k}">${l}</label><div class="inp"><input id="ps-${k}" type="number" min="0" step="${u==='Rp'?50:u==='%'?1:0.5}" inputmode="decimal" data-ps="${k}" value="${S[k]??''}"${dis}><small>${u}</small></div></div>`).join('')}</div>
       <p class="mathint">Area cetak diletakkan di tengah kertas. Insheet ditambahkan ke jumlah lembar. Pisau dihitung sekali per pola, pon per lembar.</p></section>
@@ -5456,7 +5629,7 @@ $('#estPrice').addEventListener('click',e=>{
 });
 
 /* ---- Matching words from a chat to items in the price list ---- */
-const SYN={emas:'gold',doft:'doff',dof:'doff',glossy:'glossy',glos:'glossy',gloss:'glossy',busa:'busa',foam:'busa',spon:'busa',sponge:'busa',ribbon:'pita',laminating:'laminasi',lam:'laminasi',lami:'laminasi',refrensi:'referensi',ref:'referensi',ivori:'ivory',karton:'carton',kraft:'kraft',craft:'kraft',grayboard:'greyboard',greybord:'greyboard'};
+const SYN={emas:'gold',doft:'doff',dof:'doff',glossy:'glossy',glos:'glossy',gloss:'glossy',busa:'busa',foam:'busa',spon:'busa',sponge:'busa',ribbon:'pita',laminating:'laminasi',lam:'laminasi',lami:'laminasi',refrensi:'referensi',ref:'referensi',ivori:'ivory',karton:'carton',kraft:'kraft',craft:'kraft',grayboard:'greyboard',greybord:'greyboard',perak:'silver',pelangi:'holo',hologram:'holo',timbul:'emboss',poly:'foil',poli:'foil',hotprint:'foil',pon:'pond'};
 const toks=s=>String(s||'').toLowerCase().replace(/(\d),(\d)/g,'$1.$2').replace(/(\d)([a-z])/g,'$1 $2').replace(/([a-z])(\d)/g,'$1 $2').split(/[^a-z0-9.]+/).filter(Boolean).map(t=>SYN[t]||t);
 function bestMatch(list,phrase){
   const q=toks(phrase), qn=q.filter(t=>/^\d/.test(t)); let best=null, bs=0;
@@ -5468,7 +5641,21 @@ function bestMatch(list,phrase){
   });
   return bs>=1?best:null;
 }
-const MODEL_WORDS=[[/slide|laci|drawer|sliding/,'drawer','hb_drawer'],[/magnet|buku|book/,'hb_book','hb_book'],[/leher|shoulder|neck/,'hb_shoulder','hb_shoulder'],[/mailer|kiriman/,'mailer','mailer'],[/tray|baki/,'tray','hb_lid'],[/tutup|lid|alas|base/,'lidbase','hb_lid'],[/hex/,'hex','hex'],[/straight/,'ste','ste'],[/tuck|rte|reverse|lipat/,'rte','rte']];
+const MODEL_WORDS=[
+  [/pizza|fefco\s*0?427/i,'pizza','pizza'],
+  [/pillow|bantal|hijab/i,'pillow','pillow'],
+  [/gable|jinjing|tenteng|hampers|pegangan/i,'gable','gable'],
+  [/autolock|auto\s*lock|crash\s*lock|1-?2-?3|kunci\s*bawah/i,'autolock','autolock'],
+  [/slide|laci|drawer|sliding/,'drawer','hb_drawer'],
+  [/magnet|buku|book/,'hb_book','hb_book'],
+  [/leher|shoulder|neck/,'hb_shoulder','hb_shoulder'],
+  [/mailer|kiriman/,'mailer','mailer'],
+  [/tray|baki/,'tray','hb_lid'],
+  [/tutup|lid|alas|base/,'lidbase','hb_lid'],
+  [/hex/,'hex','hex'],
+  [/straight/,'ste','ste'],
+  [/tuck|rte|reverse|lipat/,'rte','rte']
+];
 function newRef(){ return {model:'rte',L:90,W:60,D:30,qty:1000,kertas:'',board:'',liner:'',cetak:'',sisi:1,lam:'',lamSisi:1,fin:[],inner:{type:'none',id:''},aks:[],jasa:null,note:''}; }
 function parseSpec(text){
   const kv={}, rep=[], ref=newRef(); let refs=null;
@@ -5740,22 +5927,86 @@ function estResultUI(){
   v.innerHTML=`<div class="tablewrap"><table class="rtable"><thead><tr><th scope="col"><span class="sr">Komponen</span></th>${th}</tr></thead><tbody>${body}</tbody></table></div>
     ${warns?`<div class="warnbox"><strong>Perlu dicek</strong><ul>${warns}</ul></div>`:''}
     ${facts?`<ul class="facts-list">${facts}</ul>`:''}
+    ${(function(){
+      const curRef = EST.refs[EST.active] || EST.refs[0];
+      const tierQtys = [300, 500, 1000, 2000, 5000];
+      let tierRows = '';
+      tierQtys.forEach(tQ => {
+        try {
+          const c = estCompute({...curRef, qty: tQ});
+          if(c && !c.error){
+            const isCur = tQ === (curRef.qty || 1000);
+            const totalSheets = (c.sheets.sL || 0) + (c.sheets.sLi || 0) + (c.sheets.sIn || 0);
+            tierRows += `<tr class="${isCur ? 'active-tier' : ''}">
+              <td><b>${nf(tQ, 0)} pcs</b> ${isCur ? '<span class="chip ok">Dipilih</span>' : ''}</td>
+              <td>${nf(totalSheets, 0)} lbr</td>
+              <td>${rp(c.modalPcs)}</td>
+              <td><b style="color:var(--ink);font-size:1.05em">${rp(c.jualPcs)}</b></td>
+              <td>${rp(c.jual)}</td>
+              <td><button type="button" class="btn btn-line btn-sm" data-setqty="${tQ}" style="padding:2px 8px;min-height:24px;font-size:var(--t-micro)">${isCur ? '✓ Aktif' : 'Pilih Qty'}</button></td>
+            </tr>`;
+          }
+        } catch(err){}
+      });
+      return tierRows ? `
+        <div class="tier-card" style="margin-top:20px;padding:16px;background:var(--sheet);border:1px solid var(--border-control);border-radius:var(--r)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+            <h4 style="margin:0;font-size:var(--t-body);font-weight:600">💡 Perbandingan Harga Bertingkat (Quantity Tiers)</h4>
+            <span class="mathint" style="margin:0">Pisau pon & setting klise dibayar sekali. Semakin banyak order, harga per pcs semakin murah!</span>
+          </div>
+          <div class="tablewrap">
+            <table class="ptable" style="margin:0">
+              <thead>
+                <tr>
+                  <th>Jumlah Order</th>
+                  <th>Kertas Plano</th>
+                  <th>Modal / pcs</th>
+                  <th>Harga Jual / pcs</th>
+                  <th>Total Penjualan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>${tierRows}</tbody>
+            </table>
+          </div>
+        </div>` : '';
+    })()}
     <p class="fineprint">Tiap bagian box disusun sendiri di area cetak ${nf((+PRICE.set.pw||0)/10)} × ${nf((+PRICE.set.ph||0)/10)} cm. Kalau bagian luar dan dalam digabung dalam satu lembar, jumlah lembarnya bisa lebih sedikit.</p>`;
 }
 function estSummary(){
   const L=[]; const first=EST.refs[0];
-  L.push(`Estimasi harga ${MODELS[first.model].hb?'hardbox ':''}${MODELS[first.model].name.toLowerCase()}`);
-  EST.refs.forEach((r,i)=>{ const x=EST_RES[i]; if(!x||x.error) return; const p=PRICE;
+  L.push(`📋 PENAWARAN ESTIMASI HARGA CUSTOM BOX`);
+  L.push(`Model: ${MODELS[first.model].hb?'Hardbox ':''}${MODELS[first.model].name}`);
+  EST.refs.forEach((r,i)=>{
+    const x=EST_RES[i]; if(!x||x.error) return; const p=PRICE;
     const nm=(k,id)=>(p[k].find(q=>q.id===id)||{}).nama;
-    const parts=[`${nf(r.L)} × ${nf(r.W)} × ${nf(r.D)} mm`, MODELS[r.model].hb?nm('board',r.board):nm('kertas',r.kertas)];
-    if(+r.sisi>0&&nm('cetak',r.cetak)) parts.push(`cetak ${nm('cetak',r.cetak)} ${r.sisi} sisi`);
-    if(r.lam) parts.push(`laminasi ${nm('laminasi',r.lam)}`);
-    r.fin.forEach(f=>{ const n=nm('finishing',f.id); if(n) parts.push(n); });
-    if(r.inner.type!=='none'){ const n=nm(r.inner.type==='busa'?'inner':'kertas',r.inner.id); if(n) parts.push(`inner ${n}`); }
-    r.aks.forEach(a=>{ const n=nm('aksesoris',a.id); if(n) parts.push(n); });
-    L.push('',`Referensi ${LETTER(i)}: ${parts.filter(Boolean).join(', ')}`,`${nf(x.qty,0)} pcs × ${rp(x.jualPcs)} = ${rp(x.jual)}`);
+    const specs=[
+      `Ukuran: ${nf(r.L)} × ${nf(r.W)} × ${nf(r.D)} mm (P × L × T)`,
+      `Bahan: ${MODELS[r.model].hb?nm('board',r.board):nm('kertas',r.kertas)}`,
+      +r.sisi>0&&nm('cetak',r.cetak)?`Cetak: ${nm('cetak',r.cetak)} (${r.sisi} sisi)`:null,
+      r.lam?`Laminasi: ${nm('laminasi',r.lam)}`:null,
+    ];
+    r.fin.forEach(f=>{ const n=nm('finishing',f.id); if(n) specs.push(`Finishing: ${n}${f.luas?` (${f.luas} cm²)`:''}`); });
+    if(r.inner.type!=='none'){ const n=nm(r.inner.type==='busa'?'inner':'kertas',r.inner.id); if(n) specs.push(`Inner: ${n}`); }
+    r.aks.forEach(a=>{ const n=nm('aksesoris',a.id); if(n) specs.push(`Aksesoris: ${n}`); });
+
+    L.push('', `Referensi ${LETTER(i)}:`);
+    specs.filter(Boolean).forEach(s => L.push(`• ${s}`));
+
+    const tiers = [300, 500, 1000, 2000, 5000];
+    L.push('', `Pilihan Jumlah & Harga:`);
+    tiers.forEach(q => {
+      try {
+        const comp = estCompute({...r, qty: q});
+        if(comp && !comp.error){
+          const tag = q === r.qty ? ' ⭐ (Dipilih)' : (q === 1000 ? ' ⭐ (Paling Laris)' : '');
+          L.push(`• ${nf(q,0)} pcs : ${rp(comp.jualPcs)} / pcs (Total: ${rp(comp.jual)})${tag}`);
+        }
+      } catch(e){}
+    });
   });
-  L.push('','Harga estimasi, bisa berubah setelah desain final dan cek bahan.');
+  L.push('','*Harga sudah termasuk pembuatan pisau pond & setting plat cetak.');
+  L.push('*Estimasi awal, harga final mengacu pada file desain siap cetak.');
   return L.join('\n');
 }
 $('#estCopy').addEventListener('click',()=>{
