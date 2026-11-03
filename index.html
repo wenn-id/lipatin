@@ -395,6 +395,22 @@ select{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s
 .fin-btn{background:var(--surface);color:var(--muted);border:1px solid var(--border-control);border-radius:20px;padding:5px 12px;font:500 var(--t-micro) var(--f-body);cursor:pointer;transition:all .15s ease}
 .fin-btn:hover{color:var(--ink);border-color:var(--ink)}
 .fin-btn[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink);font-weight:600}
+.btn-micro{background:var(--paper);border:1px solid var(--border-control);border-radius:4px;font:500 var(--t-micro) var(--f-mono);padding:2px 6px;cursor:pointer;color:var(--muted);transition:all .12s}
+.btn-micro:hover{color:var(--ink);border-color:var(--ink)}
+.btn-micro[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.art-layer-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.art-card{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface);border:1px solid var(--border-control);border-radius:var(--r-s);cursor:pointer;transition:border-color .12s}
+.art-card:hover{border-color:var(--ink)}
+.art-card.active{border-color:var(--ink);background:color-mix(in srgb, var(--surface) 90%, var(--ink))}
+.art-thumb{width:28px;height:28px;object-fit:contain;background:#fff;border-radius:3px;border:1px solid var(--border-control);flex-shrink:0}
+.art-meta{flex:1;min-width:0;line-height:1.2}
+.art-name{font-weight:600;font-size:var(--t-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.art-tag{font-size:var(--t-micro);color:var(--muted);font-family:var(--f-mono)}
+.art-actions{display:flex;gap:3px;flex-shrink:0}
+.art-act-btn{background:transparent;border:0;color:var(--muted);padding:3px 5px;cursor:pointer;border-radius:3px;font-size:var(--t-ui)}
+.art-act-btn:hover{color:var(--ink);background:var(--paper)}
+.art-editor-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-s);padding:10px;margin-top:6px}
+.drag-over{outline:2px dashed var(--ink);outline-offset:-2px}
 .txt{width:100%;border:1px solid var(--border-control);border-radius:var(--r-s);background:var(--surface);color:var(--ink);font:var(--t-control) var(--f-body);padding:10px}
 input[type=range]{width:100%;accent-color:var(--ink)}
 
@@ -951,6 +967,76 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
                 </div>
               </div>
             </fieldset>
+
+            <fieldset id="artBlock">
+              <legend>Artwork &amp; Logo (Desain Grafis)</legend>
+              <div class="art-upload-row" style="display:flex;gap:6px;margin-bottom:8px">
+                <input type="file" id="inArtFile" accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/svg+xml" class="sr">
+                <label for="inArtFile" class="btn btn-ink btn-sm" style="flex:1;text-align:center;cursor:pointer">
+                  🖼️ Unggah Logo / Gambar
+                </label>
+                <button type="button" class="btn btn-outline btn-sm" id="btnSampleArt" title="Pakai contoh logo Lipatin">
+                  Contoh
+                </button>
+              </div>
+
+              <!-- Layer Stack -->
+              <div id="artLayerList" class="art-layer-list"></div>
+
+              <!-- Active Artwork Editor Card -->
+              <div id="artEditorCard" class="art-editor-card" hidden>
+                <div class="field" style="margin-bottom:6px">
+                  <label for="selArtPanel" style="font-size:var(--t-micro);font-weight:600">Panel Kemasan</label>
+                  <select id="selArtPanel" class="txt" style="padding:6px 8px;font-size:var(--t-ui)"></select>
+                </div>
+                <div class="row2" style="margin-bottom:6px">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnSnapPanel">Pusatkan</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnFitPanel">Pas ke Lebar</button>
+                </div>
+                <div class="row2" style="margin-bottom:6px">
+                  <div class="field">
+                    <label for="inArtW" style="font-size:var(--t-micro)">Lebar (mm)</label>
+                    <input type="number" id="inArtW" class="txt" min="5" max="500" step="1" style="padding:6px">
+                  </div>
+                  <div class="field">
+                    <label for="inArtH" style="font-size:var(--t-micro)">Tinggi (mm)</label>
+                    <input type="number" id="inArtH" class="txt" min="5" max="500" step="1" style="padding:6px">
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:6px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <label for="inArtRot" style="font-size:var(--t-micro)">Rotasi (<span id="txtArtRot">0</span>°)</label>
+                    <div style="display:flex;gap:4px">
+                      <button type="button" class="btn-micro" data-rot="0">0°</button>
+                      <button type="button" class="btn-micro" data-rot="90">90°</button>
+                      <button type="button" class="btn-micro" data-rot="180">180°</button>
+                      <button type="button" class="btn-micro" data-rot="270">270°</button>
+                    </div>
+                  </div>
+                  <input type="range" id="inArtRot" min="0" max="360" step="1" value="0">
+                </div>
+                <div class="field" style="margin-bottom:6px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                    <label for="inArtOpacity" style="font-size:var(--t-micro)">Opasitas (<span id="txtArtOpacity">100</span>%)</label>
+                  </div>
+                  <input type="range" id="inArtOpacity" min="10" max="100" step="5" value="100">
+                </div>
+                <div class="field" style="margin-bottom:6px">
+                  <label for="selArtFin" style="font-size:var(--t-micro)">Finishing Khusus</label>
+                  <select id="selArtFin" class="txt" style="padding:6px 8px;font-size:var(--t-ui)">
+                    <option value="inherit">Ikuti Pilihan Studio</option>
+                    <option value="standard">Standar (Tanpa Efek)</option>
+                    <option value="gold">✨ Poli Emas (Gold Foil)</option>
+                    <option value="silver">🪙 Poli Perak (Silver Foil)</option>
+                    <option value="spotuv">💧 Spot UV (Gloss Kilap)</option>
+                    <option value="emboss">🏔️ Emboss (Timbul 3D)</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="btnDelArt" style="width:100%;color:#ef4444;border-color:color-mix(in srgb, #ef4444 30%, transparent);margin-top:6px">
+                  🗑️ Hapus Artwork Ini
+                </button>
+              </div>
+            </fieldset>
           </div>
 
           <div class="panel" id="importBlock" hidden>
@@ -1216,7 +1302,7 @@ const MATS=[
 ];
 const MAT={}; MATS.forEach(gr=>gr.items.forEach(([id,name,t])=>MAT[id]={id,name,t,group:gr}));
 
-const state={model:'rte',L:90,W:60,D:30,X:30,Xs:{},T:0.42,mat:'iv310',glue:15,bleed:true,color:'#C89F72',inner:'#F4F1EC',label:'SEREH',finish:'standard',view:'2d',imp:null,impScale:'auto',impRealW:0,TI:15,HBM:'v',part:'board'};
+const state={model:'rte',L:90,W:60,D:30,X:30,Xs:{},T:0.42,mat:'iv310',glue:15,bleed:true,color:'#C89F72',inner:'#F4F1EC',label:'SEREH',finish:'standard',view:'2d',imp:null,impScale:'auto',impRealW:0,TI:15,HBM:'v',part:'board',artworks:[],activeArtId:null};
 
 /* ---------- Geometry helpers ---------- */
 function arc(cx,cy,r,a0,a1,n=6){const o=[];for(let k=0;k<=n;k++){const a=(a0+(a1-a0)*k/n)*Math.PI/180;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;}
@@ -1717,17 +1803,47 @@ function frameSVG(w,h,inner,label,opt={}){
     ${opt.grid===false?'':`<rect x="${f2(vb[0])}" y="${f2(vb[1])}" width="${f2(vb[2])}" height="${f2(vb[3])}" fill="url(#grid10)"/>`}
     ${inner(sw,fs)}${dimsSVG(w,h,m,sw,fs)}</svg>`;
 }
+function renderArtworksSVG(artworks, activeId, ox=0, oy=0){
+  if(!artworks || !artworks.length) return '';
+  return '<g id="dielineArtworks">' + artworks.filter(a=>a.visible&&a.dataUrl).map(a=>{
+    const cx = a.x + a.w/2 + ox, cy = a.y + a.h/2 + oy;
+    const isAct = a.id === activeId;
+    return `<g class="art-layer${isAct?' active':''}" data-id="${a.id}" transform="translate(${f2(cx)} ${f2(cy)}) rotate(${f2(a.rot)}) translate(${f2(-a.w/2)} ${f2(-a.h/2)})" opacity="${a.opacity!=null?a.opacity:1}">
+      <image href="${a.dataUrl}" x="0" y="0" width="${f2(a.w)}" height="${f2(a.h)}" preserveAspectRatio="none" style="cursor:move;pointer-events:all;"/>
+    </g>`;
+  }).join('') + '</g>';
+}
+
+function renderArtControlsSVG(artworks, activeId, ox=0, oy=0){
+  const act = (artworks || []).find(a => a.id === activeId && a.visible);
+  if(!act) return '';
+  const cx = act.x + act.w/2 + ox, cy = act.y + act.h/2 + oy;
+  const hw = act.w/2, hh = act.h/2;
+  const rotDist = Math.max(14, act.h*0.18 + 10);
+  return `<g class="art-controls" data-id="${act.id}" transform="translate(${f2(cx)} ${f2(cy)}) rotate(${f2(act.rot)})">
+    <rect x="${f2(-hw)}" y="${f2(-hh)}" width="${f2(act.w)}" height="${f2(act.h)}" fill="none" stroke="#2563EB" stroke-width="1.2" stroke-dasharray="4 3" pointer-events="none"/>
+    <line x1="0" y1="${f2(-hh)}" x2="0" y2="${f2(-hh - rotDist)}" stroke="#2563EB" stroke-width="1.2" stroke-dasharray="2 2" pointer-events="none"/>
+    <circle class="art-rot-hdl" cx="0" cy="${f2(-hh - rotDist)}" r="4.5" fill="#ffffff" stroke="#2563EB" stroke-width="1.8" style="cursor:grab;pointer-events:all;"/>
+    <rect class="art-scale-hdl" data-dir="nw" x="${f2(-hw-3.5)}" y="${f2(-hh-3.5)}" width="7" height="7" fill="#ffffff" stroke="#2563EB" stroke-width="1.8" style="cursor:nwse-resize;pointer-events:all;"/>
+    <rect class="art-scale-hdl" data-dir="ne" x="${f2(hw-3.5)}" y="${f2(-hh-3.5)}" width="7" height="7" fill="#ffffff" stroke="#2563EB" stroke-width="1.8" style="cursor:nesw-resize;pointer-events:all;"/>
+    <rect class="art-scale-hdl" data-dir="se" x="${f2(hw-3.5)}" y="${f2(hh-3.5)}" width="7" height="7" fill="#ffffff" stroke="#2563EB" stroke-width="1.8" style="cursor:nwse-resize;pointer-events:all;"/>
+    <rect class="art-scale-hdl" data-dir="sw" x="${f2(-hw-3.5)}" y="${f2(hh-3.5)}" width="7" height="7" fill="#ffffff" stroke="#2563EB" stroke-width="1.8" style="cursor:nesw-resize;pointer-events:all;"/>
+  </g>`;
+}
+
 function itemInner(g,ox,oy,sw,o){
   const allP=g.polys.map(p=>polyD(p.pts,ox,oy)).join(''), glueP=g.polys.filter(p=>p.glue).map(p=>polyD(p.pts,ox,oy)).join(''), holes=g.holes.map(h=>polyD(h,ox,oy)).join('');
   const vg=o.line==='vgroove';
   return `${o.bleed?`<path d="${allP}" fill="none" stroke="var(--bleed)" stroke-opacity=".28" stroke-width="6" stroke-linejoin="round"/>`:''}
     <path d="${allP}" fill="var(--sheet)"/>
+    ${renderArtworksSVG(state.artworks, state.activeArtId, ox, oy)}
     ${glueP?`<path d="${glueP}" fill="url(#hatch)"/>`:''}
     ${holes?`<path d="${holes}" fill="var(--paper)"/>`:''}
     ${g.guides.length?`<path d="${segD(g.guides,ox,oy)}" fill="none" stroke="var(--muted)" stroke-width="${f2(sw*0.8)}" stroke-dasharray="${f2(sw*0.6)} ${f2(sw*2.4)}" stroke-linecap="round"/>`:''}
     ${g.folds.length?`<path d="${segD(g.folds,ox,oy)}" fill="none" stroke="var(--crease)" stroke-width="${f2(sw*(vg?1.4:1))}" stroke-dasharray="${vg?`${f2(sw*9)} ${f2(sw*2.5)} ${f2(sw*1.5)} ${f2(sw*2.5)}`:`${f2(sw*5)} ${f2(sw*3.5)}`}"/>`:''}
     <path d="${segD(g.cuts,ox,oy)}${holes}" fill="none" stroke="var(--cut)" stroke-width="${f2(sw*1.3)}" stroke-linejoin="round" stroke-linecap="round"/>
-    <g fill="var(--muted)" font-family="IBM Plex Mono, monospace" text-anchor="middle" dominant-baseline="middle">${g.labels.map(([x,y,t,rot,fs])=>{x+=ox;y+=oy;return `<text x="${f2(x)}" y="${f2(y)}" font-size="${f2(fs)}" letter-spacing="${f2(fs*0.06)}"${rot?` transform="rotate(-90 ${f2(x)} ${f2(y)})"`:''}>${t}</text>`;}).join('')}</g>`;
+    <g fill="var(--muted)" font-family="IBM Plex Mono, monospace" text-anchor="middle" dominant-baseline="middle">${g.labels.map(([x,y,t,rot,fs])=>{x+=ox;y+=oy;return `<text x="${f2(x)}" y="${f2(y)}" font-size="${f2(fs)}" letter-spacing="${f2(fs*0.06)}"${rot?` transform="rotate(-90 ${f2(x)} ${f2(y)})"`:''}>${t}</text>`;}).join('')}</g>
+    ${renderArtControlsSVG(state.artworks, state.activeArtId, ox, oy)}`;
 }
 function renderSVG(g,s){
   return frameSVG(g.w,g.h,sw=>itemInner(g,0,0,sw,{bleed:s.bleed}),`Dieline ${Math.round(g.w)} kali ${Math.round(g.h)} milimeter`);
@@ -1774,13 +1890,18 @@ function exportSVG(m,part,s){
   const cuts=segD(L.cuts)+L.holes.map(h=>polyD(h)).join('');
   const folds=segD(L.folds), guides=segD(L.guides);
   const name=MODELS[s.model].name, mat=MAT[s.mat]?MAT[s.mat].name+' ':'';
+  const artSvg = (s.artworks || []).filter(a=>a.visible && a.dataUrl).map(a => {
+    const cx = a.x + a.w/2, cy = a.y + a.h/2;
+    return `    <g transform="translate(${f2(cx)} ${f2(cy)}) rotate(${f2(a.rot)}) translate(${f2(-a.w/2)} ${f2(-a.h/2)})" opacity="${a.opacity!=null?a.opacity:1}">\n      <image href="${a.dataUrl}" x="0" y="0" width="${f2(a.w)}" height="${f2(a.h)}" preserveAspectRatio="none"/>\n    </g>`;
+  }).join('\n');
+  const artworkLayer = artSvg ? `  <g id="Artwork">\n${artSvg}\n  </g>\n` : '';
   const bleed= !b ? '' : L.bleed
     ? `  <g id="Bleed" fill="none" stroke="#00A651" stroke-width="0.25"><path d="${L.bleed.map(p=>polyD(p)).join('')}"/></g>\n`
     : `  <defs><mask id="luar"><rect x="${f2(-b)}" y="${f2(-b)}" width="${f2(W)}" height="${f2(H)}" fill="#fff"/><path d="${allP}" fill="#000"/></mask></defs>\n  <g id="Bleed"><path d="${allP}" fill="none" stroke="#00A651" stroke-opacity="0.35" stroke-width="${2*b}" stroke-linejoin="round" mask="url(#luar)"/></g>\n`;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${f2(W)}mm" height="${f2(H)}mm" viewBox="${f2(-b)} ${f2(-b)} ${f2(W)} ${f2(H)}">
   <title>Lipatin - ${esc(name)}${hb?' - '+esc(part.name):''} - ${esc(dimsText(s))}, ${hb&&part.key!=='board'?'kertas':'bahan '+esc(mat)+s.T+' mm'}</title>
-${bleed}  <g id="CutContour" fill="none" stroke="#EC008C" stroke-width="0.25" stroke-linejoin="round" stroke-linecap="round"><path d="${cuts}"/></g>
+${artworkLayer}${bleed}  <g id="CutContour" fill="none" stroke="#EC008C" stroke-width="0.25" stroke-linejoin="round" stroke-linecap="round"><path d="${cuts}"/></g>
 ${folds?`  <g id="${L.vg?'V-Groove':'Crease'}" fill="none" stroke="#00AEEF" stroke-width="0.25" stroke-dasharray="${L.vg?'4 1 1 1':'2 1.5'}"><path d="${folds}"/></g>\n`:''}${guides?`  <g id="Posisi_board" fill="none" stroke="#999999" stroke-width="0.2" stroke-dasharray="0.6 1.2"><path d="${guides}"/></g>\n`:''}${part.cap?`  <g id="Keterangan" font-family="Arial, sans-serif" font-size="${f2(part.cap*0.62)}" fill="#333333">${items.map(it=>`<text x="${f2(it.ox)}" y="${f2(it.oy+it.h+part.cap*0.72)}">${esc(it.name)}${it.count>1?' x '+it.count:''} - ${nf(it.w,1)} x ${nf(it.h,1)} mm</text>`).join('')}</g>\n`:''}</svg>`;
 }
 
@@ -1827,6 +1948,46 @@ function dimsText(s){
   if(s.model==='hb_book') t+=`, flap ${nf(s.X)} mm`;
   return t;
 }
+
+function getModelPanels(m){
+  if(!m) return [];
+  const nodes = m.nodes || (m.parts && m.parts[0] && m.parts[0].items && m.parts[0].items[0] && m.parts[0].items[0].nodes) || [];
+  const panels = [];
+  nodes.forEach((n, idx) => {
+    if(!n.poly || n.poly.length < 3) return;
+    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    n.poly.forEach(([x, y]) => {
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    });
+    const w = maxX - minX, h = maxY - minY;
+    const label = n.label || '';
+    if(label === 'LEM' && w < 20) return;
+    if(w > 8 && h > 8 && (label || (!n.hinge && idx === 0))){
+      panels.push({
+        idx,
+        label: label || `Panel ${idx + 1}`,
+        x: Math.round(minX * 10) / 10,
+        y: Math.round(minY * 10) / 10,
+        w: Math.round(w * 10) / 10,
+        h: Math.round(h * 10) / 10,
+        cx: Math.round(((minX + maxX) / 2) * 10) / 10,
+        cy: Math.round(((minY + maxY) / 2) * 10) / 10
+      });
+    }
+  });
+  return panels;
+}
+
+const SAMPLE_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200">
+  <rect x="8" y="8" width="304" height="184" rx="16" fill="none" stroke="#1D2329" stroke-width="6"/>
+  <rect x="18" y="18" width="284" height="164" rx="10" fill="none" stroke="#1D2329" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="160" y="78" font-family="'Instrument Sans', sans-serif" font-weight="800" font-size="34" fill="#1D2329" text-anchor="middle" letter-spacing="3">LIPATIN</text>
+  <line x1="60" y1="94" x2="260" y2="94" stroke="#1D2329" stroke-width="2.5"/>
+  <text x="160" y="124" font-family="'Newsreader', Georgia, serif" font-style="italic" font-size="20" fill="#1D2329" text-anchor="middle">Studio Kemasan</text>
+  <text x="160" y="154" font-family="'IBM Plex Mono', monospace" font-size="11" fill="#1D2329" text-anchor="middle" letter-spacing="2">EDISI BOTANIK · 100% ORGANIK</text>
+</svg>`;
+const SAMPLE_LOGO_DATA = 'data:image/svg+xml;utf8,' + encodeURIComponent(SAMPLE_LOGO_SVG);
 
 /* ---------- WebGL folding preview ---------- */
 const LOOK={'Kertas tipis':{inner:'#F5F4F0',rough:.5},'Art carton':{inner:'#F3F2EE',rough:.38},'Ivory':{inner:'#F2F0E9',rough:.55},
@@ -1898,84 +2059,153 @@ function createViewer(opt={}){
   const prog=(p,[a,b])=>ease((p-a)/(b-a));
   const view={az:AZ,el:EL,zoom:1,r:150,rt:150,ty:0,tyt:0,spin:0};
   let pieces=[], nodes=[], Tv=0.4, trash=[], fold=1, anim=null, running=false, host=null, foldCb=null, model=null, mats=null;
+  let activeTexs=null, outerMat=null, curMRef=null, curSRef=null, curLookRef=null;
+
+  function drawImgMask(ctx, img, x, y, w, h, color){
+    try {
+      const mw = Math.min(1024, Math.max(32, Math.round(w * 4)));
+      const mh = Math.min(1024, Math.max(32, Math.round(h * 4)));
+      const mc = document.createElement('canvas'); mc.width = mw; mc.height = mh;
+      const mctx = mc.getContext('2d');
+      mctx.drawImage(img, 0, 0, mw, mh);
+      mctx.globalCompositeOperation = 'source-in';
+      mctx.fillStyle = color;
+      mctx.fillRect(0, 0, mw, mh);
+      ctx.drawImage(mc, x, y, w, h);
+    } catch(e) {
+      try { ctx.drawImage(img, x, y, w, h); } catch(err){}
+    }
+  }
 
   function outerTextures(m,s,look){
     const W=m.w, H=m.h, k=Math.min(2048/W,2048/H,10);
     const cw=Math.ceil(W*k), ch=Math.ceil(H*k);
 
     const cvCol=document.createElement('canvas'); cvCol.width=cw; cvCol.height=ch;
-    const xCol=cvCol.getContext('2d'); xCol.scale(k,k);
-    xCol.fillStyle=s.color; xCol.fillRect(0,0,W,H);
+    const xCol=cvCol.getContext('2d');
+    const cvRough=document.createElement('canvas'); cvRough.width=cw; cvRough.height=ch;
+    const xRough=cvRough.getContext('2d');
+    const cvMetal=document.createElement('canvas'); cvMetal.width=cw; cvMetal.height=ch;
+    const xMetal=cvMetal.getContext('2d');
+    const cvBump=document.createElement('canvas'); cvBump.width=cw; cvBump.height=ch;
+    const xBump=cvBump.getContext('2d');
 
-    const isKraft=(look&&look.kraft)||s.color==='#C89F72'||s.color==='#B98D5F';
-    if(isKraft){
-      xCol.save();
-      const nFib=Math.floor(W*H*0.008);
-      for(let i=0;i<nFib;i++){
-        const fx=Math.random()*W, fy=Math.random()*H, fl=0.5+Math.random()*1.8, fa=Math.random()*Math.PI;
-        xCol.strokeStyle=Math.random()>0.4?'rgba(60,40,15,0.08)':'rgba(255,255,255,0.12)';
-        xCol.lineWidth=0.35+Math.random()*0.4;
-        xCol.beginPath(); xCol.moveTo(fx,fy); xCol.lineTo(fx+Math.cos(fa)*fl,fy+Math.sin(fa)*fl); xCol.stroke();
+    let currentBumpScale = 0.01;
+
+    function renderMaps(curM, curS, curLook){
+      xCol.save(); xCol.setTransform(1,0,0,1,0,0); xCol.clearRect(0,0,cw,ch); xCol.scale(k,k);
+      xRough.save(); xRough.setTransform(1,0,0,1,0,0); xRough.clearRect(0,0,cw,ch); xRough.scale(k,k);
+      xMetal.save(); xMetal.setTransform(1,0,0,1,0,0); xMetal.clearRect(0,0,cw,ch); xMetal.scale(k,k);
+      xBump.save(); xBump.setTransform(1,0,0,1,0,0); xBump.clearRect(0,0,cw,ch); xBump.scale(k,k);
+
+      // Base color
+      xCol.fillStyle=curS.color; xCol.fillRect(0,0,W,H);
+      const isKraft=(curLook&&curLook.kraft)||curS.color==='#C89F72'||curS.color==='#B98D5F';
+      if(isKraft){
+        xCol.save();
+        const nFib=Math.floor(W*H*0.008);
+        for(let i=0;i<nFib;i++){
+          const fx=Math.random()*W, fy=Math.random()*H, fl=0.5+Math.random()*1.8, fa=Math.random()*Math.PI;
+          xCol.strokeStyle=Math.random()>0.4?'rgba(60,40,15,0.08)':'rgba(255,255,255,0.12)';
+          xCol.lineWidth=0.35+Math.random()*0.4;
+          xCol.beginPath(); xCol.moveTo(fx,fy); xCol.lineTo(fx+Math.cos(fa)*fl,fy+Math.sin(fa)*fl); xCol.stroke();
+        }
+        xCol.restore();
       }
-      xCol.restore();
+
+      // Base roughness
+      const baseRough=curLook&&curLook.rough!=null?curLook.rough:0.7;
+      const rb=Math.round(Math.min(1,Math.max(0,baseRough))*255);
+      xRough.fillStyle=`rgb(${rb},${rb},${rb})`; xRough.fillRect(0,0,W,H);
+
+      // Base metalness
+      xMetal.fillStyle='#000000'; xMetal.fillRect(0,0,W,H);
+
+      // Base bump
+      xBump.fillStyle='#808080'; xBump.fillRect(0,0,W,H);
+
+      const txt=(curS.label||'').trim(), fin=curS.finish||'standard';
+      currentBumpScale = fin==='emboss'?0.08:fin==='spotuv'?0.03:(fin==='gold'||fin==='silver')?-0.02:0.01;
+
+      // Draw text label on m.print
+      if(txt && curM.print) curM.print.forEach(L=>{
+        const side=L.rot%180===0, bw=side?L.w:L.h, bh=side?L.h:L.w;
+        const fs=Math.max(3,Math.min(bw*0.8/(Math.max(3,txt.length)*0.74),bh*0.28));
+        const drawText=(ctx,fill,ul=true,stroke=null,sw=0)=>{
+          ctx.save(); ctx.translate(L.x+L.w/2,L.y+L.h/2); ctx.rotate(L.rot*Math.PI/180); ctx.scale(-1,1);
+          ctx.font=`500 ${fs}px Newsreader, Georgia, serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+          if(stroke&&sw>0){ ctx.strokeStyle=stroke; ctx.lineWidth=sw; ctx.strokeText(txt,0,0); }
+          if(fill){ ctx.fillStyle=fill; ctx.fillText(txt,0,0); if(ul) ctx.fillRect(-bw*0.16,fs*0.72,bw*0.32,Math.max(0.35,fs*0.05)); }
+          ctx.restore();
+        };
+
+        if(fin==='gold'){
+          drawText(xCol,'#E5B85C'); drawText(xMetal,'#ffffff'); drawText(xRough,'#282828'); drawText(xBump,'#6c6c6c');
+        } else if(fin==='silver'){
+          drawText(xCol,'#E8EBF0'); drawText(xMetal,'#ffffff'); drawText(xRough,'#202020'); drawText(xBump,'#6c6c6c');
+        } else if(fin==='spotuv'){
+          const isB=lum(curS.color)>0.55;
+          drawText(xCol,isB?'rgba(10,14,18,0.92)':'rgba(255,255,255,0.95)'); drawText(xMetal,'#000000'); drawText(xRough,'#0a0a0a'); drawText(xBump,'#a8a8a8');
+        } else if(fin==='emboss'){
+          const isB=lum(curS.color)>0.55;
+          drawText(xCol,isB?'rgba(20,24,28,.86)':'rgba(255,255,255,.93)'); drawText(xMetal,'#000000'); drawText(xRough,`rgb(${rb},${rb},${rb})`); drawText(xBump,'#ffffff',true,'#ffffff',fs*0.08);
+        } else {
+          const isB=lum(curS.color)>0.55;
+          drawText(xCol,isB?'rgba(20,24,28,.86)':'rgba(255,255,255,.93)'); drawText(xMetal,'#000000'); drawText(xRough,`rgb(${rb},${rb},${rb})`); drawText(xBump,'#808080');
+        }
+      });
+
+      // Draw artwork layers
+      (curS.artworks || []).forEach(art => {
+        if(!art.visible || !art.img) return;
+        const cx = art.x + art.w/2, cy = art.y + art.h/2;
+        const artFin = art.finish === 'inherit' || !art.finish ? fin : art.finish;
+
+        xCol.save();
+        xCol.translate(cx, cy);
+        xCol.rotate(art.rot * Math.PI / 180);
+        xCol.scale(-1, 1);
+        xCol.globalAlpha = art.opacity != null ? art.opacity : 1.0;
+        if(artFin === 'gold'){
+          drawImgMask(xCol, art.img, -art.w/2, -art.h/2, art.w, art.h, '#E5B85C');
+        } else if(artFin === 'silver'){
+          drawImgMask(xCol, art.img, -art.w/2, -art.h/2, art.w, art.h, '#E8EBF0');
+        } else {
+          try { xCol.drawImage(art.img, -art.w/2, -art.h/2, art.w, art.h); } catch(e){}
+        }
+        xCol.restore();
+
+        if(artFin === 'gold' || artFin === 'silver'){
+          xMetal.save(); xMetal.translate(cx, cy); xMetal.rotate(art.rot * Math.PI / 180); xMetal.scale(-1, 1);
+          drawImgMask(xMetal, art.img, -art.w/2, -art.h/2, art.w, art.h, '#ffffff');
+          xMetal.restore();
+
+          xRough.save(); xRough.translate(cx, cy); xRough.rotate(art.rot * Math.PI / 180); xRough.scale(-1, 1);
+          drawImgMask(xRough, art.img, -art.w/2, -art.h/2, art.w, art.h, artFin === 'gold' ? '#282828' : '#202020');
+          xRough.restore();
+
+          xBump.save(); xBump.translate(cx, cy); xBump.rotate(art.rot * Math.PI / 180); xBump.scale(-1, 1);
+          drawImgMask(xBump, art.img, -art.w/2, -art.h/2, art.w, art.h, '#6c6c6c');
+          xBump.restore();
+        } else if(artFin === 'spotuv'){
+          xRough.save(); xRough.translate(cx, cy); xRough.rotate(art.rot * Math.PI / 180); xRough.scale(-1, 1);
+          drawImgMask(xRough, art.img, -art.w/2, -art.h/2, art.w, art.h, '#080808');
+          xRough.restore();
+
+          xBump.save(); xBump.translate(cx, cy); xBump.rotate(art.rot * Math.PI / 180); xBump.scale(-1, 1);
+          drawImgMask(xBump, art.img, -art.w/2, -art.h/2, art.w, art.h, '#a8a8a8');
+          xBump.restore();
+        } else if(artFin === 'emboss'){
+          xBump.save(); xBump.translate(cx, cy); xBump.rotate(art.rot * Math.PI / 180); xBump.scale(-1, 1);
+          drawImgMask(xBump, art.img, -art.w/2, -art.h/2, art.w, art.h, '#ffffff');
+          xBump.restore();
+        }
+      });
+
+      xCol.restore(); xRough.restore(); xMetal.restore(); xBump.restore();
     }
 
-    const cvRough=document.createElement('canvas'); cvRough.width=cw; cvRough.height=ch;
-    const xRough=cvRough.getContext('2d'); xRough.scale(k,k);
-    const baseRough=look.rough!=null?look.rough:0.7;
-    const rb=Math.round(Math.min(1,Math.max(0,baseRough))*255);
-    xRough.fillStyle=`rgb(${rb},${rb},${rb})`; xRough.fillRect(0,0,W,H);
-
-    const cvMetal=document.createElement('canvas'); cvMetal.width=cw; cvMetal.height=ch;
-    const xMetal=cvMetal.getContext('2d'); xMetal.scale(k,k);
-    xMetal.fillStyle='#000000'; xMetal.fillRect(0,0,W,H);
-
-    const cvBump=document.createElement('canvas'); cvBump.width=cw; cvBump.height=ch;
-    const xBump=cvBump.getContext('2d'); xBump.scale(k,k);
-    xBump.fillStyle='#808080'; xBump.fillRect(0,0,W,H);
-
-    const txt=(s.label||'').trim(), fin=s.finish||'standard';
-    if(txt) m.print.forEach(L=>{
-      const side=L.rot%180===0, bw=side?L.w:L.h, bh=side?L.h:L.w;
-      const fs=Math.max(3,Math.min(bw*0.8/(Math.max(3,txt.length)*0.74),bh*0.28));
-      const drawText=(ctx,fill,ul=true,stroke=null,sw=0)=>{
-        ctx.save(); ctx.translate(L.x+L.w/2,L.y+L.h/2); ctx.rotate(L.rot*Math.PI/180); ctx.scale(-1,1);
-        ctx.font=`500 ${fs}px Newsreader, Georgia, serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-        if(stroke&&sw>0){ ctx.strokeStyle=stroke; ctx.lineWidth=sw; ctx.strokeText(txt,0,0); }
-        if(fill){ ctx.fillStyle=fill; ctx.fillText(txt,0,0); if(ul) ctx.fillRect(-bw*0.16,fs*0.72,bw*0.32,Math.max(0.35,fs*0.05)); }
-        ctx.restore();
-      };
-
-      if(fin==='gold'){
-        drawText(xCol,'#E5B85C');
-        drawText(xMetal,'#ffffff');
-        drawText(xRough,'#282828');
-        drawText(xBump,'#6c6c6c');
-      } else if(fin==='silver'){
-        drawText(xCol,'#E8EBF0');
-        drawText(xMetal,'#ffffff');
-        drawText(xRough,'#202020');
-        drawText(xBump,'#6c6c6c');
-      } else if(fin==='spotuv'){
-        const isB=lum(s.color)>0.55;
-        drawText(xCol,isB?'rgba(10,14,18,0.92)':'rgba(255,255,255,0.95)');
-        drawText(xMetal,'#000000');
-        drawText(xRough,'#0a0a0a');
-        drawText(xBump,'#a8a8a8');
-      } else if(fin==='emboss'){
-        const isB=lum(s.color)>0.55;
-        drawText(xCol,isB?'rgba(20,24,28,.86)':'rgba(255,255,255,.93)');
-        drawText(xMetal,'#000000');
-        drawText(xRough,`rgb(${rb},${rb},${rb})`);
-        drawText(xBump,'#ffffff',true,'#ffffff',fs*0.08);
-      } else {
-        const isB=lum(s.color)>0.55;
-        drawText(xCol,isB?'rgba(20,24,28,.86)':'rgba(255,255,255,.93)');
-        drawText(xMetal,'#000000');
-        drawText(xRough,`rgb(${rb},${rb},${rb})`);
-        drawText(xBump,'#808080');
-      }
-    });
+    renderMaps(m, s, look);
 
     const initT=cv=>{
       const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding;
@@ -1984,12 +2214,17 @@ function createViewer(opt={}){
       trash.push(t); return t;
     };
 
+    activeTexs = {
+      redraw(curM, curS, curLook){ renderMaps(curM, curS, curLook); },
+      get bumpScale(){ return currentBumpScale; }
+    };
+
     return {
       map:initT(cvCol),
       roughnessMap:initT(cvRough),
       metalnessMap:initT(cvMetal),
       bumpMap:initT(cvBump),
-      bumpScale:fin==='emboss'?0.08:fin==='spotuv'?0.03:(fin==='gold'||fin==='silver')?-0.02:0.01
+      bumpScale:currentBumpScale
     };
   }
   function fluteTex(){
@@ -2034,6 +2269,7 @@ function createViewer(opt={}){
     while(holder.children.length) holder.remove(holder.children[0]);
     model=m; Tv=Math.max(s.T,0.15);
     const look=m.hb?{inner:s.inner,rough:.72}:matLook(s), texs=outerTextures(m,s,look);
+    curMRef = m; curSRef = s; curLookRef = look;
     const outer=new THREE.MeshStandardMaterial({
       map:texs.map,
       roughness:1.0,
@@ -2043,6 +2279,7 @@ function createViewer(opt={}){
       bumpMap:texs.bumpMap,
       bumpScale:texs.bumpScale
     });
+    outerMat = outer;
     const inner=new THREE.MeshStandardMaterial({color:col(look.inner),roughness:.92,metalness:0});
     let edge;
     if(m.hb){ edge=new THREE.MeshStandardMaterial({color:col(s.color),roughness:.72,metalness:0}); }
@@ -2165,7 +2402,16 @@ function createViewer(opt={}){
     orbit(da,de){ view.az+=da; view.el=clamp(view.el+de,0.04,1.5); },
     zoomBy(k){ view.zoom=clamp(view.zoom*k,0.35,2.5); },
     resetView(){ view.az=AZ; view.el=EL; view.zoom=1; },
-    onFold(cb){ foldCb=cb; }
+    onFold(cb){ foldCb=cb; },
+    updateTextures(){
+      if(!activeTexs || !outerMat || !curMRef || !curSRef) return;
+      activeTexs.redraw(curMRef, curSRef, curLookRef);
+      if(outerMat.map) outerMat.map.needsUpdate = true;
+      if(outerMat.roughnessMap) outerMat.roughnessMap.needsUpdate = true;
+      if(outerMat.metalnessMap) outerMat.metalnessMap.needsUpdate = true;
+      if(outerMat.bumpMap) outerMat.bumpMap.needsUpdate = true;
+      if(activeTexs.bumpScale != null) outerMat.bumpScale = activeTexs.bumpScale;
+    }
   };
 }
 const V3=createViewer({exposure:1.05,edges:true});
@@ -2479,6 +2725,7 @@ function render(){
   if(state.view==='plano') renderPlano();
   $('#svgcode').hidden=true;
   updateQuote(); ticketUI();
+  updateArtUI();
 }
 function renderImportView(){
   $('#btnCopy').hidden=true; $('#btnDl').hidden=true; $('#btnAi').hidden=true; $('#lgBleed').hidden=true; $('#lgGuide').hidden=true; $('#lgFold').hidden=false; $('#lgFoldTxt').textContent='Lipat';
@@ -2576,6 +2823,479 @@ $('#finSw').addEventListener('click',e=>{
 });
 $('#form').addEventListener('submit',e=>e.preventDefault());
 
+/* ---------- 2D Canvas & Artwork Interaction ---------- */
+function getSvgPt(svg, clientX, clientY){
+  const pt = svg.createSVGPoint();
+  pt.x = clientX; pt.y = clientY;
+  const ctm = svg.getScreenCTM();
+  if(!ctm) return { x: 0, y: 0 };
+  return pt.matrixTransform(ctm.inverse());
+}
+
+function updateArtUI(){
+  const list = $('#artLayerList');
+  const card = $('#artEditorCard');
+  if(!list) return;
+
+  // Render layer cards
+  list.innerHTML = (state.artworks || []).map(a => {
+    const isAct = a.id === state.activeArtId;
+    return `<div class="art-card${isAct?' active':''}" data-id="${a.id}">
+      <img src="${a.dataUrl}" class="art-thumb" alt="${esc(a.name)}">
+      <div class="art-meta">
+        <div class="art-name">${esc(a.name)}</div>
+        <div class="art-tag">${esc(a.panelLabel||'Panel')} · ${Math.round(a.w)}×${Math.round(a.h)} mm</div>
+      </div>
+      <div class="art-actions">
+        <button type="button" class="art-act-btn" data-act="vis" title="${a.visible?'Sembunyikan':'Tampilkan'}">${a.visible?'👁️':'👁️‍🗨️'}</button>
+        <button type="button" class="art-act-btn" data-act="del" title="Hapus">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const act = (state.artworks || []).find(a => a.id === state.activeArtId);
+  if(!act || !card){
+    if(card) card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+
+  // Populate panels
+  const selPan = $('#selArtPanel');
+  if(selPan){
+    const panels = getModelPanels(current && current.m);
+    selPan.innerHTML = panels.map(p => `<option value="${p.idx}" ${act.panelIdx===p.idx?'selected':''}>${esc(p.label)} (${Math.round(p.w)}×${Math.round(p.h)} mm)</option>`).join('');
+  }
+
+  $('#inArtW').value = Math.round(act.w);
+  $('#inArtH').value = Math.round(act.h);
+  $('#inArtRot').value = act.rot;
+  $('#txtArtRot').textContent = act.rot;
+  $('#inArtOpacity').value = Math.round((act.opacity != null ? act.opacity : 1) * 100);
+  $('#txtArtOpacity').textContent = Math.round((act.opacity != null ? act.opacity : 1) * 100);
+  $('#selArtFin').value = act.finish || 'inherit';
+
+  $$('.btn-micro[data-rot]').forEach(btn => {
+    btn.setAttribute('aria-pressed', +btn.dataset.rot === act.rot ? 'true' : 'false');
+  });
+}
+
+function syncArtInputs(act){
+  if($('#inArtW')) $('#inArtW').value = Math.round(act.w);
+  if($('#inArtH')) $('#inArtH').value = Math.round(act.h);
+  if($('#inArtRot')) $('#inArtRot').value = act.rot;
+  if($('#txtArtRot')) $('#txtArtRot').textContent = act.rot;
+  $$('.btn-micro[data-rot]').forEach(btn => {
+    btn.setAttribute('aria-pressed', +btn.dataset.rot === act.rot ? 'true' : 'false');
+  });
+}
+
+function fastUpdateArtSvg(act){
+  const cx = act.x + act.w/2, cy = act.y + act.h/2;
+  const hw = act.w/2, hh = act.h/2;
+  const layer = document.querySelector(`.art-layer[data-id="${act.id}"]`);
+  if(layer){
+    layer.setAttribute('transform', `translate(${f2(cx)} ${f2(cy)}) rotate(${f2(act.rot)}) translate(${f2(-hw)} ${f2(-hh)})`);
+    const img = layer.querySelector('image');
+    if(img){ img.setAttribute('width', f2(act.w)); img.setAttribute('height', f2(act.h)); }
+  }
+  const ctrl = document.querySelector(`.art-controls[data-id="${act.id}"]`);
+  if(ctrl){
+    ctrl.setAttribute('transform', `translate(${f2(cx)} ${f2(cy)}) rotate(${f2(act.rot)})`);
+    const rect = ctrl.querySelector('rect');
+    if(rect){
+      rect.setAttribute('x', f2(-hw)); rect.setAttribute('y', f2(-hh));
+      rect.setAttribute('width', f2(act.w)); rect.setAttribute('height', f2(act.h));
+    }
+    const rotDist = Math.max(14, act.h*0.18 + 10);
+    const line = ctrl.querySelector('line');
+    if(line){ line.setAttribute('y1', f2(-hh)); line.setAttribute('y2', f2(-hh - rotDist)); }
+    const rotC = ctrl.querySelector('.art-rot-hdl');
+    if(rotC) rotC.setAttribute('cy', f2(-hh - rotDist));
+    const nw = ctrl.querySelector('.art-scale-hdl[data-dir="nw"]');
+    if(nw){ nw.setAttribute('x', f2(-hw-3.5)); nw.setAttribute('y', f2(-hh-3.5)); }
+    const ne = ctrl.querySelector('.art-scale-hdl[data-dir="ne"]');
+    if(ne){ ne.setAttribute('x', f2(hw-3.5)); ne.setAttribute('y', f2(-hh-3.5)); }
+    const se = ctrl.querySelector('.art-scale-hdl[data-dir="se"]');
+    if(se){ se.setAttribute('x', f2(hw-3.5)); se.setAttribute('y', f2(hh-3.5)); }
+    const sw = ctrl.querySelector('.art-scale-hdl[data-dir="sw"]');
+    if(sw){ sw.setAttribute('x', f2(-hw-3.5)); sw.setAttribute('y', f2(hh-3.5)); }
+  }
+}
+
+function loadArtworkFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = () => {
+      const panels = getModelPanels(current && current.m);
+      const front = panels.find(p=>p.label==='DEPAN') || panels[0] || { cx: (current?.m?.w||100)/2, cy: (current?.m?.h||100)/2, w: 60, h: 40, idx: 0, label: 'DEPAN' };
+      const ar = img.naturalWidth / Math.max(1, img.naturalHeight);
+      let w = Math.min(60, front.w * 0.7);
+      let h = w / ar;
+      if(h > front.h * 0.85){ h = front.h * 0.85; w = h * ar; }
+      w = Math.max(8, Math.round(w * 10) / 10);
+      h = Math.max(8, Math.round(h * 10) / 10);
+      const art = {
+        id: 'art_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        name: file.name.replace(/\.[^/.]+$/, '').slice(0, 20),
+        dataUrl,
+        img,
+        x: Math.round((front.cx - w / 2) * 10) / 10,
+        y: Math.round((front.cy - h / 2) * 10) / 10,
+        w,
+        h,
+        rot: 0,
+        opacity: 1.0,
+        finish: 'inherit',
+        visible: true,
+        panelIdx: front.idx,
+        panelLabel: front.label
+      };
+      state.artworks.push(art);
+      state.activeArtId = art.id;
+      render();
+      if(V3) V3.updateTextures();
+      updateArtUI();
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addSampleArtwork(){
+  const img = new Image();
+  img.onload = () => {
+    const panels = getModelPanels(current && current.m);
+    const front = panels.find(p=>p.label==='DEPAN') || panels[0] || { cx: (current?.m?.w||100)/2, cy: (current?.m?.h||100)/2, w: 60, h: 40, idx: 0, label: 'DEPAN' };
+    let w = Math.min(65, front.w * 0.72);
+    let h = Math.round(w * (200/320) * 10) / 10;
+    if(h > front.h * 0.82){ h = front.h * 0.82; w = Math.round(h * (320/200) * 10) / 10; }
+    w = Math.max(10, Math.round(w * 10) / 10);
+    h = Math.max(8, Math.round(h * 10) / 10);
+    const art = {
+      id: 'art_sample_' + Date.now(),
+      name: 'Logo Lipatin (Contoh)',
+      dataUrl: SAMPLE_LOGO_DATA,
+      img,
+      x: Math.round((front.cx - w / 2) * 10) / 10,
+      y: Math.round((front.cy - h / 2) * 10) / 10,
+      w,
+      h,
+      rot: 0,
+      opacity: 1.0,
+      finish: 'inherit',
+      visible: true,
+      panelIdx: front.idx,
+      panelLabel: front.label
+    };
+    state.artworks.push(art);
+    state.activeArtId = art.id;
+    render();
+    if(V3) V3.updateTextures();
+    updateArtUI();
+  };
+  img.src = SAMPLE_LOGO_DATA;
+}
+
+let artDrag = null;
+
+function setupArtInteractions(){
+  const v2 = $('#view2d');
+  if(!v2) return;
+
+  v2.addEventListener('pointerdown', e => {
+    const svg = v2.querySelector('svg');
+    if(!svg) return;
+    const pt = getSvgPt(svg, e.clientX, e.clientY);
+
+    const rotHdl = e.target.closest('.art-rot-hdl');
+    if(rotHdl){
+      const act = state.artworks.find(a=>a.id === state.activeArtId);
+      if(!act) return;
+      artDrag = {
+        mode: 'rot',
+        artId: act.id,
+        cx: act.x + act.w/2,
+        cy: act.y + act.h/2,
+        startAngle: act.rot,
+        startPtrAngle: Math.atan2(pt.y - (act.y + act.h/2), pt.x - (act.x + act.w/2)) * 180 / Math.PI
+      };
+      rotHdl.setPointerCapture(e.pointerId);
+      e.stopPropagation(); e.preventDefault();
+      return;
+    }
+
+    const scaleHdl = e.target.closest('.art-scale-hdl');
+    if(scaleHdl){
+      const act = state.artworks.find(a=>a.id === state.activeArtId);
+      if(!act) return;
+      artDrag = {
+        mode: 'scale',
+        dir: scaleHdl.dataset.dir,
+        artId: act.id,
+        startPt: pt,
+        startArt: { ...act },
+        aspect: act.w / Math.max(1, act.h)
+      };
+      scaleHdl.setPointerCapture(e.pointerId);
+      e.stopPropagation(); e.preventDefault();
+      return;
+    }
+
+    const artLayer = e.target.closest('.art-layer');
+    if(artLayer){
+      const id = artLayer.dataset.id;
+      state.activeArtId = id;
+      const act = state.artworks.find(a=>a.id === id);
+      if(!act) return;
+      artDrag = {
+        mode: 'move',
+        artId: id,
+        startPt: pt,
+        startArt: { x: act.x, y: act.y }
+      };
+      artLayer.setPointerCapture(e.pointerId);
+      render();
+      updateArtUI();
+      e.stopPropagation(); e.preventDefault();
+      return;
+    }
+
+    // Click outside deselects
+    if(state.activeArtId && !e.target.closest('.art-controls')){
+      state.activeArtId = null;
+      render();
+      updateArtUI();
+    }
+  });
+
+  v2.addEventListener('pointermove', e => {
+    if(!artDrag) return;
+    const svg = v2.querySelector('svg');
+    if(!svg) return;
+    const pt = getSvgPt(svg, e.clientX, e.clientY);
+    const act = state.artworks.find(a=>a.id === artDrag.artId);
+    if(!act) return;
+
+    if(artDrag.mode === 'move'){
+      const dx = pt.x - artDrag.startPt.x;
+      const dy = pt.y - artDrag.startPt.y;
+      act.x = Math.round((artDrag.startArt.x + dx) * 10) / 10;
+      act.y = Math.round((artDrag.startArt.y + dy) * 10) / 10;
+      fastUpdateArtSvg(act);
+      if(V3) V3.updateTextures();
+      syncArtInputs(act);
+    } else if(artDrag.mode === 'scale'){
+      const dx = pt.x - artDrag.startPt.x;
+      const dy = pt.y - artDrag.startPt.y;
+      let factor = 1;
+      if(artDrag.dir === 'se') factor = 1 + (dx + dy) / (artDrag.startArt.w + artDrag.startArt.h);
+      else if(artDrag.dir === 'nw') factor = 1 - (dx + dy) / (artDrag.startArt.w + artDrag.startArt.h);
+      else if(artDrag.dir === 'ne') factor = 1 + (dx - dy) / (artDrag.startArt.w + artDrag.startArt.h);
+      else if(artDrag.dir === 'sw') factor = 1 + (-dx + dy) / (artDrag.startArt.w + artDrag.startArt.h);
+      factor = Math.max(0.1, Math.min(factor, 5));
+      const newW = Math.max(5, Math.round(artDrag.startArt.w * factor * 10) / 10);
+      const newH = Math.max(5, Math.round(newW / artDrag.aspect * 10) / 10);
+      act.x = Math.round((artDrag.startArt.x - (newW - artDrag.startArt.w) / 2) * 10) / 10;
+      act.y = Math.round((artDrag.startArt.y - (newH - artDrag.startArt.h) / 2) * 10) / 10;
+      act.w = newW; act.h = newH;
+      fastUpdateArtSvg(act);
+      if(V3) V3.updateTextures();
+      syncArtInputs(act);
+    } else if(artDrag.mode === 'rot'){
+      const curAngle = Math.atan2(pt.y - artDrag.cy, pt.x - artDrag.cx) * 180 / Math.PI;
+      let rot = (artDrag.startAngle + (curAngle - artDrag.startPtrAngle)) % 360;
+      if(rot < 0) rot += 360;
+      [0, 90, 180, 270, 360].forEach(deg => {
+        if(Math.abs(rot - deg) < 4) rot = deg % 360;
+      });
+      act.rot = Math.round(rot);
+      fastUpdateArtSvg(act);
+      if(V3) V3.updateTextures();
+      syncArtInputs(act);
+    }
+  });
+
+  const endDrag = () => {
+    if(!artDrag) return;
+    artDrag = null;
+    render();
+    if(V3) V3.updateTextures();
+    updateArtUI();
+  };
+  v2.addEventListener('pointerup', endDrag);
+  v2.addEventListener('pointercancel', endDrag);
+
+  // File drag & drop
+  [v2, $('#artBlock')].forEach(zone => {
+    if(!zone) return;
+    zone.addEventListener('dragover', e => {
+      if(e.dataTransfer && e.dataTransfer.types.includes('Files')){
+        e.preventDefault(); e.stopPropagation();
+        zone.classList.add('drag-over');
+      }
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      zone.classList.remove('drag-over');
+      if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+        const f = e.dataTransfer.files[0];
+        if(f.type.startsWith('image/') || f.name.match(/\.(png|jpe?g|svg|webp)$/i)){
+          e.preventDefault(); e.stopPropagation();
+          loadArtworkFile(f);
+        }
+      }
+    });
+  });
+
+  // UI Event Listeners
+  $('#inArtFile')?.addEventListener('change', e => {
+    if(e.target.files && e.target.files[0]) loadArtworkFile(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  $('#btnSampleArt')?.addEventListener('click', addSampleArtwork);
+
+  $('#artLayerList')?.addEventListener('click', e => {
+    const card = e.target.closest('.art-card');
+    if(!card) return;
+    const id = card.dataset.id;
+    const act = state.artworks.find(a=>a.id === id);
+    if(!act) return;
+
+    const btnVis = e.target.closest('[data-act="vis"]');
+    if(btnVis){
+      act.visible = !act.visible;
+      render(); if(V3) V3.updateTextures(); updateArtUI();
+      return;
+    }
+    const btnDel = e.target.closest('[data-act="del"]');
+    if(btnDel){
+      state.artworks = state.artworks.filter(a=>a.id !== id);
+      if(state.activeArtId === id) state.activeArtId = state.artworks[0]?.id || null;
+      render(); if(V3) V3.updateTextures(); updateArtUI();
+      return;
+    }
+
+    state.activeArtId = id;
+    render(); updateArtUI();
+  });
+
+  $('#btnDelArt')?.addEventListener('click', () => {
+    if(!state.activeArtId) return;
+    state.artworks = state.artworks.filter(a=>a.id !== state.activeArtId);
+    state.activeArtId = state.artworks[0]?.id || null;
+    render(); if(V3) V3.updateTextures(); updateArtUI();
+  });
+
+  $('#selArtPanel')?.addEventListener('change', e => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    const pIdx = +e.target.value;
+    const panels = getModelPanels(current && current.m);
+    const target = panels.find(p=>p.idx === pIdx);
+    if(target){
+      act.x = Math.round((target.cx - act.w/2) * 10) / 10;
+      act.y = Math.round((target.cy - act.h/2) * 10) / 10;
+      act.panelIdx = target.idx;
+      act.panelLabel = target.label;
+      render(); if(V3) V3.updateTextures(); updateArtUI();
+    }
+  });
+
+  $('#btnSnapPanel')?.addEventListener('click', () => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    const panels = getModelPanels(current && current.m);
+    const target = panels.find(p=>p.idx === act.panelIdx) || panels[0];
+    if(target){
+      act.x = Math.round((target.cx - act.w/2) * 10) / 10;
+      act.y = Math.round((target.cy - act.h/2) * 10) / 10;
+      render(); if(V3) V3.updateTextures(); updateArtUI();
+    }
+  });
+
+  $('#btnFitPanel')?.addEventListener('click', () => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    const panels = getModelPanels(current && current.m);
+    const target = panels.find(p=>p.idx === act.panelIdx) || panels[0];
+    if(target){
+      const ar = act.w / Math.max(1, act.h);
+      act.w = Math.max(10, Math.round(target.w * 0.75 * 10) / 10);
+      act.h = Math.max(8, Math.round(act.w / ar * 10) / 10);
+      act.x = Math.round((target.cx - act.w/2) * 10) / 10;
+      act.y = Math.round((target.cy - act.h/2) * 10) / 10;
+      render(); if(V3) V3.updateTextures(); updateArtUI();
+    }
+  });
+
+  $('#inArtW')?.addEventListener('input', e => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    const v = +e.target.value;
+    if(isFinite(v) && v >= 5 && v <= 1000){
+      const ar = act.w / Math.max(1, act.h);
+      act.w = v;
+      act.h = Math.round(v / ar * 10) / 10;
+      $('#inArtH').value = Math.round(act.h);
+      fastUpdateArtSvg(act); if(V3) V3.updateTextures();
+    }
+  });
+
+  $('#inArtH')?.addEventListener('input', e => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    const v = +e.target.value;
+    if(isFinite(v) && v >= 5 && v <= 1000){
+      const ar = act.w / Math.max(1, act.h);
+      act.h = v;
+      act.w = Math.round(v * ar * 10) / 10;
+      $('#inArtW').value = Math.round(act.w);
+      fastUpdateArtSvg(act); if(V3) V3.updateTextures();
+    }
+  });
+
+  $('#inArtRot')?.addEventListener('input', e => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    act.rot = +e.target.value;
+    $('#txtArtRot').textContent = act.rot;
+    fastUpdateArtSvg(act); if(V3) V3.updateTextures();
+    $$('.btn-micro[data-rot]').forEach(btn => btn.setAttribute('aria-pressed', +btn.dataset.rot === act.rot ? 'true' : 'false'));
+  });
+
+  $$('.btn-micro[data-rot]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = state.artworks.find(a=>a.id === state.activeArtId);
+      if(!act) return;
+      act.rot = +btn.dataset.rot;
+      $('#inArtRot').value = act.rot;
+      $('#txtArtRot').textContent = act.rot;
+      fastUpdateArtSvg(act); if(V3) V3.updateTextures();
+      $$('.btn-micro[data-rot]').forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+    });
+  });
+
+  $('#inArtOpacity')?.addEventListener('input', e => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    act.opacity = +e.target.value / 100;
+    $('#txtArtOpacity').textContent = e.target.value;
+    fastUpdateArtSvg(act); if(V3) V3.updateTextures();
+  });
+
+  $('#selArtFin')?.addEventListener('change', e => {
+    const act = state.artworks.find(a=>a.id === state.activeArtId);
+    if(!act) return;
+    act.finish = e.target.value;
+    if(V3) V3.updateTextures();
+  });
+}
+
 /* Tabs */
 let intro=false;
 function setView(v){
@@ -2616,6 +3336,9 @@ if(!V3){
 /* Export */
 const fname=()=>`lipatin-${state.model}-${state.L}x${MODELS[state.model].hex?'hex':state.W}x${state.D}mm${isHB()?'-'+state.part:''}.svg`;
 let downloads=null;
+setupArtInteractions();
+setTimeout(() => { if(!state.artworks.length) addSampleArtwork(); }, 100);
+
 /* Outside claude.ai (for example on GitHub Pages) there is no downloads capability: a plain link download does the job */
 const linkDownloads={save:async({filename,data})=>{ const blob= data instanceof Blob ? data : new Blob([data],{type:/\.svg$/.test(filename)?'image/svg+xml':'application/octet-stream'}); const u=URL.createObjectURL(blob), a=document.createElement('a'); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }};
 (async()=>{ try{ downloads=await window.claude?.use?.('downloads'); }catch(e){ downloads=null; } if(!downloads&&!window.claude) downloads=linkDownloads; if(downloads&&state.model!=='import'){ $('#btnDl').hidden=false; $('#btnAi').hidden=false; } })();
