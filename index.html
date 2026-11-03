@@ -1597,6 +1597,189 @@ function mHex(s){
   return {pieces:[{root:P[0],stand:[.5,.64]}], print:[{x:xs[0],y:0,w:a,h:Dp,rot:0}], vol:Math.sqrt(3)/2*s.L*s.L*s.D};
 }
 
+/* Auto-bottom Lock Box (Crash Lock / 1-2-3 Bottom / FEFCO 0215) */
+function mAutoLock(s){
+  const T=s.T, Lp=s.L+T, Wp=s.W+T, Dp=s.D+2*T, g=s.glue;
+  const t=clamp(Math.min(Wp*0.45,Dp*0.42),5,25), Y0=Wp+t, Y1=Y0+Dp;
+  const c=Math.min(Math.max(T,0.5),Wp*0.15);
+  const xs=[g,g+Wp,g+Wp+Lp,g+2*Wp+Lp], ws=[Wp,Lp,Wp,Lp];
+  const names=['SAMPING','DEPAN','SAMPING','BELAKANG'];
+
+  function topFlap(k){
+    const x=xs[k], w=ws[k];
+    if(k===1) return [];
+    if(k===3){
+      const yL=Y0-Wp, i=clamp(w*0.04,1.5,4);
+      return [{poly:R(x,yL,x+w,Y0),hinge:{v:Y0},angle:90,stage:[.78,.98],label:'TUTUP',
+        children:[{poly:tuckPoly(x,x+w,yL,t,i,-1),hinge:{v:yL},tuck:{Wp,t,c},pre:[.76,.81],stage:[.78,.98],inset:1,label:'LIDAH'}]}];
+    }
+    const h=Math.min(Wp*0.78,Lp*0.46), r=Math.min(4,h*0.25);
+    let pts=[[x+c,Y0],[x+c,Y0-h+r],...arc(x+c+r,Y0-h+r,r,180,270),[x+w-c-w*0.35,Y0-h],[x+w-c,Y0-h*0.35],[x+w-c,Y0]];
+    if(k===0) pts=pts.map(([px,py])=>[2*x+w-px,py]).reverse();
+    return [{poly:pts,hinge:{v:Y0},angle:90,stage:[.68,.76],inset:1,dip:[.78,.98],label:'SAYAP'}];
+  }
+
+  function bottomFlap(k){
+    const x=xs[k], w=ws[k];
+    if(k===0){
+      const hb=Math.min(Wp*0.7,Lp*0.45);
+      return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb-w*0.35],[x+w*0.65,Y1+hb],[x,Y1+hb]],hinge:{v:Y1},angle:90,stage:[.18,.30],label:'ALAS'}];
+    }
+    if(k===1){
+      const hb=Math.min(Wp*0.85,Lp*0.65);
+      const nw=Lp*0.28, nd=hb*0.25, mx=x+w/2;
+      return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb*0.7],[mx+nw/2,Y1+hb*0.7],[mx+nw/2,Y1+hb-nd],[mx+nw*0.3,Y1+hb],[mx-nw*0.3,Y1+hb],[mx-nw/2,Y1+hb-nd],[mx-nw/2,Y1+hb*0.7],[x,Y1+hb*0.7]],hinge:{v:Y1},angle:90,stage:[.28,.44],label:'ALAS'}];
+    }
+    if(k===2){
+      const hb=Math.min(Wp*0.7,Lp*0.45);
+      return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb],[x+w*0.35,Y1+hb],[x,Y1+hb-w*0.35]],hinge:{v:Y1},angle:90,stage:[.18,.30],label:'ALAS'}];
+    }
+    const hb=Math.min(Wp*0.65,Lp*0.55);
+    const tw=Lp*0.26, mx3=x+w/2;
+    return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb*0.5],[mx3+tw/2,Y1+hb*0.5],[mx3+tw*0.38,Y1+hb],[mx3-tw*0.38,Y1+hb],[mx3-tw/2,Y1+hb*0.5],[x,Y1+hb*0.5]],hinge:{v:Y1},angle:90,stage:[.40,.54],label:'KUNCI'}];
+  }
+
+  const B=[0,1,2,3].map(k=>({poly:R(xs[k],Y0,xs[k]+ws[k],Y1),label:names[k],
+    children:[...topFlap(k),...bottomFlap(k)]}));
+
+  const tap=Math.min(g*0.6,Dp*0.25);
+  B[0].children.push({poly:[[g,Y0],[g,Y1],[0,Y1-tap],[0,Y0+tap]],hinge:{u:xs[0]},angle:90,stage:[.04,.20],inset:1,glue:true,label:'LEM',labelRot:true});
+  Object.assign(B[0],{hinge:{u:xs[1]},angle:90,stage:[0,.16]});
+  Object.assign(B[2],{hinge:{u:xs[2]},angle:90,stage:[0,.16]});
+  Object.assign(B[3],{hinge:{u:xs[3]},angle:90,stage:[.08,.22]});
+  B[2].children.push(B[3]); B[1].children.push(B[0],B[2]);
+
+  return {pieces:[{root:B[1],stand:[.54,.68]}], print:[{x:xs[1],y:Y0,w:Lp,h:Dp,rot:0}], vol:s.L*s.W*s.D};
+}
+
+/* Pizza / Corrugated Delivery Box (FEFCO 0427) */
+function mPizza(s){
+  const T=s.T, Lp=s.L+2*T, Wp=s.W+2*T, Dp=s.D+T;
+  const c=Math.min(Math.max(T,0.5),Wp*0.08);
+  const tk=clamp(Dp*0.85,12,50), ew=Math.min(Wp*0.32,Dp*1.1);
+
+  const lidY0=-Dp-Wp, lidY1=-Dp;
+  const ear=side=>{
+    const x=side<0?0:Lp;
+    return {poly:[[x,lidY0+c],[x+side*ew,lidY0+c+ew*0.3],[x+side*ew,lidY1-c-ew*0.3],[x,lidY1-c]],
+      hinge:{u:x},angle:90,stage:[.75,.90],inset:1,label:'TELINGA',labelRot:true};
+  };
+
+  const lid={poly:R(0,lidY0,Lp,lidY1),hinge:{v:lidY1},angle:90,stage:[.60,.88],label:'TUTUP',children:[
+    {poly:tuckPoly(0,Lp,lidY0,tk,clamp(Lp*0.04,3,8),-1),hinge:{v:lidY0},angle:90,stage:[.85,.98],inset:1,label:'LIDAH'},
+    ear(-1),ear(1)]};
+
+  const back={poly:R(0,-Dp,Lp,0),hinge:{v:0},angle:90,stage:[.40,.58],label:'BELAKANG',children:[lid]};
+  const front={poly:R(0,Wp,Lp,Wp+Dp),hinge:{v:Wp},angle:90,stage:[.25,.42],label:'DEPAN'};
+
+  const cornerFlap=(side,frontSide)=>{
+    const yA=frontSide?Wp:0, sy=frontSide?1:-1;
+    const x=side<0?-Dp:Lp+Dp;
+    const fw=Math.min(Dp*0.85,Lp*0.3);
+    return {poly:[[x,yA],[x,yA+sy*fw],[x-side*Dp*0.6,yA+sy*fw*0.7],[x-side*Dp*0.6,yA]],
+      hinge:{v:yA},angle:90,stage:[.18,.32],inset:1,label:'KUNCI'};
+  };
+
+  const leftWall={poly:R(-Dp,0,0,Wp),hinge:{u:0},angle:90,stage:[.10,.28],label:'SAMPING',labelRot:true,
+    children:[cornerFlap(-1,false),cornerFlap(-1,true)]};
+  const rightWall={poly:R(Lp,0,Lp+Dp,Wp),hinge:{u:Lp},angle:90,stage:[.10,.28],label:'SAMPING',labelRot:true,
+    children:[cornerFlap(1,false),cornerFlap(1,true)]};
+
+  const root={poly:R(0,0,Lp,Wp),label:'ALAS',children:[back,front,leftWall,rightWall]};
+  return {pieces:[{root,stand:[.48,.62]}], print:[{x:0,y:lidY0,w:Lp,h:Wp,rot:0}], vol:s.L*s.W*s.D};
+}
+
+/* Pillow Box (Kotak Bantal) */
+function mPillow(s){
+  const T=s.T, Lp=s.L+T, Wp=s.W+T, Dp=s.D, g=s.glue;
+  const hf=clamp(Dp*0.6,12,Wp*0.4);
+  const xs=[g,g+Lp];
+
+  function curvedFlap(x,w,isTop,hasNotch){
+    const yBase=isTop?0:Wp, sy=isTop?-1:1, mx=x+w/2;
+    const arcPts=[];
+    const n=12;
+    for(let k=0;k<=n;k++){
+      const a=(k/n)*Math.PI;
+      arcPts.push([x+(k/n)*w, yBase+sy*Math.sin(a)*hf]);
+    }
+    if(hasNotch){
+      const nr=clamp(w*0.06,6,12);
+      const notchArc=arc(mx,yBase+sy*hf,nr,0,isTop?-180:180,8);
+      arcPts.splice(Math.floor(n/2),1,...notchArc);
+    }
+    const poly=[[x,yBase],...arcPts,[x+w,yBase]];
+    return {poly,hinge:{v:yBase},angle:80,stage:isTop?(hasNotch?[.80,.98]:[.65,.82]):(hasNotch?[.45,.65]:[.30,.50]),label:'TUTUP'};
+  }
+
+  const front={poly:R(xs[0],0,xs[0]+Lp,Wp),label:'DEPAN',children:[curvedFlap(xs[0],Lp,true,false),curvedFlap(xs[0],Lp,false,false)]};
+  const back={poly:R(xs[1],0,xs[1]+Lp,Wp),label:'BELAKANG',children:[curvedFlap(xs[1],Lp,true,true),curvedFlap(xs[1],Lp,false,true)]};
+
+  const tap=Math.min(g*0.5,Wp*0.2);
+  front.children.push({poly:[[g,0],[g,Wp],[0,Wp-tap],[0,tap]],hinge:{u:xs[0]},angle:90,stage:[.05,.20],inset:1,glue:true,label:'LEM',labelRot:true});
+  Object.assign(back,{hinge:{u:xs[1]},angle:90,stage:[0,.25]});
+  front.children.push(back);
+
+  return {pieces:[{root:front,stand:[.48,.58]}], print:[{x:xs[0]+Lp*0.1,y:Wp*0.15,w:Lp*0.8,h:Wp*0.7,rot:0}], vol:Math.round(Math.PI*(s.L/2)*(s.D/2)*s.W*0.75)};
+}
+
+/* Gable Top Box (Kotak Jinjing / Hampers) */
+function mGable(s){
+  const T=s.T, Lp=s.L+T, Wp=s.W+T, Dp=s.D+2*T, g=s.glue;
+  const Hr=clamp(s.X||Math.round(Wp*0.65),20,110);
+  const Hh=clamp(Hr*0.48,18,45);
+  const Y0=Hr+Hh, Y1=Y0+Dp;
+  const xs=[g,g+Wp,g+Wp+Lp,g+2*Wp+Lp], ws=[Wp,Lp,Wp,Lp];
+  const names=['SAMPING','DEPAN','SAMPING','BELAKANG'];
+
+  function bottomFlap(k){
+    const x=xs[k], w=ws[k];
+    if(k===0){
+      const hb=Math.min(Wp*0.7,Lp*0.45);
+      return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb-w*0.35],[x+w*0.65,Y1+hb],[x,Y1+hb]],hinge:{v:Y1},angle:90,stage:[.18,.30],label:'ALAS'}];
+    }
+    if(k===1){
+      const hb=Math.min(Wp*0.85,Lp*0.65);
+      const nw=Lp*0.28, nd=hb*0.25, mx=x+w/2;
+      return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb*0.7],[mx+nw/2,Y1+hb*0.7],[mx+nw/2,Y1+hb-nd],[mx+nw*0.3,Y1+hb],[mx-nw*0.3,Y1+hb],[mx-nw/2,Y1+hb-nd],[mx-nw/2,Y1+hb*0.7],[x,Y1+hb*0.7]],hinge:{v:Y1},angle:90,stage:[.28,.44],label:'ALAS'}];
+    }
+    if(k===2){
+      const hb=Math.min(Wp*0.7,Lp*0.45);
+      return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb],[x+w*0.35,Y1+hb],[x,Y1+hb-w*0.35]],hinge:{v:Y1},angle:90,stage:[.18,.30],label:'ALAS'}];
+    }
+    const hb=Math.min(Wp*0.65,Lp*0.55);
+    const tw=Lp*0.26, mx3=x+w/2;
+    return [{poly:[[x,Y1],[x+w,Y1],[x+w,Y1+hb*0.5],[mx3+tw/2,Y1+hb*0.5],[mx3+tw*0.38,Y1+hb],[mx3-tw*0.38,Y1+hb],[mx3-tw/2,Y1+hb*0.5],[x,Y1+hb*0.5]],hinge:{v:Y1},angle:90,stage:[.40,.54],label:'KUNCI'}];
+  }
+
+  function topGable(k){
+    const x=xs[k], w=ws[k];
+    if(k===0||k===2){
+      const mx=x+w/2;
+      return [{poly:[[x,Y0],[x+w,Y0],[mx,Y0-Hr]],hinge:{v:Y0},angle:45,stage:[.52,.75],label:'ATAP'}];
+    }
+    const mx=x+w/2, handleW=Lp*0.42, handleH=14, holeY=Y0-Hr-Hh/2;
+    const hole=[
+      ...arc(mx-handleW/2+handleH/2,holeY,handleH/2,90,270,6),
+      ...arc(mx+handleW/2-handleH/2,holeY,handleH/2,-90,90,6)
+    ];
+    const handle={poly:R(x+w*0.08,Y0-Hr-Hh,x+w*0.92,Y0-Hr),holes:[hole],hinge:{v:Y0-Hr},angle:45,stage:[.85,.98],label:'PEGANGAN'};
+    return [{poly:R(x,Y0-Hr,x+w,Y0),hinge:{v:Y0},angle:45,stage:[.65,.88],label:'ATAP',children:[handle]}];
+  }
+
+  const B=[0,1,2,3].map(k=>({poly:R(xs[k],Y0,xs[k]+ws[k],Y1),label:names[k],
+    children:[...topGable(k),...bottomFlap(k)]}));
+
+  const tap=Math.min(g*0.6,Dp*0.25);
+  B[0].children.push({poly:[[g,Y0],[g,Y1],[0,Y1-tap],[0,Y0+tap]],hinge:{u:xs[0]},angle:90,stage:[.04,.20],inset:1,glue:true,label:'LEM',labelRot:true});
+  Object.assign(B[0],{hinge:{u:xs[1]},angle:90,stage:[0,.16]});
+  Object.assign(B[2],{hinge:{u:xs[2]},angle:90,stage:[0,.16]});
+  Object.assign(B[3],{hinge:{u:xs[3]},angle:90,stage:[.08,.22]});
+  B[2].children.push(B[3]); B[1].children.push(B[0],B[2]);
+
+  return {pieces:[{root:B[1],stand:[.54,.68]}], print:[{x:xs[1],y:Y0,w:Lp,h:Dp,rot:0}], vol:Math.round(s.L*s.W*s.D+0.5*s.L*s.W*Hr)};
+}
+
 /* ---------- Hardbox (greyboard set-up boxes wrapped in printed paper) ---------- */
 const PAPER=0.15, CLR=1;
 const flat=root=>{ const o=[]; (function w(n){o.push(n);(n.children||[]).forEach(w);})(root); return o; };
@@ -1787,8 +1970,12 @@ function hbShoulder(s){
 const MODELS={
   rte:{name:'Reverse tuck',build:mTuck,glue:true,print:'Teks di sisi depan'},
   ste:{name:'Straight tuck',build:mTuck,glue:true,print:'Teks di sisi depan'},
+  autolock:{name:'Auto-bottom lock',build:mAutoLock,glue:true,print:'Teks di sisi depan'},
   tray:{name:'Tray lem sudut',build:mTray,print:'Teks di dinding depan'},
+  pizza:{name:'Kotak pizza & arsip',build:mPizza,print:'Teks di tutup atas'},
   mailer:{name:'Mailer kiriman',build:mMailer,print:'Teks di tutup'},
+  pillow:{name:'Kotak bantal',build:mPillow,glue:true,print:'Teks di sisi depan'},
+  gable:{name:'Kotak jinjing',build:mGable,glue:true,extra:'Tinggi atap',print:'Teks di sisi depan',defX:s=>Math.round(s.W*0.65)},
   lidbase:{name:'Tutup–alas lipat',build:mLidBase,extra:'Tinggi tutup',print:'Teks di tutup',defX:s=>Math.max(10,Math.round(s.D*0.35))},
   drawer:{name:'Laci lipat',build:mDrawer,glue:true,print:'Teks di atas sleeve'},
   hex:{name:'Hexagonal',build:mHex,glue:true,hex:true,print:'Teks di sisi depan'},
@@ -1798,7 +1985,7 @@ const MODELS={
   hb_drawer:{name:'Laci',build:hbDrawer,hb:true,print:'Teks di atas sleeve'},
   hb_shoulder:{name:'Box leher',build:hbShoulder,hb:true,extra:'Tinggi tutup (luar)',print:'Teks di tutup',defX:s=>Math.round((s.D+2*s.T)*0.4)}
 };
-const ORDER_A=['rte','ste','tray','mailer','lidbase','drawer','hex','import'], ORDER_B=['hb_lid','hb_book','hb_drawer','hb_shoulder'];
+const ORDER_A=['rte','ste','autolock','tray','pizza','mailer','pillow','gable','lidbase','drawer','hex','import'], ORDER_B=['hb_lid','hb_book','hb_drawer','hb_shoulder'];
 
 /* Shift to the origin, turn {u}/{v} hinges into point pairs */
 function finalize(m){
@@ -2148,6 +2335,7 @@ function dimsText(s){
   if(s.model==='hex') return `lebar ${nf(s.L)} × tinggi ${nf(s.D)} mm`;
   let t=`${nf(s.L)} × ${nf(s.W)} × ${nf(s.D)} mm (P × L × T)`;
   if(s.model==='lidbase') t+=`, tutup ${nf(clamp(s.X,5,s.D+20))} mm`;
+  if(s.model==='gable') t+=`, atap ${nf(s.X)} mm`;
   if(s.model==='hb_lid'||s.model==='hb_shoulder') t+=`, tutup ${nf(s.X)} mm`;
   if(s.model==='hb_book') t+=`, flap ${nf(s.X)} mm`;
   return t;
@@ -3205,7 +3393,7 @@ const isHB=()=>!!MODELS[state.model].hb;
 
 function demoSVG(k){
   if(k==='import') return `<svg viewBox="0 0 58 36" aria-hidden="true"><path d="M29 6v16M22 15l7 7 7-7M16 28h26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const m=finalize(MODELS[k].build({model:k,L:k==='hex'?60:90,W:60,D:40,X:k==='hb_book'?35:18,T:k.startsWith('hb_')?2:0.4,glue:14,TI:15,HBM:'v'}));
+  const m=finalize(MODELS[k].build({model:k,L:k==='hex'?60:90,W:60,D:40,X:k==='hb_book'?35:k==='gable'?40:18,T:k.startsWith('hb_')?2:0.4,glue:14,TI:15,HBM:'v'}));
   const P=m.nodes.filter(n=>!n.invisible).map(n=>polyD(n.poly)).join(''), M=Math.max(m.w,m.h);
   return `<svg viewBox="${f2(-M*0.04)} ${f2(-M*0.04)} ${f2(m.w+M*0.08)} ${f2(m.h+M*0.08)}" aria-hidden="true"><path d="${P}" fill="none" stroke="currentColor" stroke-width="${f2(M/45)}" stroke-linejoin="round"/></svg>`;
 }
@@ -5098,7 +5286,12 @@ $('#heroSheets').innerHTML=heroModel.parts.map((p,i)=>{
 
 /* Model index: every row opens the studio on that model */
 const DESC={rte:'Tutup atas dan bawah berlawanan arah. Untuk kosmetik dan obat.',ste:'Kedua tutup di panel belakang, sisi depan bersih untuk rak.',
-  tray:'Baki terbuka dengan lem di sudut. Untuk kue dan pakaian.',mailer:'Box kiriman tanpa lem. Dinding samping digulung lalu dikunci.',
+  autolock:'Alas mengunci otomatis saat dibuka (1-2-3 bottom / crash lock). Standar kosmetik & obat.',
+  tray:'Baki terbuka dengan lem di sudut. Untuk kue dan pakaian.',
+  pizza:'Kotak pengiriman lipat dengan lidah samping pengunci ganda (FEFCO 0427).',
+  mailer:'Box kiriman tanpa lem. Dinding samping digulung lalu dikunci.',
+  pillow:'Bentuk bantal melengkung elegan untuk fashion, hijab, perhiasan, dan suvenir.',
+  gable:'Kotak jinjing dengan pegangan tenteng di atas. Untuk hampers, bakery, dan kue.',
   lidbase:'Tutup dan alas dari karton lipat.',drawer:'Sleeve dan laci dari karton lipat.',hex:'Enam sisi, alas dilem, tutup berlidah.',
   import:'Buka pola dari file SVG atau DXF.',hb_lid:'Tutup setengah atau penuh. Paling sering untuk hampers.',hb_book:'Membuka seperti buku, ditahan magnet.',
   hb_drawer:'Laci geser di dalam sleeve, dengan pita tarikan.',hb_shoulder:'Leher di dalam, tutup menutup rata dengan alas.'};
