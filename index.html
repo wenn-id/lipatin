@@ -963,6 +963,8 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
                   <button type="button" class="fin-btn" data-fin="standard" aria-pressed="true">Standar</button>
                   <button type="button" class="fin-btn" data-fin="gold" aria-pressed="false">✨ Poli Emas</button>
                   <button type="button" class="fin-btn" data-fin="silver" aria-pressed="false">🪙 Poli Perak</button>
+                  <button type="button" class="fin-btn" data-fin="rosegold" aria-pressed="false">🌸 Rose Gold</button>
+                  <button type="button" class="fin-btn" data-fin="holo" aria-pressed="false">🌈 Foil Pelangi</button>
                   <button type="button" class="fin-btn" data-fin="spotuv" aria-pressed="false">💧 Spot UV</button>
                   <button type="button" class="fin-btn" data-fin="emboss" aria-pressed="false">🏔️ Emboss</button>
                 </div>
@@ -1029,6 +1031,8 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
                     <option value="standard">Standar (Tanpa Efek)</option>
                     <option value="gold">✨ Poli Emas (Gold Foil)</option>
                     <option value="silver">🪙 Poli Perak (Silver Foil)</option>
+                    <option value="rosegold">🌸 Rose Gold (Copper Foil)</option>
+                    <option value="holo">🌈 Foil Pelangi (Holographic Foil)</option>
                     <option value="spotuv">💧 Spot UV (Gloss Kilap)</option>
                     <option value="emboss">🏔️ Emboss (Timbul 3D)</option>
                   </select>
@@ -1072,7 +1076,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
               <button type="button" id="tab3d" aria-pressed="false" aria-controls="view3d">Pratinjau 3D</button>
               <button type="button" id="tabPlano" aria-pressed="false" aria-controls="viewPlano">Plano &amp; biaya</button>
             </div>
-            <div class="legend"><span><i class="lg-cut"></i>Potong</span><span id="lgFold"><i class="lg-fold"></i><span id="lgFoldTxt">Lipat</span></span><span id="lgGuide" hidden><i class="lg-guide"></i>Posisi board</span><span id="lgBleed"><i class="lg-bleed"></i>Bleed</span></div>
+            <div class="legend"><span><i class="lg-cut"></i>Potong</span><span id="lgFold"><i class="lg-fold"></i><span id="lgFoldTxt">Lipat</span></span><span id="lgGuide" hidden><i class="lg-guide"></i>Posisi board</span><span id="lgBleed"><i class="lg-bleed"></i>Bleed</span><button type="button" class="btn btn-outline btn-sm" id="btnMaskView" style="margin-left:auto;padding:2px 8px;font-size:var(--t-micro);min-height:24px" title="Tampilkan mask khusus klise foil / spot UV">👁️ Mask Finishing</button></div>
           </div>
           <div class="partbar" id="partBar" role="group" aria-label="Bagian pola" hidden></div>
           <div class="canvas" id="view2d"></div>
@@ -1093,6 +1097,13 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
               <button type="button" data-cam="in" title="Perbesar">Zoom +</button>
               <button type="button" data-cam="out" title="Perkecil">Zoom −</button>
               <button type="button" data-cam="reset" title="Reset Kamera">Reset</button>
+              <span style="width:1px;height:18px;background:var(--line);margin:0 2px;align-self:center"></span>
+              <select id="selLighting" title="Suasana Pencahayaan Studio" style="background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--border-control);border-radius:var(--r);padding:4px 8px;font-size:var(--t-micro);color:var(--ink);cursor:pointer;min-height:32px">
+                <option value="softbox" selected>💡 Studio Softbox</option>
+                <option value="warm">☀️ Warm Sunlight</option>
+                <option value="moody">🌙 Moody Film</option>
+                <option value="highkey">⚪ Clean High-Key</option>
+              </select>
             </div>
             <div id="recBadge" class="rec-badge" hidden style="position:absolute;top:76px;left:50%;transform:translateX(-50%);background:rgba(18,24,20,0.92);color:#ffffff;padding:8px 16px;border-radius:24px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.3);z-index:20;backdrop-filter:blur(8px)">
               <span class="rec-dot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1s infinite"></span>
@@ -1176,6 +1187,7 @@ notes: 2 referensi, inner busa eva dan ivory</pre>
             <button type="button" class="btn btn-ink btn-sm" id="btnDl" hidden>Unduh SVG</button>
             <button type="button" class="btn btn-line btn-sm" id="btnAi" hidden>Unduh PDF untuk Illustrator</button>
             <button type="button" class="btn btn-line btn-sm" id="btnCopy">Salin kode SVG</button>
+            <button type="button" class="btn btn-line btn-sm" id="btnMaskDl" hidden title="Unduh file mask klise untuk film/plat foil & spot UV">Unduh Mask Klise (SVG)</button>
             <button type="button" class="btn btn-ink btn-sm" id="btnGlb" hidden title="Unduh model 3D (.glb) mandiri lengkap dengan tekstur">📦 Unduh 3D (.glb)</button>
             <button type="button" class="btn btn-line btn-sm" id="btnSnap" hidden title="Render gambar mockup tajam resolusi tinggi">📸 Render Mockup (PNG)</button>
             <button type="button" class="btn btn-line btn-sm" id="btnRec" hidden title="Rekam video animasi kemasan 360° atau lipatan">🎬 Rekam Video</button>
@@ -1398,10 +1410,11 @@ const MATS=[
   {g:'Karton tebal (greyboard)', hint:'Untuk hardbox dan laci yang dilapis kertas cetak. Lipatannya perlu alur V-groove, bukan creasing biasa, jadi konsultasikan dulu dengan percetakan.', glue:20, items:[['gb10','Greyboard 1 mm',1.0],['gb15','Greyboard 1,5 mm',1.5],['gb20','Greyboard 2 mm',2.0],['gb25','Greyboard 2,5 mm',2.5],['gb30','Greyboard 3 mm',3.0]]},
   {g:'Kardus single wall', hint:'Flute F dan E nyaman untuk mailer, tuck end, dan tray. Flute B ke atas lebih umum dibuat model kotak karton standar (RSC). Lidah lem kardus biasanya 30 sampai 40 mm.', glue:30, items:[['fluteF','Kardus F-flute',0.8],['fluteE','Kardus E-flute',1.5],['fluteB','Kardus B-flute',3.0],['fluteC','Kardus C-flute',4.0],['fluteA','Kardus A-flute',5.0]]},
   {g:'Kardus double & triple wall', hint:'Untuk kiriman berat dan barang pecah belah. Pola dari Lipatin bisa jadi acuan ukuran, tapi lipatan kardus setebal ini perlu toleransi tambahan dari pabrik kardus.', glue:40, items:[['dwEB','Double wall EB',4.5],['dwBC','Double wall BC',7.0],['twAAC','Triple wall AAC',15.0]]},
+  {g:'Kertas mutiara & metalik', hint:'Permukaan bertekstur mutiara atau metalik mengilap, memberikan kesan mewah untuk kemasan kosmetik, skincare, dan kartu premium.', glue:15, items:[['pearl250','Pearl White 250 gsm',0.32],['pearl300','Pearl Gold 300 gsm',0.38],['silver250','Metallic Silver 250 gsm',0.32]]},
 ];
 const MAT={}; MATS.forEach(gr=>gr.items.forEach(([id,name,t])=>MAT[id]={id,name,t,group:gr}));
 
-const state={model:'rte',L:90,W:60,D:30,X:30,Xs:{},T:0.42,mat:'iv310',glue:15,bleed:true,color:'#C89F72',inner:'#F4F1EC',label:'SEREH',finish:'standard',view:'2d',imp:null,impScale:'auto',impRealW:0,TI:15,HBM:'v',part:'board',artworks:[],activeArtId:null};
+const state={model:'rte',L:90,W:60,D:30,X:30,Xs:{},T:0.42,mat:'iv310',glue:15,bleed:true,color:'#C89F72',inner:'#F4F1EC',label:'SEREH',finish:'standard',lighting:'softbox',showMask:false,view:'2d',imp:null,impScale:'auto',impRealW:0,TI:15,HBM:'v',part:'board',artworks:[],activeArtId:null};
 
 /* ---------- Geometry helpers ---------- */
 function arc(cx,cy,r,a0,a1,n=6){const o=[];for(let k=0;k<=n;k++){const a=(a0+(a1-a0)*k/n)*Math.PI/180;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;}
@@ -1904,13 +1917,22 @@ function frameSVG(w,h,inner,label,opt={}){
 }
 function renderArtworksSVG(artworks, activeId, ox=0, oy=0){
   if(!artworks || !artworks.length) return '';
-  return '<g id="dielineArtworks">' + artworks.filter(a=>a.visible&&a.dataUrl).map(a=>{
+  const isMask = state.showMask;
+  const defs = isMask ? `<defs><filter id="artMaskBlack" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter></defs>` : '';
+  const arts = artworks.filter(a=>a.visible&&a.dataUrl).map(a=>{
     const cx = a.x + a.w/2 + ox, cy = a.y + a.h/2 + oy;
     const isAct = a.id === activeId;
-    return `<g class="art-layer${isAct?' active':''}" data-id="${a.id}" transform="translate(${f2(cx)} ${f2(cy)}) rotate(${f2(a.rot)}) translate(${f2(-a.w/2)} ${f2(-a.h/2)})" opacity="${a.opacity!=null?a.opacity:1}">
-      <image href="${a.dataUrl}" x="0" y="0" width="${f2(a.w)}" height="${f2(a.h)}" preserveAspectRatio="none" style="cursor:move;pointer-events:all;"/>
+    const artFin = (a.finish === 'inherit' || !a.finish) ? state.finish : a.finish;
+    const hasFin = artFin && artFin !== 'standard';
+    if(isMask && !hasFin) return '';
+    const fAttr = (isMask && hasFin) ? ' filter="url(#artMaskBlack)"' : '';
+    const badge = (isMask && hasFin) ? `<text x="${f2(a.w/2)}" y="-5" font-family="'IBM Plex Mono', monospace" font-size="8" fill="#ec4899" text-anchor="middle" font-weight="600">[${esc(artFin.toUpperCase())}]</text>` : '';
+    return `<g class="art-layer${isAct?' active':''}" data-id="${a.id}" transform="translate(${f2(cx)} ${f2(cy)}) rotate(${f2(a.rot)}) translate(${f2(-a.w/2)} ${f2(-a.h/2)})" opacity="${isMask?1:(a.opacity!=null?a.opacity:1)}">
+      <image href="${a.dataUrl}" x="0" y="0" width="${f2(a.w)}" height="${f2(a.h)}" preserveAspectRatio="none" style="cursor:move;pointer-events:all;"${fAttr}/>
+      ${badge}
     </g>`;
-  }).join('') + '</g>';
+  }).filter(Boolean).join('');
+  return defs + '<g id="dielineArtworks">' + arts + '</g>';
 }
 
 function renderArtControlsSVG(artworks, activeId, ox=0, oy=0){
@@ -1933,6 +1955,19 @@ function renderArtControlsSVG(artworks, activeId, ox=0, oy=0){
 function itemInner(g,ox,oy,sw,o){
   const allP=g.polys.map(p=>polyD(p.pts,ox,oy)).join(''), glueP=g.polys.filter(p=>p.glue).map(p=>polyD(p.pts,ox,oy)).join(''), holes=g.holes.map(h=>polyD(h,ox,oy)).join('');
   const vg=o.line==='vgroove';
+  const isMask = state.showMask;
+
+  if(isMask){
+    return `<path d="${allP}" fill="#ffffff"/>
+      ${renderArtworksSVG(state.artworks, state.activeArtId, ox, oy)}
+      ${holes?`<path d="${holes}" fill="#f1f5f9"/>`:''}
+      ${g.guides.length?`<path d="${segD(g.guides,ox,oy)}" fill="none" stroke="#e2e8f0" stroke-width="${f2(sw*0.5)}" stroke-dasharray="1 1"/>`:''}
+      ${g.folds.length?`<path d="${segD(g.folds,ox,oy)}" fill="none" stroke="#cbd5e1" stroke-width="${f2(sw*0.7)}" stroke-dasharray="2 1"/>`:''}
+      <path d="${segD(g.cuts,ox,oy)}${holes}" fill="none" stroke="#94a3b8" stroke-width="${f2(sw*0.8)}"/>
+      <g fill="#94a3b8" font-family="IBM Plex Mono, monospace" text-anchor="middle" dominant-baseline="middle" opacity="0.6">${g.labels.map(([x,y,t,rot,fs])=>{x+=ox;y+=oy;return `<text x="${f2(x)}" y="${f2(y)}" font-size="${f2(fs*0.8)}"${rot?` transform="rotate(-90 ${f2(x)} ${f2(y)})"`:''}>${t}</text>`;}).join('')}</g>
+      ${renderArtControlsSVG(state.artworks, state.activeArtId, ox, oy)}`;
+  }
+
   return `${o.bleed?`<path d="${allP}" fill="none" stroke="var(--bleed)" stroke-opacity=".28" stroke-width="6" stroke-linejoin="round"/>`:''}
     <path d="${allP}" fill="var(--sheet)"/>
     ${renderArtworksSVG(state.artworks, state.activeArtId, ox, oy)}
@@ -1983,6 +2018,76 @@ function partLines(part,s){
   const holes=items.flatMap(it=>it.g.holes.map(h=>h.map(([x,y])=>[x+it.ox,y+it.oy])));
   return {b,W:part.w+2*b,H:part.h+2*b,cuts:segs('cuts'),holes,folds:segs('folds'),guides:segs('guides'),bleed:bleedOutline(items,b),vg:part.line==='vgroove'};
 }
+function exportFinishingMaskSVG(m,part,s){
+  const items=part.items, L=partLines(part,s), b=L.b, W=L.W, H=L.H;
+  const cuts=segD(L.cuts)+L.holes.map(h=>polyD(h)).join('');
+  const folds=segD(L.folds);
+  const name=MODELS[s.model].name;
+  const fin=s.finish||'standard';
+
+  const finArtworks=(s.artworks||[]).filter(a=>{
+    if(!a.visible||!a.dataUrl) return false;
+    const ef=(a.finish==='inherit'||!a.finish)?fin:a.finish;
+    return ef&&ef!=='standard';
+  });
+  const textHasFin=fin!=='standard'&&(s.label||'').trim();
+
+  const filterDef=`  <defs>
+    <filter id="maskSolidBlack" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    </filter>
+  </defs>`;
+
+  const foilArts=[], spotArts=[], embossArts=[];
+  finArtworks.forEach(a=>{
+    const ef=(a.finish==='inherit'||!a.finish)?fin:a.finish;
+    const cx=a.x+a.w/2, cy=a.y+a.h/2;
+    const el=`    <g transform="translate(${f2(cx)} ${f2(cy)}) rotate(${f2(a.rot)}) translate(${f2(-a.w/2)} ${f2(-a.h/2)})">
+      <image href="${a.dataUrl}" x="0" y="0" width="${f2(a.w)}" height="${f2(a.h)}" preserveAspectRatio="none" filter="url(#maskSolidBlack)"/>
+    </g>`;
+    if(ef==='spotuv') spotArts.push(el);
+    else if(ef==='emboss') embossArts.push(el);
+    else foilArts.push(el);
+  });
+
+  const foilTexts=[], spotTexts=[], embossTexts=[];
+  if(textHasFin&&m.print){
+    const txt=s.label.trim();
+    m.print.forEach(L_pr=>{
+      const side=L_pr.rot%180===0, bw=side?L_pr.w:L_pr.h, bh=side?L_pr.h:L_pr.w;
+      const fs=Math.max(3,Math.min(bw*0.8/(Math.max(3,txt.length)*0.74),bh*0.28));
+      const tel=`    <g transform="translate(${f2(L_pr.x+L_pr.w/2)} ${f2(L_pr.y+L_pr.h/2)}) rotate(${f2(L_pr.rot)}) scale(-1 1)">
+      <text x="0" y="0" font-family="Newsreader, Georgia, serif" font-weight="500" font-size="${f2(fs)}" text-anchor="middle" dominant-baseline="middle" fill="#000000">${esc(txt)}</text>
+      <rect x="${f2(-bw*0.16)}" y="${f2(fs*0.72)}" width="${f2(bw*0.32)}" height="${f2(Math.max(0.35,fs*0.05))}" fill="#000000"/>
+    </g>`;
+      if(fin==='spotuv') spotTexts.push(tel);
+      else if(fin==='emboss') embossTexts.push(tel);
+      else foilTexts.push(tel);
+    });
+  }
+
+  const layers=[];
+  if(foilArts.length||foilTexts.length){
+    layers.push(`  <!-- Layer Klise Foil / Hot Stamping -->\n  <g id="Mask_Foil" fill="#000000">\n${foilTexts.join('\n')}\n${foilArts.join('\n')}\n  </g>`);
+  }
+  if(spotArts.length||spotTexts.length){
+    layers.push(`  <!-- Layer Plat/Film Spot UV -->\n  <g id="Mask_SpotUV" fill="#000000">\n${spotTexts.join('\n')}\n${spotArts.join('\n')}\n  </g>`);
+  }
+  if(embossArts.length||embossTexts.length){
+    layers.push(`  <!-- Layer Klise Emboss / Deboss -->\n  <g id="Mask_Emboss" fill="#000000">\n${embossTexts.join('\n')}\n${embossArts.join('\n')}\n  </g>`);
+  }
+
+  const guide=`  <!-- Garis Panduan Register (Hairline - Tidak untuk cetak plat) -->\n  <g id="DielineGuide_Registration" fill="none" stroke="#888888" stroke-width="0.15" stroke-dasharray="2 1" opacity="0.65">\n    <path d="${cuts}"/>\n${folds?`    <path d="${folds}"/>\n`:''}  </g>`;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${f2(W)}mm" height="${f2(H)}mm" viewBox="${f2(-b)} ${f2(-b)} ${f2(W)} ${f2(H)}">
+  <title>Lipatin - MASK KLISE PREPRESS - ${esc(name)} - ${esc(dimsText(s))}</title>
+${filterDef}
+${guide}
+${layers.join('\n\n')}
+</svg>`;
+}
+
 function exportSVG(m,part,s){
   const items=part.items, hb=!!m.hb, L=partLines(part,s), b=L.b, W=L.W, H=L.H;
   const allP=items.map(it=>it.g.polys.map(p=>polyD(p.pts,it.ox,it.oy)).join('')).join('');
@@ -2091,7 +2196,8 @@ const SAMPLE_LOGO_DATA = 'data:image/svg+xml;utf8,' + encodeURIComponent(SAMPLE_
 /* ---------- WebGL folding preview ---------- */
 const LOOK={'Kertas tipis':{inner:'#F5F4F0',rough:.5},'Art carton':{inner:'#F3F2EE',rough:.38},'Ivory':{inner:'#F2F0E9',rough:.55},
   'Duplex':{inner:'#B3B0A8',rough:.62},'Kraft':{inner:'#B98D5F',rough:.88,kraft:true},'Karton tebal (greyboard)':{inner:'#8E8A82',rough:.9},
-  'Kardus single wall':{inner:'#BF9465',rough:.9,flute:true,kraft:true},'Kardus double & triple wall':{inner:'#BF9465',rough:.9,flute:true,kraft:true}};
+  'Kardus single wall':{inner:'#BF9465',rough:.9,flute:true,kraft:true},'Kardus double & triple wall':{inner:'#BF9465',rough:.9,flute:true,kraft:true},
+  'Kertas mutiara & metalik':{inner:'#FAF8F4',rough:.32,metal:.38,pearl:true}};
 const matLook=s=>{ const m=MAT[s.mat]; return (m&&LOOK[m.group.g])||{inner:'#ECE9E2',rough:.7}; };
 function lum(hex){ const n=parseInt(hex.slice(1),16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return (0.299*r+0.587*g+0.114*b)/255; }
 
@@ -2144,12 +2250,41 @@ function createViewer(opt={}){
   const envMap=makeStudioEnv(renderer);
   if(envMap) scene.environment=envMap;
   const camera=new THREE.PerspectiveCamera(30,1,1,20000);
-  scene.add(new THREE.HemisphereLight(0xffffff,0x9a958c,0.6));
+  const hemi=new THREE.HemisphereLight(0xffffff,0x9a958c,0.6); scene.add(hemi);
   const sun=new THREE.DirectionalLight(0xffffff,0.78); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-0.0004; sun.shadow.normalBias=0.02;
   scene.add(sun,sun.target);
   const fill=new THREE.DirectionalLight(0xffffff,0.28); scene.add(fill);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShadowMaterial({opacity:0.17}));
   ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+  let currentPreset = 'softbox';
+  function applyLightingPreset(preset){
+    currentPreset = preset || 'softbox';
+    if(currentPreset === 'warm'){
+      hemi.color.setHex(0xfff0df); hemi.groundColor.setHex(0x8c7055); hemi.intensity = 0.58;
+      sun.color.setHex(0xfff3db); sun.intensity = 0.96;
+      fill.color.setHex(0xdfe8f7); fill.intensity = 0.24;
+      ground.material.opacity = 0.24;
+      if(renderer.toneMapping) renderer.toneMappingExposure = (opt.exposure || 1.05) * 1.02;
+    } else if(currentPreset === 'moody'){
+      hemi.color.setHex(0x424f63); hemi.groundColor.setHex(0x181c22); hemi.intensity = 0.38;
+      sun.color.setHex(0xf5f7fa); sun.intensity = 0.88;
+      fill.color.setHex(0x324357); fill.intensity = 0.18;
+      ground.material.opacity = 0.32;
+      if(renderer.toneMapping) renderer.toneMappingExposure = (opt.exposure || 1.05) * 0.88;
+    } else if(currentPreset === 'highkey'){
+      hemi.color.setHex(0xffffff); hemi.groundColor.setHex(0xe8e8e8); hemi.intensity = 0.88;
+      sun.color.setHex(0xffffff); sun.intensity = 0.72;
+      fill.color.setHex(0xffffff); fill.intensity = 0.52;
+      ground.material.opacity = 0.11;
+      if(renderer.toneMapping) renderer.toneMappingExposure = (opt.exposure || 1.05) * 1.08;
+    } else {
+      hemi.color.setHex(0xffffff); hemi.groundColor.setHex(0x9a958c); hemi.intensity = 0.65;
+      sun.color.setHex(0xffffff); sun.intensity = 0.80;
+      fill.color.setHex(0xf4f7fa); fill.intensity = 0.30;
+      ground.material.opacity = 0.17;
+      if(renderer.toneMapping) renderer.toneMappingExposure = opt.exposure || 1.05;
+    }
+  }
   const holder=new THREE.Group(); scene.add(holder);
   /* panel outlines: a flat white sheet facing the light has no shading left, so its edges carry the shape */
   const lineMat=opt.edges?new THREE.LineBasicMaterial({color:0x2a332d,transparent:true,opacity:.42}):null;
@@ -2161,6 +2296,38 @@ function createViewer(opt={}){
   let activeTexs=null, outerMat=null, curMRef=null, curSRef=null, curLookRef=null;
   let lidOpen=0, lidAnim=null, lidCb=null, autoSpin=false, spinCb=null, camAnim=null;
 
+  function makeHoloGrad(ctx, x, y, w, h, angle = 45){
+    const rad = angle * Math.PI / 180;
+    const len = Math.hypot(w, h);
+    const cx = x + w / 2, cy = y + h / 2;
+    const x0 = cx - Math.cos(rad) * len / 2, y0 = cy - Math.sin(rad) * len / 2;
+    const x1 = cx + Math.cos(rad) * len / 2, y1 = cy + Math.sin(rad) * len / 2;
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0.00, '#ff70a6');
+    g.addColorStop(0.16, '#ff9770');
+    g.addColorStop(0.33, '#ffd670');
+    g.addColorStop(0.50, '#e9ff70');
+    g.addColorStop(0.66, '#70d6ff');
+    g.addColorStop(0.83, '#a070ff');
+    g.addColorStop(1.00, '#ff70d6');
+    return g;
+  }
+
+  function makeRoseGoldGrad(ctx, x, y, w, h, angle = 45){
+    const rad = angle * Math.PI / 180;
+    const len = Math.hypot(w, h);
+    const cx = x + w / 2, cy = y + h / 2;
+    const x0 = cx - Math.cos(rad) * len / 2, y0 = cy - Math.sin(rad) * len / 2;
+    const x1 = cx + Math.cos(rad) * len / 2, y1 = cy + Math.sin(rad) * len / 2;
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0.0, '#ECC0B5');
+    g.addColorStop(0.25, '#DDA392');
+    g.addColorStop(0.5, '#F9DCD5');
+    g.addColorStop(0.75, '#CE8876');
+    g.addColorStop(1.0, '#EBB8AB');
+    return g;
+  }
+
   function drawImgMask(ctx, img, x, y, w, h, color){
     try {
       const mw = Math.min(1024, Math.max(32, Math.round(w * 4)));
@@ -2169,7 +2336,7 @@ function createViewer(opt={}){
       const mctx = mc.getContext('2d');
       mctx.drawImage(img, 0, 0, mw, mh);
       mctx.globalCompositeOperation = 'source-in';
-      mctx.fillStyle = color;
+      mctx.fillStyle = typeof color === 'function' ? color(mctx, mw, mh) : color;
       mctx.fillRect(0, 0, mw, mh);
       ctx.drawImage(mc, x, y, w, h);
     } catch(e) {
@@ -2219,13 +2386,35 @@ function createViewer(opt={}){
       xRough.fillStyle=`rgb(${rb},${rb},${rb})`; xRough.fillRect(0,0,W,H);
 
       // Base metalness
-      xMetal.fillStyle='#000000'; xMetal.fillRect(0,0,W,H);
+      const baseMetal=curLook&&curLook.metal!=null?curLook.metal:0;
+      const mb=Math.round(Math.min(1,Math.max(0,baseMetal))*255);
+      xMetal.fillStyle=`rgb(${mb},${mb},${mb})`; xMetal.fillRect(0,0,W,H);
 
       // Base bump
       xBump.fillStyle='#808080'; xBump.fillRect(0,0,W,H);
 
+      // Pearlescent & metallic paper micro-shimmer
+      if(curLook && curLook.pearl){
+        xCol.save();
+        const nFlakes = Math.floor(W * H * 0.04);
+        for(let i = 0; i < nFlakes; i++){
+          const fx = Math.random() * W, fy = Math.random() * H, fr = 0.4 + Math.random() * 0.8;
+          xCol.fillStyle = Math.random() > 0.4 ? 'rgba(255,255,255,0.18)' : 'rgba(235,220,190,0.12)';
+          xCol.beginPath(); xCol.arc(fx, fy, fr, 0, Math.PI * 2); xCol.fill();
+        }
+        xCol.restore();
+
+        xRough.save();
+        for(let i = 0; i < nFlakes * 0.5; i++){
+          const fx = Math.random() * W, fy = Math.random() * H, fr = 0.4 + Math.random() * 0.8;
+          xRough.fillStyle = Math.random() > 0.5 ? 'rgba(30,30,30,0.25)' : 'rgba(180,180,180,0.2)';
+          xRough.beginPath(); xRough.arc(fx, fy, fr, 0, Math.PI * 2); xRough.fill();
+        }
+        xRough.restore();
+      }
+
       const txt=(curS.label||'').trim(), fin=curS.finish||'standard';
-      currentBumpScale = fin==='emboss'?0.08:fin==='spotuv'?0.03:(fin==='gold'||fin==='silver')?-0.02:0.01;
+      currentBumpScale = fin==='emboss'?0.08:fin==='spotuv'?0.03:(fin==='gold'||fin==='silver'||fin==='rosegold'||fin==='holo')?-0.02:0.01;
 
       // Draw text label on m.print
       if(txt && curM.print) curM.print.forEach(L=>{
@@ -2243,6 +2432,10 @@ function createViewer(opt={}){
           drawText(xCol,'#E5B85C'); drawText(xMetal,'#ffffff'); drawText(xRough,'#282828'); drawText(xBump,'#6c6c6c');
         } else if(fin==='silver'){
           drawText(xCol,'#E8EBF0'); drawText(xMetal,'#ffffff'); drawText(xRough,'#202020'); drawText(xBump,'#6c6c6c');
+        } else if(fin==='rosegold'){
+          drawText(xCol,makeRoseGoldGrad(xCol,L.x,L.y,L.w,L.h)); drawText(xMetal,'#ffffff'); drawText(xRough,'#222222'); drawText(xBump,'#6c6c6c');
+        } else if(fin==='holo'){
+          drawText(xCol,makeHoloGrad(xCol,L.x,L.y,L.w,L.h)); drawText(xMetal,'#ffffff'); drawText(xRough,'#181818'); drawText(xBump,'#6c6c6c');
         } else if(fin==='spotuv'){
           const isB=lum(curS.color)>0.55;
           drawText(xCol,isB?'rgba(10,14,18,0.92)':'rgba(255,255,255,0.95)'); drawText(xMetal,'#000000'); drawText(xRough,'#0a0a0a'); drawText(xBump,'#a8a8a8');
@@ -2270,18 +2463,24 @@ function createViewer(opt={}){
           drawImgMask(xCol, art.img, -art.w/2, -art.h/2, art.w, art.h, '#E5B85C');
         } else if(artFin === 'silver'){
           drawImgMask(xCol, art.img, -art.w/2, -art.h/2, art.w, art.h, '#E8EBF0');
+        } else if(artFin === 'rosegold'){
+          drawImgMask(xCol, art.img, -art.w/2, -art.h/2, art.w, art.h, (mctx, mw, mh) => makeRoseGoldGrad(mctx, 0, 0, mw, mh));
+        } else if(artFin === 'holo'){
+          drawImgMask(xCol, art.img, -art.w/2, -art.h/2, art.w, art.h, (mctx, mw, mh) => makeHoloGrad(mctx, 0, 0, mw, mh));
         } else {
           try { xCol.drawImage(art.img, -art.w/2, -art.h/2, art.w, art.h); } catch(e){}
         }
         xCol.restore();
 
-        if(artFin === 'gold' || artFin === 'silver'){
+        const isFoil = artFin === 'gold' || artFin === 'silver' || artFin === 'rosegold' || artFin === 'holo';
+        if(isFoil){
           xMetal.save(); xMetal.translate(cx, cy); xMetal.rotate(art.rot * Math.PI / 180); xMetal.scale(-1, 1);
           drawImgMask(xMetal, art.img, -art.w/2, -art.h/2, art.w, art.h, '#ffffff');
           xMetal.restore();
 
+          const rCol = artFin === 'holo' ? '#181818' : (artFin === 'rosegold' ? '#222222' : (artFin === 'gold' ? '#282828' : '#202020'));
           xRough.save(); xRough.translate(cx, cy); xRough.rotate(art.rot * Math.PI / 180); xRough.scale(-1, 1);
-          drawImgMask(xRough, art.img, -art.w/2, -art.h/2, art.w, art.h, artFin === 'gold' ? '#282828' : '#202020');
+          drawImgMask(xRough, art.img, -art.w/2, -art.h/2, art.w, art.h, rCol);
           xRough.restore();
 
           xBump.save(); xBump.translate(cx, cy); xBump.rotate(art.rot * Math.PI / 180); xBump.scale(-1, 1);
@@ -2565,6 +2764,8 @@ function createViewer(opt={}){
     zoomBy(k){ view.zoom=clamp(view.zoom*k,0.35,2.5); },
     resetView(){ view.az=AZ; view.el=EL; view.zoom=1; view.spin=0; autoSpin=false; if(spinCb) spinCb(false); },
     onFold(cb){ foldCb=cb; },
+    setLightingPreset(preset){ applyLightingPreset(preset); apply(false); },
+    getLightingPreset:()=>currentPreset,
     updateTextures(){
       if(!activeTexs || !outerMat || !curMRef || !curSRef) return;
       activeTexs.redraw(curMRef, curSRef, curLookRef);
@@ -3172,7 +3373,9 @@ swatchGroup('#swatches','color'); swatchGroup('#innerSw','inner');
 $('#finSw').addEventListener('click',e=>{
   const b=e.target.closest('.fin-btn'); if(!b) return;
   $$('#finSw .fin-btn').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
-  state.finish=b.dataset.fin; if(state.view!=='3d') setView('3d'); else render3d();
+  state.finish=b.dataset.fin;
+  if(state.showMask) render();
+  if(state.view!=='3d') setView('3d'); else render3d();
 });
 $('#form').addEventListener('submit',e=>e.preventDefault());
 
@@ -3197,7 +3400,7 @@ function updateArtUI(){
       <img src="${a.dataUrl}" class="art-thumb" alt="${esc(a.name)}">
       <div class="art-meta">
         <div class="art-name">${esc(a.name)}</div>
-        <div class="art-tag">${esc(a.panelLabel||'Panel')} · ${Math.round(a.w)}×${Math.round(a.h)} mm</div>
+        <div class="art-tag">${esc(a.panelLabel||'Panel')} · ${Math.round(a.w)}×${Math.round(a.h)} mm${(!a.finish||a.finish==='inherit')?'':` · <b>${a.finish.toUpperCase()}</b>`}</div>
       </div>
       <div class="art-actions">
         <button type="button" class="art-act-btn" data-act="vis" title="${a.visible?'Sembunyikan':'Tampilkan'}">${a.visible?'👁️':'👁️‍🗨️'}</button>
@@ -3646,6 +3849,8 @@ function setupArtInteractions(){
     if(!act) return;
     act.finish = e.target.value;
     if(V3) V3.updateTextures();
+    if(state.showMask) render();
+    updateArtUI();
   });
 }
 
@@ -3661,6 +3866,7 @@ function setView(v){
     $('#btnDl').hidden = v !== '2d';
     $('#btnAi').hidden = v !== '2d';
     $('#btnCopy').hidden = v !== '2d';
+    $('#btnMaskDl').hidden = v !== '2d';
     $('#btnGlb').hidden = v !== '3d';
     $('#btnSnap').hidden = v !== '3d';
     $('#btnRec').hidden = v !== '3d';
@@ -3756,7 +3962,7 @@ setTimeout(() => { if(!state.artworks.length) addSampleArtwork(); }, 100);
 
 /* Outside claude.ai (for example on GitHub Pages) there is no downloads capability: a plain link download does the job */
 const linkDownloads={save:async({filename,data})=>{ const blob= data instanceof Blob ? data : new Blob([data],{type:/\.svg$/.test(filename)?'image/svg+xml':'application/octet-stream'}); const u=URL.createObjectURL(blob), a=document.createElement('a'); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }};
-(async()=>{ try{ downloads=await window.claude?.use?.('downloads'); }catch(e){ downloads=null; } if(!downloads&&!window.claude) downloads=linkDownloads; if(downloads&&state.model!=='import'){ $('#btnDl').hidden=false; $('#btnAi').hidden=false; } })();
+(async()=>{ try{ downloads=await window.claude?.use?.('downloads'); }catch(e){ downloads=null; } if(!downloads&&!window.claude) downloads=linkDownloads; if(downloads&&state.model!=='import'){ $('#btnDl').hidden=false; $('#btnAi').hidden=false; $('#btnMaskDl').hidden=(state.view!=='2d'); } })();
 const fname3d=(ext='glb')=>`lipatin-${state.model}-${state.L}x${MODELS[state.model].hex?'hex':state.W}x${state.D}mm.${ext}`;
 
 async function saveGlb(){
@@ -3881,8 +4087,12 @@ async function saveBox(kind){
   if(!downloads||!current||!current.m) return;
   els.status.textContent='';
   if(state.bleed&&!window.ClipperLib){ try{ await loadClipper(); }catch(e){} }
-  const fn= kind==='ai' ? fname().replace(/\.svg$/,'-illustrator.pdf') : fname();
-  try{ await downloads.save({filename:fn,data: kind==='ai'?exportAI(current.m,current.part,state):exportSVG(current.m,current.part,state)}); els.status.textContent=`Tersimpan sebagai ${fn}`+(kind==='ai'?'. Buka di Illustrator: garis potong, lipat, dan bleed sudah jadi warna spot.':''); }
+  const fn= kind==='ai' ? fname().replace(/\.svg$/,'-illustrator.pdf') : (kind==='mask' ? fname().replace(/\.svg$/,'-mask-klise.svg') : fname());
+  try{
+    const fileData = kind==='ai' ? exportAI(current.m,current.part,state) : (kind==='mask' ? exportFinishingMaskSVG(current.m,current.part,state) : exportSVG(current.m,current.part,state));
+    await downloads.save({filename:fn,data: fileData});
+    els.status.textContent=`Tersimpan sebagai ${fn}`+(kind==='ai'?'. Buka di Illustrator: garis potong, lipat, dan bleed sudah jadi warna spot.':(kind==='mask'?'. File mask klise 1-bit siap dikirim ke percetakan untuk film/plat foil & spot UV.':''));
+  }
   catch(err){
     const c=err&&err.code;
     if(c==='declined') els.status.textContent='Unduhan dibatalkan.';
@@ -3892,6 +4102,19 @@ async function saveBox(kind){
 }
 $('#btnDl').addEventListener('click',()=>saveBox('svg'));
 $('#btnAi').addEventListener('click',()=>saveBox('ai'));
+$('#btnMaskDl')?.addEventListener('click',()=>saveBox('mask'));
+$('#btnMaskView')?.addEventListener('click',()=>{
+  state.showMask = !state.showMask;
+  $('#btnMaskView').setAttribute('aria-pressed', state.showMask ? 'true' : 'false');
+  $('#btnMaskView').textContent = state.showMask ? '🖤 Mask Finishing (ON)' : '👁️ Mask Finishing';
+  $('#btnMaskView').style.background = state.showMask ? 'var(--ink)' : '';
+  $('#btnMaskView').style.color = state.showMask ? 'var(--surface)' : '';
+  render();
+});
+$('#selLighting')?.addEventListener('change', e=>{
+  state.lighting = e.target.value;
+  if(V3) V3.setLightingPreset(e.target.value);
+});
 $('#btnCopy').addEventListener('click',()=>{
   if(!current||!current.m) return;
   const code=exportSVG(current.m,current.part,state);
